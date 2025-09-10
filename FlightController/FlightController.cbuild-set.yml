@@ -1,0 +1,5 @@
+cbuild-set:
+  generated-by: vscode-cmsis-csolution version 1.60.0
+  environment: {}
+  contexts:
+    - context: FlightController.Debug+STM32F411CEUx

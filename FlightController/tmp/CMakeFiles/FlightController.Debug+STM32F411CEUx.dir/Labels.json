@@ -1,0 +1,52 @@
+{
+	"sources" : 
+	[
+		{
+			"file" : "/home/colin-tormanen/Documents/Fall 2025/ECE 461/Source Code/FlightController/tmp/CMakeFiles/FlightController.Debug+STM32F411CEUx"
+		},
+		{
+			"file" : "/home/colin-tormanen/Documents/Fall 2025/ECE 461/Source Code/FlightController/tmp/CMakeFiles/FlightController.Debug+STM32F411CEUx.rule"
+		},
+		{
+			"file" : "/home/colin-tormanen/Documents/Fall 2025/ECE 461/Source Code/FlightController/tmp/CMakeFiles/FlightController.Debug+STM32F411CEUx-complete.rule"
+		},
+		{
+			"file" : "/home/colin-tormanen/Documents/Fall 2025/ECE 461/Source Code/FlightController/tmp/FlightController.Debug+STM32F411CEUx/src/FlightController.Debug+STM32F411CEUx-stamp/FlightController.Debug+STM32F411CEUx-build.rule"
+		},
+		{
+			"file" : "/home/colin-tormanen/Documents/Fall 2025/ECE 461/Source Code/FlightController/tmp/FlightController.Debug+STM32F411CEUx/src/FlightController.Debug+STM32F411CEUx-stamp/FlightController.Debug+STM32F411CEUx-configure.rule"
+		},
+		{
+			"file" : "/home/colin-tormanen/Documents/Fall 2025/ECE 461/Source Code/FlightController/tmp/FlightController.Debug+STM32F411CEUx/src/FlightController.Debug+STM32F411CEUx-stamp/FlightController.Debug+STM32F411CEUx-database.rule"
+		},
+		{
+			"file" : "/home/colin-tormanen/Documents/Fall 2025/ECE 461/Source Code/FlightController/tmp/FlightController.Debug+STM32F411CEUx/src/FlightController.Debug+STM32F411CEUx-stamp/FlightController.Debug+STM32F411CEUx-download.rule"
+		},
+		{
+			"file" : "/home/colin-tormanen/Documents/Fall 2025/ECE 461/Source Code/FlightController/tmp/FlightController.Debug+STM32F411CEUx/src/FlightController.Debug+STM32F411CEUx-stamp/FlightController.Debug+STM32F411CEUx-executes.rule"
+		},
+		{
+			"file" : "/home/colin-tormanen/Documents/Fall 2025/ECE 461/Source Code/FlightController/tmp/FlightController.Debug+STM32F411CEUx/src/FlightController.Debug+STM32F411CEUx-stamp/FlightController.Debug+STM32F411CEUx-install.rule"
+		},
+		{
+			"file" : "/home/colin-tormanen/Documents/Fall 2025/ECE 461/Source Code/FlightController/tmp/FlightController.Debug+STM32F411CEUx/src/FlightController.Debug+STM32F411CEUx-stamp/FlightController.Debug+STM32F411CEUx-mkdir.rule"
+		},
+		{
+			"file" : "/home/colin-tormanen/Documents/Fall 2025/ECE 461/Source Code/FlightController/tmp/FlightController.Debug+STM32F411CEUx/src/FlightController.Debug+STM32F411CEUx-stamp/FlightController.Debug+STM32F411CEUx-patch.rule"
+		},
+		{
+			"file" : "/home/colin-tormanen/Documents/Fall 2025/ECE 461/Source Code/FlightController/tmp/FlightController.Debug+STM32F411CEUx/src/FlightController.Debug+STM32F411CEUx-stamp/FlightController.Debug+STM32F411CEUx-test.rule"
+		},
+		{
+			"file" : "/home/colin-tormanen/Documents/Fall 2025/ECE 461/Source Code/FlightController/tmp/FlightController.Debug+STM32F411CEUx/src/FlightController.Debug+STM32F411CEUx-stamp/FlightController.Debug+STM32F411CEUx-update.rule"
+		}
+	],
+	"target" : 
+	{
+		"labels" : 
+		[
+			"FlightController.Debug+STM32F411CEUx"
+		],
+		"name" : "FlightController.Debug+STM32F411CEUx"
+	}
+}
