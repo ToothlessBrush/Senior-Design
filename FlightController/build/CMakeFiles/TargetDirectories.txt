@@ -1,5 +1,0 @@
-/home/john/dev/Senior-Design/FlightController/build/CMakeFiles/stm32f411_project.dir
-/home/john/dev/Senior-Design/FlightController/build/CMakeFiles/flash.dir
-/home/john/dev/Senior-Design/FlightController/build/CMakeFiles/flash_util.dir
-/home/john/dev/Senior-Design/FlightController/build/CMakeFiles/edit_cache.dir
-/home/john/dev/Senior-Design/FlightController/build/CMakeFiles/rebuild_cache.dir
