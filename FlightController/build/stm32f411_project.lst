@@ -1,0 +1,50 @@
+
+/home/john/dev/Senior-Design/FlightController/build/stm32f411_project:     file format elf32-littlearm
+
+SYMBOL TABLE:
+08000000 l    d  .isr_vector	00000000 .isr_vector
+08000000 l    d  .text	00000000 .text
+08000018 l    d  .rodata	00000000 .rodata
+20000000 l    d  .data	00000000 .data
+20000000 l    d  .bss	00000000 .bss
+20000000 l    d  ._user_heap_stack	00000000 ._user_heap_stack
+00000000 l    d  .ARM.attributes	00000000 .ARM.attributes
+00000000 l    df *ABS*	00000000 crti.o
+00000000 l    df *ABS*	00000000 crtn.o
+00000400 g       *ABS*	00000000 _Min_Stack_Size
+08000018 g       *ABS*	00000000 _sidata
+08000018 g       .rodata	00000000 __exidx_end
+08000018 g       .text	00000000 _etext
+20000000 g       .bss	00000000 _sbss
+20000000 g       .bss	00000000 __bss_start__
+20000000 g       .data	00000000 _sdata
+08000018 g       .rodata	00000000 __exidx_start
+08000000 g     F .text	00000000 _init
+20000000 g       .bss	00000000 _ebss
+00000000         *UND*	00000000 Reset_Handler
+20000000 g       ._user_heap_stack	00000000 end
+20000000 g       .bss	00000000 __bss_end__
+00000200 g       *ABS*	00000000 _Min_Heap_Size
+0800000c g     F .text	00000000 _fini
+20020000 g       ._user_heap_stack	00000000 _estack
+20000000 g       .data	00000000 _edata
+
+
+
+Disassembly of section .text:
+
+08000000 <_init>:
+ 8000000:	b5f8      	push	{r3, r4, r5, r6, r7, lr}
+ 8000002:	bf00      	nop
+ 8000004:	bcf8      	pop	{r3, r4, r5, r6, r7}
+ 8000006:	bc08      	pop	{r3}
+ 8000008:	469e      	mov	lr, r3
+ 800000a:	4770      	bx	lr
+
+0800000c <_fini>:
+ 800000c:	b5f8      	push	{r3, r4, r5, r6, r7, lr}
+ 800000e:	bf00      	nop
+ 8000010:	bcf8      	pop	{r3, r4, r5, r6, r7}
+ 8000012:	bc08      	pop	{r3}
+ 8000014:	469e      	mov	lr, r3
+ 8000016:	4770      	bx	lr

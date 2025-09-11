@@ -1,0 +1,1 @@
+/usr/bin/arm-none-eabi-gcc -fno-common -Og -g3 -T/home/john/dev/Senior-Design/FlightController/linker/STM32F411CEUx_FLASH.ld -mcpu=cortex-m4 -mthumb -mfpu=fpv4-sp-d16 -mfloat-abi=hard -specs=nano.specs -lc -lm -lnosys -Wl,-Map=stm32f411_project.map,--cref -Wl,--gc-sections -Wl,--print-memory-usage CMakeFiles/stm32f411_project.dir/src/main.c.obj -o stm32f411_project
