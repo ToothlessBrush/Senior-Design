@@ -1,3 +1,3 @@
-[submodule "FlightController/vendor/libopencm3"]
-	path = FlightController/vendor/libopencm3
-	url = https://github.com/libopencm3/libopencm3
+[submodule "FlightController/vendor/STM32CubeF4"]
+	path = FlightController/vendor/STM32CubeF4
+	url = https://github.com/STMicroelectronics/STM32CubeF4.git

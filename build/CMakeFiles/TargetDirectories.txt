@@ -1,0 +1,4 @@
+/home/john/dev/Senior-Design/build/CMakeFiles/f411.elf.dir
+/home/john/dev/Senior-Design/build/CMakeFiles/flash.dir
+/home/john/dev/Senior-Design/build/CMakeFiles/edit_cache.dir
+/home/john/dev/Senior-Design/build/CMakeFiles/rebuild_cache.dir

@@ -1,0 +1,1 @@
+/usr/bin/arm-none-eabi-gcc -mcpu=cortex-m4 -mfpu=fpv4-sp-d16 -mfloat-abi=hard -mthumb -Wl,--gc-sections -Wl,-T,/home/john/dev/Senior-Design/FlightController/cmake/stm32f411_min.ld -Wl,-Map,f411.map -nostartfiles CMakeFiles/f411.elf.dir/src/core.S.obj CMakeFiles/f411.elf.dir/src/main.c.obj -o f411.elf
