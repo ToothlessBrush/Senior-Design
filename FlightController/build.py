@@ -24,16 +24,47 @@ def run_command(cmd, cwd=None):
         print_colored(f"Command failed: {cmd}", Colors.RED)
         return False
 
+def verify_toolchain():
+    """Verify ARM toolchain installation"""
+    print_colored("Verifying ARM toolchain...", Colors.BLUE)
+    
+    # Check compiler
+    if not run_command("arm-none-eabi-gcc --version"):
+        print_colored("❌ arm-none-eabi-gcc not found", Colors.RED)
+        return False
+    
+    # Check if standard headers are available
+    test_cmd = 'echo "#include <stdint.h>" | arm-none-eabi-gcc -E -'
+    if not run_command(test_cmd):
+        print_colored("❌ Standard C headers not found (missing newlib?)", Colors.RED)
+        return False
+    
+    # Check other tools
+    tools = ["arm-none-eabi-objcopy", "arm-none-eabi-size", "arm-none-eabi-objdump"]
+    for tool in tools:
+        if not run_command(f"{tool} --version"):
+            print_colored(f"⚠️  {tool} not found (optional)", Colors.YELLOW)
+    
+    print_colored("✅ ARM toolchain verified successfully", Colors.GREEN)
+    return True
+
 def main():
     project_root = Path.cwd()
     build_dir = project_root / "build"
     
     # Parse arguments
     clean = "--clean" in sys.argv
+    verify = "--verify" in sys.argv
     build_type = "Debug"
     
     if "--release" in sys.argv:
         build_type = "Release"
+    
+    # Add verification step
+    if verify or clean:  # Verify on clean builds or explicit request
+        if not verify_toolchain():
+            print_colored("Toolchain verification failed. Please install ARM embedded toolchain.", Colors.RED)
+            return 1
     
     if clean:
         print_colored("Cleaning build directory...", Colors.YELLOW)
