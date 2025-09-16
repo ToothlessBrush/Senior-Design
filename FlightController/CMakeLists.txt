@@ -21,6 +21,7 @@ include_directories(
 set(SOURCES
     src/main.c
     src/startup_stm32f411xx.s
+    src/system_stm32f4xx.c
 )
 
 # Create executable
@@ -46,6 +47,7 @@ target_compile_options(${PROJECT_NAME} PRIVATE
     -g3
 )
 
+
 # Linker options
 target_link_options(${PROJECT_NAME} PRIVATE
     -T${CMAKE_CURRENT_SOURCE_DIR}/linker/STM32F411CEUx_FLASH.ld
@@ -61,9 +63,27 @@ target_link_options(${PROJECT_NAME} PRIVATE
     -Wl,--print-memory-usage
 )
 
-# Flash target using OpenOCD (preferred method)
+# Generate binary file
+add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
+    COMMAND ${CMAKE_OBJCOPY} -O binary $<TARGET_FILE:${PROJECT_NAME}> ${PROJECT_NAME}.bin
+    COMMAND ${CMAKE_SIZE} $<TARGET_FILE:${PROJECT_NAME}>
+    COMMENT "Creating binary file and showing size info"
+)
+
+# Custom target to build binary explicitly
+add_custom_target(bin
+    DEPENDS ${PROJECT_NAME}
+    COMMENT "Building binary file"
+)
 add_custom_target(flash
-    COMMAND openocd -f interface/stlink.cfg -f target/stm32f4x.cfg -c "program ${PROJECT_NAME} verify reset exit"
+    COMMAND openocd 
+        -f interface/stlink.cfg 
+        -f target/stm32f4x.cfg 
+        -c "init" 
+        -c "reset halt" 
+        -c "flash write_image erase ${PROJECT_NAME}" 
+        -c "reset run" 
+        -c "shutdown"
     DEPENDS ${PROJECT_NAME}
     COMMENT "Flashing the target with OpenOCD"
 )

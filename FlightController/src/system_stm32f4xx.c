@@ -1,31 +1,31 @@
 // src/system_stm32f4xx.c
 #include "stm32f411xe.h"
 
-uint32_t SystemCoreClock = 16000000; // HSI frequency
+uint32_t systemcoreclock = 16000000; // hsi frequency
 
 void SystemInit(void) {
-/* FPU settings */
-#if (__FPU_PRESENT == 1) && (__FPU_USED == 1)
-  SCB->CPACR |=
-      ((3UL << 10 * 2) | (3UL << 11 * 2)); /* set CP10 and CP11 Full Access */
+/* fpu settings */
+#if (__fpu_present == 1) && (__fpu_used == 1)
+  scb->cpacr |=
+      ((3ul << 10 * 2) | (3ul << 11 * 2)); /* set cp10 and cp11 full access */
 #endif
 
-  /* Reset RCC clock configuration to default reset state */
-  /* Set HSION bit */
+  /* reset rcc clock configuration to default reset state */
+  /* set hsion bit */
   RCC->CR |= (uint32_t)0x00000001;
 
-  /* Reset CFGR register */
+  /* reset cfgr register */
   RCC->CFGR = 0x00000000;
 
-  /* Reset HSEON, CSSON and PLLON bits */
-  RCC->CR &= (uint32_t)0xFEF6FFFF;
+  /* reset hseon, csson and pllon bits */
+  RCC->CR &= (uint32_t)0xfef6ffff;
 
-  /* Reset PLLCFGR register */
+  /* reset pllcfgr register */
   RCC->PLLCFGR = 0x24003010;
 
-  /* Reset HSEBYP bit */
-  RCC->CR &= (uint32_t)0xFFFBFFFF;
+  /* reset hsebyp bit */
+  RCC->CR &= (uint32_t)0xfffbffff;
 
-  /* Disable all interrupts */
+  /* disable all interrupts */
   RCC->CIR = 0x00000000;
 }

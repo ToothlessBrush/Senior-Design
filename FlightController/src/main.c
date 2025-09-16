@@ -2,10 +2,6 @@
 // Simple LED blink for STM32F411
 #include "stm32f411xe.h"
 
-void SystemInit(void) {
-  // Called by startup code - basic system initialization
-}
-
 void led_init(void) {
   // Enable GPIOC clock (onboard LED is usually on PC13)
   RCC->AHB1ENR |= RCC_AHB1ENR_GPIOCEN;
