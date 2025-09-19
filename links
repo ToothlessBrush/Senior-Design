@@ -1,12 +1,15 @@
 https://ozzmaker.com/berrygps-berrygps-imu-quick-start-guide/
-gyr/acc datasheet
+gyr/acc datasheet:
 https://www.st.com/resource/en/datasheet/lsm6dsl.pdf
 
+Proposal
 https://mnscu-my.sharepoint.com/:w:/r/personal/ok8561so_go_minnstate_edu/Documents/Formal%20Proposal.docx?d=w71330fdb83cc45ee8028f0147320e76e&csf=1&web=1&e=bnRD8c
 
+Block Diagram
+https://mnscu-my.sharepoint.com/:wb:/g/personal/ok8561so_go_minnstate_edu/Eb7zTiRBlPFGkJrmLlucU7kBclkWzNNNbv1j5v2u-LOroA?email=colin.tormanen%40go.stcloudstate.edu&e=zINFuO
 
 Potential camera option:
 https://blog.arducam.com/spi-camera-modules-for-all-stm32-boards
 
-Programming ESC
+Programming ESC:
 https://www.instructables.com/Programming-Brushless-Motor-ESC-Without-RF-Transmi/
