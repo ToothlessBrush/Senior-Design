@@ -1,6 +1,8 @@
-// src/main.c
-// Simple LED blink for STM32F411
+#include "LSM6DSL.h"
+#include "imu.h"
+#include "spi.h"
 #include "stm32f411xe.h"
+#include <stdint.h>
 
 void led_init(void) {
   // Enable GPIOC clock (onboard LED is usually on PC13)
@@ -21,22 +23,39 @@ void led_init(void) {
   GPIOC->OSPEEDR &= ~(GPIO_OSPEEDER_OSPEEDR13);
 }
 
-void delay(volatile uint32_t count) {
-  while (count--) {
-    __NOP();
+// Simple delay function
+void delay_ms(uint32_t ms) {
+  // 16ms for now
+  for (uint32_t i = 0; i < ms * 16000; i++) {
+    __NOP(); // No operation - just burn CPU cycles
   }
 }
 
 int main(void) {
+
   led_init();
 
-  while (1) {
-    // Turn LED on (most onboard LEDs are active low, so we write 0)
-    GPIOC->ODR &= ~(1U << 13); // Clear bit 13 (LED ON)
-    delay(1000000);            // Delay
+  int gyro_raw[3];
+  float dps[3];
+  int acc_raw[3];
+  float acc_g[3];
 
-    // Turn LED off
-    GPIOC->ODR |= (1U << 13); // Set bit 13 (LED OFF)
-    delay(1000000);           // Delay
+  SPI1_Init();
+  if (verifyIMU() != 1) {
+    while (1)
+      ;
   }
+
+  enableIMU();
+  delay_ms(100);
+
+  while (1) {
+    readGyroRaw(gyro_raw);
+    gyroToRadPS(gyro_raw, dps);
+    readAccRaw(acc_raw);
+    accToG(acc_raw, acc_g);
+    delay_ms(100); // idk how fast it can go
+  }
+
+  return 0;
 }

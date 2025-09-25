@@ -22,6 +22,9 @@ set(SOURCES
     src/main.c
     src/startup_stm32f411xx.s
     src/system_stm32f4xx.c
+    src/i2c.c
+    src/spi.c
+    src/imu.c
 )
 
 # Create executable
@@ -31,6 +34,9 @@ add_executable(${PROJECT_NAME} ${SOURCES})
 target_compile_definitions(${PROJECT_NAME} PRIVATE
     -D${MCU_MODEL}
     -D${MCU_FAMILY}
+    -D__fpu_present=1
+    -D__fpu_used=1
+    -DARM_MATH_CM4
 )
 
 # Compiler options
