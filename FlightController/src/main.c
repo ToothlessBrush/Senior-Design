@@ -74,8 +74,10 @@ int main(void) {
     if (EXTI->PR & EXTI_PR_PR0) {
       EXTI->PR |= EXTI_PR_PR0; // I guess writing 1 to the pending bit clears it
 
+      // cant have interrupts during spi
       readGyroRaw(gyroRaw);
       readAccRaw(accRaw);
+
       gyroToRadPS(gyroRaw, gyro);
       accToG(accRaw, acc);
 

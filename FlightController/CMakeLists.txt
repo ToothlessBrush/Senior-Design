@@ -51,10 +51,10 @@ target_compile_options(${PROJECT_NAME} PRIVATE
     -Wextra
     -Og
     -g3
+    -fno-math-errno # no errno for cortex
 )
 
 
-# Linker options
 target_link_options(${PROJECT_NAME} PRIVATE
     -T${CMAKE_CURRENT_SOURCE_DIR}/linker/STM32F411CEUx_FLASH.ld
     -mcpu=cortex-m4
@@ -62,9 +62,11 @@ target_link_options(${PROJECT_NAME} PRIVATE
     -mfpu=fpv4-sp-d16
     -mfloat-abi=hard
     -specs=nano.specs
-    -lc
+    -Wl,--start-group
     -lm
+    -lc
     -lnosys
+    -Wl,--end-group
     -Wl,--gc-sections
     -Wl,--print-memory-usage
 )

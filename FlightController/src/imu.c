@@ -65,7 +65,7 @@ uint8_t verifyIMU(void) {
   }
 }
 
-void updateOrientation(orientation *orient, float acc_g[], float gyro_rad_s[],
+void updateOrientation(Attitude *orient, float acc_g[], float gyro_rad_s[],
                        float dt) {
   float acc_x_sq = acc_g[0] * acc_g[0];
   float acc_y_sq = acc_g[1] * acc_g[1];
