@@ -9,11 +9,7 @@ int BerryIMUversion = 4; // Always v4
 
 #define GYRO_SENSITIVITY_500DPS 17.50f
 
-typedef struct {
-  float roll;
-  float pitch;
-  float yaw;
-} orientation;
+#define LSM6DSL_PULSE_CFG_G 0x0B
 
 void readAccRaw(int a[]) {
   uint8_t block[6];
@@ -88,11 +84,22 @@ void updateOrientation(orientation *orient, float acc_g[], float gyro_rad_s[],
 }
 
 void enableIMU(void) {
+  SPI_WriteByte(LSM6DSL_CTRL3_C,
+                0x1); // sw_reset reset where we flash without cutting power
+
   // Enable gyroscope (SPI) - ODR 6.66 kHz, 2000 dps
   SPI_WriteByte(LSM6DSL_CTRL2_G, 0b10100100);
 
   // Enable accelerometer (SPI) - ODR 6.66 kHz, +/- 8g
   SPI_WriteByte(LSM6DSL_CTRL1_XL, 0b10101111);
   SPI_WriteByte(LSM6DSL_CTRL8_XL, 0b11001000); // Low pass filter enabled
-  SPI_WriteByte(LSM6DSL_CTRL3_C, 0b01000100);  // Block Data update enabled
+  SPI_WriteByte(LSM6DSL_CTRL3_C,
+                0b01000100); // Block Data update enabled
+
+  // Enable gyroscope Data Ready interrupt on INT1 pad
+  SPI_WriteByte(LSM6DSL_INT1_CTRL, 0b00000010); // Set INT1_DRDY_G bit
+  // SPI_WriteByte(LSM6DSL_PULSE_CFG_G,
+  //               0x80); // Set it to pulse mode which reset int right after
+  //               its
+  //                      // triggered instead of when its read
 }
