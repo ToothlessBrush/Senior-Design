@@ -53,3 +53,81 @@ dkms.conf
 
 # debug information files
 *.dwo
+
+# Build directories
+build/
+Build/
+BUILD/
+bin/
+obj/
+
+# CMake
+CMakeCache.txt
+CMakeFiles/
+CMakeScripts/
+cmake_install.cmake
+Makefile
+install_manifest.txt
+CTestTestfile.cmake
+_deps/
+
+# Cache and IDE
+.cache/
+.vscode/
+.clangd/
+.ccls-cache/
+.vs/
+
+# Temporary files
+tmp/
+temp/
+.tmp/
+*.tmp
+*.temp
+*~
+.swp
+.swo
+
+# Generated files
+compile_commands.json
+*.lst
+*.bin
+
+# OS files
+.DS_Store
+Thumbs.db
+*.log
+
+# --- Keil µVision / ARM MDK ---
+# Build output folders
+Objects/
+Listings/
+
+# Keil intermediate and output files
+*.axf
+*.crf
+*.htm
+*.tra
+*.lnp
+*.sct
+*.bak
+*.iex
+
+# Keil IDE user files
+*.uvgui.*
+*.uvguix.*
+*.uvoptx
+*.uvprojx.bak
+*.uvproj.bak
+*.uvopt.bak
+
+# Keil Run-Time Environment (RTE) auto-generated files
+RTE/
+RTE/_*
+*.rtebuildinfo
+*.scvd
+
+# Misc Keil / ARM MDK
+*.uvlicense
+*.sdf
+*.db

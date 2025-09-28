@@ -1,0 +1,2 @@
+CompileFlags:
+  Add: [-I./inc, -DSTM32F411xE, -DSTM32F4xx]
