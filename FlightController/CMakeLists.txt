@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.16)
 
 # Set toolchain before project declaration
 set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/cmake/stm32f411.cmake)
-project(stm32f411_project C ASM)
+project(FlightController C ASM)
 
 # Set C standard
 set(CMAKE_C_STANDARD 11)
