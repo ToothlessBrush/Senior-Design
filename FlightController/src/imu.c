@@ -67,19 +67,22 @@ uint8_t verifyIMU(void) {
 
 void updateOrientation(Attitude *orient, float acc_g[], float gyro_rad_s[],
                        float dt) {
-  float acc_x_sq = acc_g[0] * acc_g[0];
-  float acc_y_sq = acc_g[1] * acc_g[1];
-  float acc_z_sq = acc_g[2] * acc_g[2];
+  // Roll: rotation around X axis (uses Y and Z accelerations)
+  float roll_from_acc = atan2f(acc_g[1], acc_g[2]);
 
-  float pitch_from_acc = atanf(-acc_g[0] / sqrtf(acc_y_sq + acc_z_sq));
-  float roll_from_acc = atanf(acc_g[1] / sqrtf(acc_x_sq + acc_z_sq));
+  // Pitch: rotation around Y axis (uses X and Z accelerations)
+  float pitch_from_acc =
+      atan2f(-acc_g[0], sqrtf(acc_g[1] * acc_g[1] + acc_g[2] * acc_g[2]));
 
   float alpha = 0.95f;
 
-  orient->pitch = alpha * (orient->pitch + gyro_rad_s[1] * dt) +
-                  (1.0f - alpha) * pitch_from_acc;
+  // Gyro integration with complementary filter
   orient->roll = alpha * (orient->roll + gyro_rad_s[0] * dt) +
                  (1.0f - alpha) * roll_from_acc;
+
+  orient->pitch = alpha * (orient->pitch + gyro_rad_s[1] * dt) +
+                  (1.0f - alpha) * pitch_from_acc;
+
   orient->yaw += gyro_rad_s[2] * dt;
 }
 

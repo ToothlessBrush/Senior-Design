@@ -2,7 +2,11 @@
 #include "imu.h"
 #include "spi.h"
 #include "stm32f411xe.h"
+#include "systick.h"
+#include "uart.h"
 #include <stdint.h>
+#include <stdio.h>
+#include <stdlib.h>
 
 #define IMU_ODR_HZ 6660.0f
 #define FIXED_DT (1.0f / IMU_ODR_HZ) // ~0.00015015 seconds
@@ -47,14 +51,6 @@ void led_init(void) {
 }
 
 void toggle_led(void) { GPIOC->ODR ^= GPIO_ODR_ODR_13; }
-
-// Simple delay function
-void delay_ms(uint32_t ms) {
-  // 16ms for now
-  for (uint32_t i = 0; i < ms * 16000; i++) {
-    __NOP(); // No operation - just burn CPU cycles
-  }
-}
 
 // config chip to use 25mhz HSL clock and PLL x4 for a total of 100mhz
 void SystemClock_Config_100MHz_HSE(void) {
@@ -112,10 +108,15 @@ int main(void) {
 
   SystemClock_Config_100MHz_HSE();
 
+  systick_init();
+
   led_init();
   initGyroInterrupt();
   SPI1_Init();
   enableIMU();
+  uart_init();
+
+  uart_send_string("Hello, World!");
 
   int gyroRaw[3];
   int accRaw[3];
@@ -126,16 +127,39 @@ int main(void) {
 
   while (1) {
     if (EXTI->PR & EXTI_PR_PR0) {
-      EXTI->PR |= EXTI_PR_PR0; // I guess writing 1 to the pending bit clears it
+      EXTI->PR |= EXTI_PR_PR0; // Clear pending bit
 
-      // cant have interrupts during spi
+      // Read sensor data
       readGyroRaw(gyroRaw);
       readAccRaw(accRaw);
-
       gyroToRadPS(gyroRaw, gyro);
       accToG(accRaw, acc);
-
       updateOrientation(&attitude, acc, gyro, FIXED_DT);
+
+      // Print every 100 samples
+      static int sample_count = 0;
+      sample_count++;
+      if (sample_count >= 1000) {
+        char buffer[100];
+
+        // Convert floats to integers (whole part and decimal part)
+
+        int roll_int = (int)(attitude.roll * 100);
+        int pitch_int = (int)(attitude.pitch * 100);
+        int yaw_int = (int)(attitude.yaw * 100);
+
+        snprintf(buffer, sizeof(buffer),
+                 "Roll: %s%d.%02d, Pitch: %s%d.%02d, Yaw: %s%d.%02d\r\n",
+                 (roll_int < 0 ? "-" : " "), abs(roll_int / 100),
+                 abs(roll_int % 100), (pitch_int < 0 ? "-" : " "),
+                 abs(pitch_int / 100), abs(pitch_int % 100),
+                 (yaw_int < 0 ? "-" : " "), abs(yaw_int / 100),
+                 abs(yaw_int % 100));
+        uart_send_string(buffer);
+
+        toggle_led();
+        sample_count = 0;
+      }
     }
   }
 

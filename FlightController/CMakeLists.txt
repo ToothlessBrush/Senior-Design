@@ -22,6 +22,8 @@ set(SOURCES
     src/main.c
     src/startup_stm32f411xe.s
     src/system_stm32f4xx.c
+    src/systick.c
+    src/uart.c
     src/i2c.c
     src/spi.c
     src/imu.c
