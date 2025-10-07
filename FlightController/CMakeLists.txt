@@ -27,6 +27,7 @@ set(SOURCES
     src/i2c.c
     src/spi.c
     src/imu.c
+    src/pid.c
 )
 
 # Create executable

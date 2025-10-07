@@ -2,6 +2,7 @@
 #include "LIS3MDL.h"
 #include "LSM6DSL.h"
 #include "spi.h"
+#include "stm32f411xe.h"
 #include <math.h>
 #include <stdint.h>
 
@@ -10,6 +11,26 @@ int BerryIMUversion = 4; // Always v4
 #define GYRO_SENSITIVITY_500DPS 17.50f
 
 #define LSM6DSL_PULSE_CFG_G 0x0B
+
+void initGyroInterrupt(void) {
+  // Enable GPIOA and SYSCFG clocks
+  RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN;
+  RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN;
+
+  // Configure PA0 as input with pull-down (since we want to detect HIGH)
+  GPIOA->MODER &= ~(3UL << (0 * 2)); // Clear mode bits for PA0 (input mode)
+  GPIOA->PUPDR &= ~(3UL << (0 * 2)); // Clear pull-up/down bits
+  GPIOA->PUPDR |= (2UL << (0 * 2));  // Set pull-down (changed to pull-down)
+
+  // Connect PA0 to EXTI0
+  SYSCFG->EXTICR[0] &= ~SYSCFG_EXTICR1_EXTI0;   // Clear EXTI0 config
+  SYSCFG->EXTICR[0] |= SYSCFG_EXTICR1_EXTI0_PA; // Connect PA0 to EXTI0
+
+  // Configure EXTI0 for rising edge (HIGH)
+  EXTI->IMR |= EXTI_IMR_MR0;    // Enable interrupt on line 0
+  EXTI->RTSR |= EXTI_RTSR_TR0;  // Enable rising edge trigger
+  EXTI->FTSR &= ~EXTI_FTSR_TR0; // Disable falling edge trigger
+}
 
 void readAccRaw(int a[]) {
   uint8_t block[6];
@@ -87,6 +108,8 @@ void updateOrientation(Attitude *orient, float acc_g[], float gyro_rad_s[],
 }
 
 void enableIMU(void) {
+  initGyroInterrupt();
+
   SPI_WriteByte(LSM6DSL_CTRL3_C,
                 0x1); // sw_reset reset where we flash without cutting power
 

@@ -1,5 +1,6 @@
 #include "LSM6DSL.h"
 #include "imu.h"
+#include "pid.h"
 #include "spi.h"
 #include "stm32f411xe.h"
 #include "systick.h"
@@ -10,26 +11,6 @@
 
 #define IMU_ODR_HZ 6660.0f
 #define FIXED_DT (1.0f / IMU_ODR_HZ) // ~0.00015015 seconds
-
-void initGyroInterrupt(void) {
-  // Enable GPIOA and SYSCFG clocks
-  RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN;
-  RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN;
-
-  // Configure PA0 as input with pull-down (since we want to detect HIGH)
-  GPIOA->MODER &= ~(3UL << (0 * 2)); // Clear mode bits for PA0 (input mode)
-  GPIOA->PUPDR &= ~(3UL << (0 * 2)); // Clear pull-up/down bits
-  GPIOA->PUPDR |= (2UL << (0 * 2));  // Set pull-down (changed to pull-down)
-
-  // Connect PA0 to EXTI0
-  SYSCFG->EXTICR[0] &= ~SYSCFG_EXTICR1_EXTI0;   // Clear EXTI0 config
-  SYSCFG->EXTICR[0] |= SYSCFG_EXTICR1_EXTI0_PA; // Connect PA0 to EXTI0
-
-  // Configure EXTI0 for rising edge (HIGH)
-  EXTI->IMR |= EXTI_IMR_MR0;    // Enable interrupt on line 0
-  EXTI->RTSR |= EXTI_RTSR_TR0;  // Enable rising edge trigger
-  EXTI->FTSR &= ~EXTI_FTSR_TR0; // Disable falling edge trigger
-}
 
 void led_init(void) {
   // Enable GPIOC clock (onboard LED is usually on PC13)
@@ -111,19 +92,23 @@ int main(void) {
   systick_init();
 
   led_init();
-  initGyroInterrupt();
   SPI1_Init();
   enableIMU();
   uart_init();
 
-  uart_send_string("Hello, World!");
+  uart_send_string("Drone Started!\r\n");
 
   int gyroRaw[3];
   int accRaw[3];
   float gyro[3];
   float acc[3];
 
-  Attitude attitude = {0}; // assume we start on level ground of course
+  Attitude attitude = {0}; // assume we start on level ground of cours
+  Attitude target = {0};
+
+  PIDController roll_pid = create_pid(1.0, 0.00, 0.05, -100.0, 100.0);
+  PIDController pitch_pid = create_pid(1.0, 0.00, 0.05, -100.0, 100.0);
+  PIDController yaw_pid = create_pid(1.0, 0.00, 0.05, -100.0, 100.0);
 
   while (1) {
     if (EXTI->PR & EXTI_PR_PR0) {
@@ -136,6 +121,11 @@ int main(void) {
       accToG(accRaw, acc);
       updateOrientation(&attitude, acc, gyro, FIXED_DT);
 
+      float roll = update_pid(&roll_pid, target.roll, attitude.roll, FIXED_DT);
+      float pitch =
+          update_pid(&pitch_pid, target.pitch, attitude.pitch, FIXED_DT);
+      float yaw = update_pid(&yaw_pid, target.yaw, attitude.yaw, FIXED_DT);
+
       // Print every 100 samples
       static int sample_count = 0;
       sample_count++;
@@ -144,9 +134,9 @@ int main(void) {
 
         // Convert floats to integers (whole part and decimal part)
 
-        int roll_int = (int)(attitude.roll * 100);
-        int pitch_int = (int)(attitude.pitch * 100);
-        int yaw_int = (int)(attitude.yaw * 100);
+        int roll_int = (int)(roll * 100);
+        int pitch_int = (int)(pitch * 100);
+        int yaw_int = (int)(yaw * 100);
 
         snprintf(buffer, sizeof(buffer),
                  "Roll: %s%d.%02d, Pitch: %s%d.%02d, Yaw: %s%d.%02d\r\n",
