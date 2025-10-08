@@ -130,6 +130,14 @@ build:
       files:
         - file: main.c
           category: sourceC
+        - file: ../src/dshot.c
+          category: sourceC
+        - file: ../src/dshot.h
+          category: header
+        - file: ../src/motor_control.c
+          category: sourceC
+        - file: ../src/motor_control.h
+          category: header
   constructed-files:
     - file: RTE/_Debug_STM32F411CEUx/RTE_Components.h
       category: header
