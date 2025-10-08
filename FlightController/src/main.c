@@ -1,35 +1,14 @@
 #include "LSM6DSL.h"
 #include "imu.h"
-#include "spi.h"
+#include "pid.h"
 #include "stm32f411xe.h"
 #include "systick.h"
 #include "uart.h"
-#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 #define IMU_ODR_HZ 6660.0f
 #define FIXED_DT (1.0f / IMU_ODR_HZ) // ~0.00015015 seconds
-
-void initGyroInterrupt(void) {
-  // Enable GPIOA and SYSCFG clocks
-  RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN;
-  RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN;
-
-  // Configure PA0 as input with pull-down (since we want to detect HIGH)
-  GPIOA->MODER &= ~(3UL << (0 * 2)); // Clear mode bits for PA0 (input mode)
-  GPIOA->PUPDR &= ~(3UL << (0 * 2)); // Clear pull-up/down bits
-  GPIOA->PUPDR |= (2UL << (0 * 2));  // Set pull-down (changed to pull-down)
-
-  // Connect PA0 to EXTI0
-  SYSCFG->EXTICR[0] &= ~SYSCFG_EXTICR1_EXTI0;   // Clear EXTI0 config
-  SYSCFG->EXTICR[0] |= SYSCFG_EXTICR1_EXTI0_PA; // Connect PA0 to EXTI0
-
-  // Configure EXTI0 for rising edge (HIGH)
-  EXTI->IMR |= EXTI_IMR_MR0;    // Enable interrupt on line 0
-  EXTI->RTSR |= EXTI_RTSR_TR0;  // Enable rising edge trigger
-  EXTI->FTSR &= ~EXTI_FTSR_TR0; // Disable falling edge trigger
-}
 
 void led_init(void) {
   // Enable GPIOC clock (onboard LED is usually on PC13)
@@ -111,42 +90,42 @@ int main(void) {
   systick_init();
 
   led_init();
-  initGyroInterrupt();
-  SPI1_Init();
   enableIMU();
   uart_init();
 
-  uart_send_string("Hello, World!");
+  uart_send_string("Drone Started!\r\n");
 
-  int gyroRaw[3];
-  int accRaw[3];
-  float gyro[3];
-  float acc[3];
+  // Initialize IMU context
+  IMUContext imu = {0};
+  imu_init(&imu);
 
-  Attitude attitude = {0}; // assume we start on level ground of course
+  // Initialize PID conttext
+  PIDContext pid = {0};
+  pid_init(&pid, 1.0, 0.0, 0.05);
+
+  // Set target attitude
+  pid.setpoints.roll = 0.0f;
+  pid.setpoints.pitch = 0.0f;
+  pid.setpoints.yaw = 0.0f;
 
   while (1) {
-    if (EXTI->PR & EXTI_PR_PR0) {
-      EXTI->PR |= EXTI_PR_PR0; // Clear pending bit
+    if (imu_data_ready()) {
 
-      // Read sensor data
-      readGyroRaw(gyroRaw);
-      readAccRaw(accRaw);
-      gyroToRadPS(gyroRaw, gyro);
-      accToG(accRaw, acc);
-      updateOrientation(&attitude, acc, gyro, FIXED_DT);
+      // Update IMU measurements and attitude
+      IMU_update_context(&imu, FIXED_DT);
 
-      // Print every 100 samples
+      // Update PID controllers
+      pid_update(&pid, &imu, FIXED_DT);
+
       static int sample_count = 0;
       sample_count++;
       if (sample_count >= 1000) {
         char buffer[100];
 
         // Convert floats to integers (whole part and decimal part)
-
-        int roll_int = (int)(attitude.roll * 100);
-        int pitch_int = (int)(attitude.pitch * 100);
-        int yaw_int = (int)(attitude.yaw * 100);
+        int roll_int = (int)(pid.output.roll * 100);
+        int pitch_int = (int)(pid.output.pitch * 100);
+        int yaw_int = (int)(pid.output.yaw * 100);
 
         snprintf(buffer, sizeof(buffer),
                  "Roll: %s%d.%02d, Pitch: %s%d.%02d, Yaw: %s%d.%02d\r\n",
