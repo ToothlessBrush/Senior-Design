@@ -1,11 +1,9 @@
 #include "LSM6DSL.h"
 #include "imu.h"
 #include "pid.h"
-#include "spi.h"
 #include "stm32f411xe.h"
 #include "systick.h"
 #include "uart.h"
-#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -92,51 +90,42 @@ int main(void) {
   systick_init();
 
   led_init();
-  SPI1_Init();
   enableIMU();
   uart_init();
 
   uart_send_string("Drone Started!\r\n");
 
-  int gyroRaw[3];
-  int accRaw[3];
-  float gyro[3];
-  float acc[3];
+  // Initialize IMU context
+  IMUContext imu = {0};
+  imu_init(&imu);
 
-  Attitude attitude = {0}; // assume we start on level ground of cours
-  Attitude target = {0};
+  // Initialize PID conttext
+  PIDContext pid = {0};
+  pid_init(&pid, 1.0, 0.0, 0.05);
 
-  PIDController roll_pid = create_pid(1.0, 0.00, 0.05, -100.0, 100.0);
-  PIDController pitch_pid = create_pid(1.0, 0.00, 0.05, -100.0, 100.0);
-  PIDController yaw_pid = create_pid(1.0, 0.00, 0.05, -100.0, 100.0);
+  // Set target attitude
+  pid.setpoints.roll = 0.0f;
+  pid.setpoints.pitch = 0.0f;
+  pid.setpoints.yaw = 0.0f;
 
   while (1) {
-    if (EXTI->PR & EXTI_PR_PR0) {
-      EXTI->PR |= EXTI_PR_PR0; // Clear pending bit
+    if (imu_data_ready()) {
 
-      // Read sensor data
-      readGyroRaw(gyroRaw);
-      readAccRaw(accRaw);
-      gyroToRadPS(gyroRaw, gyro);
-      accToG(accRaw, acc);
-      updateOrientation(&attitude, acc, gyro, FIXED_DT);
+      // Update IMU measurements and attitude
+      IMU_update_context(&imu, FIXED_DT);
 
-      float roll = update_pid(&roll_pid, target.roll, attitude.roll, FIXED_DT);
-      float pitch =
-          update_pid(&pitch_pid, target.pitch, attitude.pitch, FIXED_DT);
-      float yaw = update_pid(&yaw_pid, target.yaw, attitude.yaw, FIXED_DT);
+      // Update PID controllers
+      pid_update(&pid, &imu, FIXED_DT);
 
-      // Print every 100 samples
       static int sample_count = 0;
       sample_count++;
       if (sample_count >= 1000) {
         char buffer[100];
 
         // Convert floats to integers (whole part and decimal part)
-
-        int roll_int = (int)(roll * 100);
-        int pitch_int = (int)(pitch * 100);
-        int yaw_int = (int)(yaw * 100);
+        int roll_int = (int)(pid.output.roll * 100);
+        int pitch_int = (int)(pid.output.pitch * 100);
+        int yaw_int = (int)(pid.output.yaw * 100);
 
         snprintf(buffer, sizeof(buffer),
                  "Roll: %s%d.%02d, Pitch: %s%d.%02d, Yaw: %s%d.%02d\r\n",

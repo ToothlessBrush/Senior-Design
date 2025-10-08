@@ -2,19 +2,22 @@
 
 const float PI = 3.141592;
 
-PIDController create_pid(float Kp, float Ki, float Kd, float min, float max) {
-  PIDController pid;
+void pid_init(PIDContext *pid, float Kp, float Ki, float Kd) {
+  PIDController controller = (PIDController){
+      .Kp = Kp,
+      .Ki = Ki,
+      .Kd = Kd,
+      .integral = 0,
+      .previous_error = 0,
+      .output_min = -100.0,
+      .output_max = 100.0,
+  };
 
-  pid.Kp = Kp;
-  pid.Ki = Ki;
-  pid.Kd = Kd;
-
-  pid.integral = 0;
-  pid.previous_error = 0;
-  pid.output_min = min;
-  pid.output_max = max;
-
-  return pid;
+  *pid = (PIDContext){
+      .pitch_pid = controller,
+      .roll_pid = controller,
+      .yaw_pid = controller,
+  };
 }
 
 float normalize_angle(float angle) {
@@ -27,8 +30,8 @@ float normalize_angle(float angle) {
   return angle;
 }
 
-float update_pid(PIDController *pid, float setpoint, float measurement,
-                 float dt) {
+float get_pid_output(PIDController *pid, float setpoint, float measurement,
+                     float dt) {
   float error = normalize_angle(setpoint - measurement);
 
   float P = pid->Kp * error;
@@ -50,4 +53,15 @@ float update_pid(PIDController *pid, float setpoint, float measurement,
   pid->previous_error = error;
 
   return output;
+}
+
+void pid_update(PIDContext *pid, IMUContext *imu, float dt) {
+  pid->measurement = imu->attitude;
+
+  pid->output.pitch = get_pid_output(&pid->pitch_pid, pid->setpoints.pitch,
+                                     pid->measurement.pitch, dt);
+  pid->output.roll = get_pid_output(&pid->roll_pid, pid->setpoints.roll,
+                                    pid->measurement.roll, dt);
+  pid->output.yaw = get_pid_output(&pid->yaw_pid, pid->setpoints.yaw,
+                                   pid->measurement.yaw, dt);
 }

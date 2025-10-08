@@ -4,6 +4,7 @@
 #include "spi.h"
 #include "stm32f411xe.h"
 #include <math.h>
+#include <stdbool.h>
 #include <stdint.h>
 
 int BerryIMUversion = 4; // Always v4
@@ -74,15 +75,15 @@ void accToG(int acc_raw[], float acc_g[]) {
   }
 }
 
-uint8_t verifyIMU(void) {
+bool verifyIMU(void) {
   // Detect BerryIMUv4 (LSM6DSL via SPI + LIS3MDL via I2C)
   uint8_t LSM6DSL_WHO_response =
       SPI_ReadByte(LSM6DSL_WHO_AM_I); // Should be 0x6A
 
   if (LSM6DSL_WHO_response == 0x6A) {
-    return 1;
+    return true;
   } else {
-    return 0;
+    return false;
   }
 }
 
@@ -109,6 +110,7 @@ void updateOrientation(Attitude *orient, float acc_g[], float gyro_rad_s[],
 
 void enableIMU(void) {
   initGyroInterrupt();
+  SPI1_Init();
 
   SPI_WriteByte(LSM6DSL_CTRL3_C,
                 0x1); // sw_reset reset where we flash without cutting power
@@ -128,4 +130,50 @@ void enableIMU(void) {
   //               0x80); // Set it to pulse mode which reset int right after
   //               its
   //                      // triggered instead of when its read
+}
+
+void imu_init(IMUContext *ctx) {
+  // zero imu
+  *ctx = (IMUContext){0};
+
+  initGyroInterrupt();
+  SPI1_Init();
+
+  SPI_WriteByte(LSM6DSL_CTRL3_C,
+                0x1); // sw_reset reset where we flash without cutting power
+
+  // Enable gyroscope (SPI) - ODR 6.66 kHz, 2000 dps
+  SPI_WriteByte(LSM6DSL_CTRL2_G, 0b10100100);
+
+  // Enable accelerometer (SPI) - ODR 6.66 kHz, +/- 8g
+  SPI_WriteByte(LSM6DSL_CTRL1_XL, 0b10101111);
+  SPI_WriteByte(LSM6DSL_CTRL8_XL, 0b11001000); // Low pass filter enabled
+  SPI_WriteByte(LSM6DSL_CTRL3_C,
+                0b01000100); // Block Data update enabled
+
+  // Enable gyroscope Data Ready interrupt on INT1 pad
+  SPI_WriteByte(LSM6DSL_INT1_CTRL, 0b00000010); // Set INT1_DRDY_G bit
+  // SPI_WriteByte(LSM6DSL_PULSE_CFG_G,
+  //               0x80); // Set it to pulse mode which reset int right after
+  //               its
+  //                      // triggered instead of when its read
+}
+
+void IMU_update_context(IMUContext *ctx, float dt) {
+  readGyroRaw(ctx->gyro_raw);
+  readAccRaw(ctx->acc_raw);
+
+  gyroToRadPS(ctx->gyro_raw, ctx->gyro);
+  accToG(ctx->acc_raw, ctx->acc);
+
+  updateOrientation(&ctx->attitude, ctx->acc, ctx->gyro, dt);
+}
+
+bool imu_data_ready() {
+  if (EXTI->PR & EXTI_PR_PR0) {
+    EXTI->PR |= EXTI_PR_PR0; // clear interrupt bit
+    return true;
+  }
+
+  return false;
 }
