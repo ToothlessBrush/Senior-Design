@@ -9,8 +9,8 @@ void pid_init(PIDContext *pid, float Kp, float Ki, float Kd) {
       .Kd = Kd,
       .integral = 0,
       .previous_error = 0,
-      .output_min = -100.0,
-      .output_max = 100.0,
+      .output_min = -0.5,
+      .output_max = 0.5,
   };
 
   *pid = (PIDContext){
@@ -31,7 +31,7 @@ float normalize_angle(float angle) {
 }
 
 float get_pid_output(PIDController *pid, float setpoint, float measurement,
-                     float dt) {
+                     float angular_velocity, float dt) {
   float error = normalize_angle(setpoint - measurement);
 
   float P = pid->Kp * error;
@@ -39,8 +39,7 @@ float get_pid_output(PIDController *pid, float setpoint, float measurement,
   pid->integral = pid->integral + error * dt;
   float I = pid->Ki * pid->integral;
 
-  float derivative = (error - pid->previous_error) / dt;
-  float D = pid->Kd * derivative;
+  float D = -pid->Kd * angular_velocity;
 
   float output = P + I + D;
 
@@ -59,9 +58,10 @@ void pid_update(PIDContext *pid, IMUContext *imu, float dt) {
   pid->measurement = imu->attitude;
 
   pid->output.pitch = get_pid_output(&pid->pitch_pid, pid->setpoints.pitch,
-                                     pid->measurement.pitch, dt);
-  pid->output.roll = get_pid_output(&pid->roll_pid, pid->setpoints.roll,
-                                    pid->measurement.roll, dt);
+                                     pid->measurement.pitch, imu->gyro[1], dt);
+  pid->output.roll =
+      get_pid_output(&pid->roll_pid, imu->gyro[0], pid->setpoints.roll,
+                     pid->measurement.roll, dt);
   pid->output.yaw = get_pid_output(&pid->yaw_pid, pid->setpoints.yaw,
-                                   pid->measurement.yaw, dt);
+                                   pid->measurement.yaw, imu->gyro[2], dt);
 }

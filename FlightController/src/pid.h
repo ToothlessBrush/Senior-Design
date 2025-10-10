@@ -10,17 +10,17 @@
  */
 typedef struct {
   // PID gains
-  float Kp;  // Proportional gain
-  float Ki;  // Integral gain
-  float Kd;  // Derivative gain
+  float Kp; // Proportional gain
+  float Ki; // Integral gain
+  float Kd; // Derivative gain
 
   // Internal state
-  float integral;        // Accumulated integral term
-  float previous_error;  // Error from previous timestep (for derivative)
+  float integral;       // Accumulated integral term
+  float previous_error; // Error from previous timestep (for derivative)
 
   // Output limits
-  float output_min;  // Minimum output value
-  float output_max;  // Maximum output value
+  float output_min; // Minimum output value
+  float output_max; // Maximum output value
 } PIDController;
 
 /**
@@ -32,9 +32,9 @@ typedef struct {
   Attitude measurement; // Current attitude (from IMU)
   Attitude output;      // PID control outputs
 
-  PIDController pitch_pid;  // Pitch axis controller
-  PIDController roll_pid;   // Roll axis controller
-  PIDController yaw_pid;    // Yaw axis controller
+  PIDController pitch_pid; // Pitch axis controller
+  PIDController roll_pid;  // Roll axis controller
+  PIDController yaw_pid;   // Yaw axis controller
 
 } PIDContext;
 
@@ -66,8 +66,9 @@ void pid_update(PIDContext *pid, IMUContext *imu, float dt);
  * @param pid Pointer to single-axis PID controller
  * @param setpoint Desired value (target angle)
  * @param measurement Current value (measured angle)
+ * @param angular_velocity rate of change of value
  * @param dt Time delta since last update (seconds)
  * @return Clamped PID output
  */
 float get_pid_output(PIDController *pid, float setpoint, float measurement,
-                     float dt);
+                     float angular_velocity, float dt);

@@ -28,6 +28,8 @@ set(SOURCES
     src/spi.c
     src/imu.c
     src/pid.c
+    src/dshot.c
+    src/motor_control.c
 )
 
 # Create executable
