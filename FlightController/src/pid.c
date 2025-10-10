@@ -9,8 +9,8 @@ void pid_init(PIDContext *pid, float Kp, float Ki, float Kd) {
       .Kd = Kd,
       .integral = 0,
       .previous_error = 0,
-      .output_min = -0.5,
-      .output_max = 0.5,
+      .output_limit = -0.5,
+      .integral_limit = 0.25,
   };
 
   *pid = (PIDContext){
@@ -20,7 +20,15 @@ void pid_init(PIDContext *pid, float Kp, float Ki, float Kd) {
   };
 }
 
-float normalize_angle(float angle) {
+static inline float constrainf(float val, float min, float max) {
+  if (val < min)
+    return min;
+  if (val > max)
+    return max;
+  return val;
+}
+
+static float normalize_angle(float angle) {
   while (angle > PI) {
     angle = angle - 2 * PI;
   }
@@ -30,30 +38,33 @@ float normalize_angle(float angle) {
   return angle;
 }
 
+// get output from error
 float get_pid_output(PIDController *pid, float setpoint, float measurement,
                      float angular_velocity, float dt) {
   float error = normalize_angle(setpoint - measurement);
 
+  // P term
   float P = pid->Kp * error;
 
+  // I term (steady state correction)
   pid->integral = pid->integral + error * dt;
+  pid->integral =
+      constrainf(pid->integral, -pid->integral_limit, pid->integral_limit);
   float I = pid->Ki * pid->integral;
 
+  // D term (brake force)
   float D = -pid->Kd * angular_velocity;
 
   float output = P + I + D;
 
-  if (output > pid->output_max) {
-    output = pid->output_max;
-  } else if (output < pid->output_min) {
-    output = pid->output_min;
-  }
+  output = constrainf(output, -pid->output_limit, pid->output_limit);
 
   pid->previous_error = error;
 
   return output;
 }
 
+// update all 3 pid axis
 void pid_update(PIDContext *pid, IMUContext *imu, float dt) {
   pid->measurement = imu->attitude;
 

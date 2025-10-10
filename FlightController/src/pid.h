@@ -17,10 +17,10 @@ typedef struct {
   // Internal state
   float integral;       // Accumulated integral term
   float previous_error; // Error from previous timestep (for derivative)
+  float integral_limit;
 
   // Output limits
-  float output_min; // Minimum output value
-  float output_max; // Maximum output value
+  float output_limit; // Minimum output value
 } PIDController;
 
 /**
