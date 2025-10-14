@@ -5,9 +5,13 @@
 void ConstructDshotFrame(dshotMotor* motor, uint16_t throttle)
 {
     // Check for max throttle
-    if (throttle > 2047) throttle = 2047; 
+    // Throttle range is 1-2000
+    if (throttle > 2000) throttle = 2000; 
     
     motor->throttle = throttle;
+
+    // Add offset to account for 1-2000 scale
+    throttle += 47;
 
     // Shift to make space for telemetry bit
     throttle = throttle << 1;
