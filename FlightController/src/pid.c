@@ -70,9 +70,8 @@ void pid_update(PIDContext *pid, IMUContext *imu, float dt) {
 
   pid->output.pitch = get_pid_output(&pid->pitch_pid, pid->setpoints.pitch,
                                      pid->measurement.pitch, imu->gyro[1], dt);
-  pid->output.roll =
-      get_pid_output(&pid->roll_pid, imu->gyro[0], pid->setpoints.roll,
-                     pid->measurement.roll, dt);
+  pid->output.roll = get_pid_output(&pid->roll_pid, pid->setpoints.roll,
+                                    pid->measurement.roll, imu->gyro[0], dt);
   pid->output.yaw = get_pid_output(&pid->yaw_pid, pid->setpoints.yaw,
                                    pid->measurement.yaw, imu->gyro[2], dt);
 }
