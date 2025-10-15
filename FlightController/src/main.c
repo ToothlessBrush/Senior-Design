@@ -33,7 +33,7 @@ int main(void) {
   IMUContext imu = {0};
   PIDContext pid = {0};
 
-  for (;;) {
+  while (1) {
     switch (state) {
     case STATE_INIT:
       uart_send_string("Initializing...\r\n");
@@ -47,6 +47,7 @@ int main(void) {
 
       // flight controller init
       imu_init(&imu);
+      // will need to use seperate coefficents for pitch,roll,yaw in future
       pid_init(&pid, KP, KI, KD);
       InitMotors();
 
@@ -59,7 +60,8 @@ int main(void) {
       break;
 
     case STATE_DISARMED:
-      // idle until start condition currently nothing
+      // idle until start condition currently just delay
+      delay_ms(1000);
 
       state = STATE_ARMING;
       break;
