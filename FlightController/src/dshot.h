@@ -4,7 +4,7 @@
 #define dshotWidth 132
 #define dshotHigh 100
 #define dshotLow 50
-#define dmaTransferSize 22
+#define dmaTransferSize 23
 #define true 1
 #define false 0
 

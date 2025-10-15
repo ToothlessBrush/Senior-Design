@@ -73,10 +73,10 @@ void InitDshot(dshotMotor* motor1, dshotMotor* motor2, dshotMotor* motor3, dshot
     TIM3->CCMR2 |= (1<<3) | (1<<11); // Set Preload to true for CCR3, CCR4
     TIM3->ARR = dshotWidth; // Auto reload value set to 500
 
-    TIM3->CCR1 = dshotLow; // Match register 1 initial value
-    TIM3->CCR2 = dshotLow; // Match register 2 initial value
-    TIM3->CCR3 = dshotLow; // Match register 3 initial value
-    TIM3->CCR4 = dshotLow; // Match register 4 initial value
+    TIM3->CCR1 = 0; // Match register 1 initial value
+    TIM3->CCR2 = 0; // Match register 2 initial value
+    TIM3->CCR3 = 0; // Match register 3 initial value
+    TIM3->CCR4 = 0; // Match register 4 initial value
 
     TIM3->CCER &= ~(2 | (2<<4) | (2<<8) | (2<<12)); // Active high on output
     TIM3->CCER |=  (1 | (1<<4) | (1<<8) | (1<<12)); // Output to the pin B0, B1, B4, B5
@@ -193,17 +193,11 @@ void InitDshot(dshotMotor* motor1, dshotMotor* motor2, dshotMotor* motor3, dshot
 void InitiMotor(dshotMotor* motor)
 {
     motor->updateBuffer = false;
-    motor->dshotBuffer[0] = 0;
-    for (int i = 1; i < 17; i++)
+    for (int i = 0; i < dmaTransferSize; i++)
     {
         motor->dshotBuffer[i] = dshotLow;
         motor->dshotBuffer2[i] = dshotLow;
     }
-    for(int i = 17; i < dmaTransferSize; i++)
-    {
-        motor->dshotBuffer[i] = 0;
-        motor->dshotBuffer2[i] = 0;
-    }
-    motor->throttle = 48;
+    motor->throttle = 10;
     ConstructDshotFrame(motor, motor->throttle);
 }

@@ -32,7 +32,7 @@ void StartMotors()
     DMA1_Stream5->CR |= 1;
     DMA1_Stream7->CR |= 1;
     DMA1_Stream2->CR |= 1;
-    TIM3->EGR |= (1<<6);
+    TIM3->EGR |= (1<<6); // Initialize an update
     TIM3->CR1 |= 1; // Start the timer
 }
 

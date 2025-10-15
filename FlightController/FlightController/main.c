@@ -64,12 +64,40 @@ int main() {
     SystemClock_Config_100MHz_HSE();
     InitMotors();
     StartMotors();
-    ConstructDshotFrame(motor1, 1000);
-    ConstructDshotFrame(motor2, 1000);
-    ConstructDshotFrame(motor3, 1500);
-    ConstructDshotFrame(motor4, 2000);
+    // SetMotorThrottle(motor1, 5);
+    // SetMotorThrottle(motor2, 5);
+    // SetMotorThrottle(motor3, 5);
+    // SetMotorThrottle(motor4, 5);
+    for(volatile int i = 0; i < 100000000; i++); // delay
+        SetMotorThrottle(motor1, 50);
+        for(volatile int i = 0; i < 10000000; i++); // delay
+        SetMotorThrottle(motor2, 50);
+        for(volatile int i = 0; i < 10000000; i++); // delay
+        SetMotorThrottle(motor3, 50);
+        for(volatile int i = 0; i < 10000000; i++); // delay
+        SetMotorThrottle(motor4, 50);
+        for(volatile int i = 0; i < 10000000; i++); // delay
+
+
     while(1)
     {
+        for(volatile int i = 0; i < 100000000; i++); // delay
+        SetMotorThrottle(motor1, 50);
+        for(volatile int i = 0; i < 10000000; i++); // delay
+        SetMotorThrottle(motor2, 50);
+        for(volatile int i = 0; i < 10000000; i++); // delay
+        SetMotorThrottle(motor3, 50);
+        for(volatile int i = 0; i < 10000000; i++); // delay
+        SetMotorThrottle(motor4, 50);
         
+        
+        for(volatile int i = 0; i < 100000000; i++); // delay
+        SetMotorThrottle(motor1, 250);
+        for(volatile int i = 0; i < 10000000; i++); // delay
+        SetMotorThrottle(motor2, 250);
+        for(volatile int i = 0; i < 10000000; i++); // delay
+        SetMotorThrottle(motor3, 250);
+        for(volatile int i = 0; i < 10000000; i++); // delay
+        SetMotorThrottle(motor4, 250);
     }
 }
