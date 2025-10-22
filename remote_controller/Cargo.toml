@@ -1,0 +1,11 @@
+[package]
+name = "remote_controller"
+version = "0.1.0"
+edition = "2024"
+
+
+[build]
+target = "armv7-unknown-linux-gnueabihf"
+
+[dependencies]
+rppal = "0.22.1"

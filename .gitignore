@@ -1,33 +1,27 @@
 # Prerequisites
 *.d
-
 # Object files
 *.o
 *.ko
 *.obj
 *.elf
-
 # Linker output
 *.ilk
 *.map
 *.exp
-
 # Precompiled Headers
 *.gch
 *.pch
-
 # Libraries
 *.lib
 *.a
 *.la
 *.lo
-
 # Shared objects (inc. Windows DLLs)
 *.dll
 *.so
 *.so.*
 *.dylib
-
 # Executables
 *.exe
 *.out
@@ -35,13 +29,11 @@
 *.i*86
 *.x86_64
 *.hex
-
 # Debug files
 *.dSYM/
 *.su
 *.idb
 *.pdb
-
 # Kernel Module Compile Results
 *.mod*
 *.cmd
@@ -50,17 +42,14 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
-
 # debug information files
 *.dwo
-
 # Build directories
 build/
 Build/
 BUILD/
 bin/
 obj/
-
 # CMake
 CMakeCache.txt
 CMakeFiles/
@@ -70,14 +59,12 @@ Makefile
 install_manifest.txt
 CTestTestfile.cmake
 _deps/
-
 # Cache and IDE
 .cache/
 .vscode/
 .clangd/
 .ccls-cache/
 .vs/
-
 # Temporary files
 tmp/
 temp/
@@ -87,22 +74,18 @@ temp/
 *~
 .swp
 .swo
-
 # Generated files
 compile_commands.json
 *.lst
 *.bin
-
 # OS files
 .DS_Store
 Thumbs.db
 *.log
-
 # --- Keil µVision / ARM MDK ---
 # Build output folders
 Objects/
 Listings/
-
 # Keil intermediate and output files
 *.axf
 *.crf
@@ -112,7 +95,6 @@ Listings/
 *.sct
 *.bak
 *.iex
-
 # Keil IDE user files
 *.uvgui.*
 *.uvguix.*
@@ -120,14 +102,79 @@ Listings/
 *.uvprojx.bak
 *.uvproj.bak
 *.uvopt.bak
-
 # Keil Run-Time Environment (RTE) auto-generated files
 RTE/
 RTE/_*
 *.rtebuildinfo
 *.scvd
-
 # Misc Keil / ARM MDK
 *.uvlicense
 *.sdf
 *.db
+
+# --- Rust ---
+# Cargo build directory
+target/
+# Rustfmt backup files
+**/*.rs.bk
+# Cargo.lock (uncomment if not tracking for applications)
+# Cargo.lock
+
+# --- Python ---
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*.py[co]
+*$py.class
+*.pyo
+*.pyc
+# Distribution / packaging
+.Python
+dist/
+build/
+develop-eggs/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+# Virtual environments
+venv/
+env/
+ENV/
+.venv/
+.env/
+# PyInstaller
+*.manifest
+*.spec
+# pytest
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+.nox/
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+# Jupyter Notebook
+.ipynb_checkpoints
+# pyenv
+.python-version
+# mypy
+.mypy_cache/
+.dmypy.json
+dmypy.json
+# Pyre type checker
+.pyre/
+# pytype static type analyzer
+.pytype/
