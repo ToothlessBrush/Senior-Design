@@ -38,16 +38,32 @@ typedef struct {
 
 } PIDContext;
 
+typedef struct {
+  float roll_Kp;
+  float roll_Ki;
+  float roll_Kd;
+  float roll_limit;
+
+  float pitch_Kp;
+  float pitch_Ki;
+  float pitch_Kd;
+  float pitch_limit;
+
+  float yaw_Kp;
+  float yaw_Ki;
+  float yaw_Kd;
+  float yaw_limit;
+
+} PIDCreateInfo;
+
 /**
  * Initialize PID context with gain values
  * Sets up all three axis controllers with the same gains
  *
  * @param pid Pointer to PID context to initialize
- * @param Kp Proportional gain
- * @param Ki Integral gain
- * @param Kd Derivative gain
+ * @param create_info info for creating pid such as gains and limits
  */
-void pid_init(PIDContext *pid, float Kp, float Ki, float Kd);
+void pid_init(PIDContext *pid, PIDCreateInfo create_info);
 
 /**
  * Update all PID controllers with current IMU measurements

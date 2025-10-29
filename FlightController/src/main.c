@@ -1,5 +1,6 @@
 #include "LSM6DSL.h"
 #include "imu.h"
+#include "lora.h"
 #include "motor_control.h"
 #include "pid.h"
 #include "stm32f411xe.h"
@@ -12,9 +13,9 @@
 #define FIXED_DT (1.0f / IMU_ODR_HZ) // ~0.00015015 seconds
 
 #define MAX_ANGLE 0.17f
-#define KP 1.0f
+#define KP 0.0f
 #define KI 0.0f
-#define KD 0.5f
+#define KD 0.0f
 
 typedef enum {
   STATE_INIT,           // initial state
@@ -33,10 +34,27 @@ int main(void) {
   IMUContext imu = {0};
   PIDContext pid = {0};
 
+  PIDCreateInfo pid_info = (PIDCreateInfo){
+      .roll_Kp = 0.0f,
+      .roll_Ki = 0.0f,
+      .roll_Kd = 0.0f,
+      .roll_limit = 0.2f, // 20% throttle
+
+      .pitch_Kp = 0.0f,
+      .pitch_Ki = 0.0f,
+      .pitch_Kd = 0.0f,
+      .pitch_limit = 0.2f, // 20% throttle
+
+      .yaw_Kp = 0.0f,
+      .yaw_Ki = 0.0f,
+      .yaw_Kd = 0.0f,
+      .yaw_limit = 0.1f, // 10% throttle
+
+  };
+
   while (1) {
     switch (state) {
     case STATE_INIT:
-      uart_send_string("Initializing...\r\n");
 
       // microcontroller config
       SystemClock_Config_100MHz_HSE();
@@ -45,10 +63,17 @@ int main(void) {
       enableIMU();
       uart_init();
 
+      // Initialize LoRa module
+      if (lora_init() == LORA_OK) {
+        lora_send_string_nb(1, "FC:INIT_OK");
+      } else {
+        lora_send_string_nb(1, "FC:INIT_FAIL");
+      }
+
       // flight controller init
       imu_init(&imu);
       // will need to use seperate coefficents for pitch,roll,yaw in future
-      pid_init(&pid, KP, KI, KD);
+      pid_init(&pid, pid_info);
       InitMotors();
 
       // Set initial target attitude
@@ -62,13 +87,19 @@ int main(void) {
     case STATE_DISARMED:
       // idle until start condition currently just delay
       delay_ms(1000);
+      toggle_led();
 
       state = STATE_ARMING;
       break;
     case STATE_ARMING:
-      uart_send_string("Arming...\r\n");
+      lora_send_string_nb(1, "FC:ARMING");
       StartMotors();
+      toggle_led();
 
+      delay_ms(10000);
+
+      drive_motors(0.1, &pid);
+      lora_send_string_nb(1, "FC:ARMED");
       state = STATE_FLYING;
       break;
 
@@ -80,19 +111,21 @@ int main(void) {
       // Update IMU measurements and attitude
       IMU_update_context(&imu, FIXED_DT);
 
+      uart_send_string("running...\r\n");
+
       // stop if greater then max angle
-      if (fabsf(imu.attitude.roll) > MAX_ANGLE ||
-          fabsf(imu.attitude.pitch) > MAX_ANGLE) {
-        StopMotors();
-        state = STATE_EMERGENCY_STOP;
-        break;
-      }
+      // if (fabsf(imu.attitude.roll) > MAX_ANGLE ||
+      //    fabsf(imu.attitude.pitch) > MAX_ANGLE) {
+      //  StopMotors();
+      //   state = STATE_EMERGENCY_STOP;
+      //   break;
+      // }
 
       // Update PID controllers
       pid_update(&pid, &imu, FIXED_DT);
 
-      // drive motors
-      drive_motors(0.1, &pid);
+      // drive motors/
+      // drive_motors(1.0, &pid);
 
       break;
 

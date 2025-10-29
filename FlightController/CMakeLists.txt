@@ -29,6 +29,7 @@ set(SOURCES
     src/imu.c
     src/pid.c
     src/dshot.c
+    src/lora.c
     src/motor_control.c
 )
 

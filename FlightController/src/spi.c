@@ -5,13 +5,15 @@ void SPI1_Init(void) {
   // Enable clocks
   RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN; // GPIO A
   RCC->APB2ENR |= RCC_APB2ENR_SPI1EN;  // SPI1
+  __DSB(); // Data Synchronization Barrier - ensure clocks are stable
 
   // Configure pins A5(SCK), A6(MISO), A7(MOSI)
   GPIOA->MODER &= ~((3 << (5 * 2)) | (3 << (6 * 2)) | (3 << (7 * 2)));
   GPIOA->MODER |=
       (2 << (5 * 2)) | (2 << (6 * 2)) | (2 << (7 * 2)); // Alternate function
 
-  // Set alternate function to AF5 for SPI1
+  // Set alternate function to AF5 for SPI1 - clear first, then set
+  GPIOA->AFR[0] &= ~((0xF << (5 * 4)) | (0xF << (6 * 4)) | (0xF << (7 * 4)));
   GPIOA->AFR[0] |=
       (5 << (5 * 4)) | (5 << (6 * 4)) | (5 << (7 * 4)); // AF5 for SPI1
 

@@ -2,21 +2,41 @@
 
 const float PI = 3.141592;
 
-void pid_init(PIDContext *pid, float Kp, float Ki, float Kd) {
-  PIDController controller = (PIDController){
-      .Kp = Kp,
-      .Ki = Ki,
-      .Kd = Kd,
+void pid_init(PIDContext *pid, PIDCreateInfo create_info) {
+  PIDController roll_controller = (PIDController){
+      .Kp = create_info.roll_Kp,
+      .Ki = create_info.roll_Ki,
+      .Kd = create_info.roll_Kd,
       .integral = 0,
       .previous_error = 0,
-      .output_limit = -0.5,
+      .output_limit = create_info.roll_limit,
+      .integral_limit = 0.25,
+  };
+
+  PIDController pitch_controller = (PIDController){
+      .Kp = create_info.pitch_Kp,
+      .Ki = create_info.pitch_Ki,
+      .Kd = create_info.pitch_Kd,
+      .integral = 0,
+      .previous_error = 0,
+      .output_limit = create_info.pitch_limit,
+      .integral_limit = 0.25,
+  };
+
+  PIDController yaw_controller = (PIDController){
+      .Kp = create_info.yaw_Kp,
+      .Ki = create_info.yaw_Ki,
+      .Kd = create_info.yaw_Kd,
+      .integral = 0,
+      .previous_error = 0,
+      .output_limit = create_info.yaw_limit,
       .integral_limit = 0.25,
   };
 
   *pid = (PIDContext){
-      .pitch_pid = controller,
-      .roll_pid = controller,
-      .yaw_pid = controller,
+      .pitch_pid = pitch_controller,
+      .roll_pid = roll_controller,
+      .yaw_pid = yaw_controller,
   };
 }
 
