@@ -111,8 +111,6 @@ int main(void) {
       // Update IMU measurements and attitude
       IMU_update_context(&imu, FIXED_DT);
 
-      uart_send_string("running...\r\n");
-
       // stop if greater then max angle
       // if (fabsf(imu.attitude.roll) > MAX_ANGLE ||
       //    fabsf(imu.attitude.pitch) > MAX_ANGLE) {

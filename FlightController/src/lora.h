@@ -44,6 +44,7 @@ typedef struct {
 // Function prototypes
 int lora_init(void);
 int lora_is_ready(void);
+int lora_error_code(void);
 void lora_set_ready(uint8_t ready);
 
 // Blocking send - waits for +OK response
@@ -56,9 +57,4 @@ int lora_send_string(uint8_t dest_address, const char *str);
 int lora_send_data_nb(uint8_t dest_address, const uint8_t *data,
                       uint8_t length);
 int lora_send_string_nb(uint8_t dest_address, const char *str);
-
-// Receive functions
-int lora_check_received(lora_message_t *msg);
-void lora_process_rx(void);
-
 #endif // LORA_H
