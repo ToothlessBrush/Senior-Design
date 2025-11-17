@@ -1,10 +1,11 @@
 #ifndef SPI_H
 #define SPI_H
 
+#include <stdbool.h>
 #include <stdint.h>
 
 // SPI initialization
-void SPI1_Init(void);
+bool SPI1_Init(void);
 
 // SPI operations
 uint8_t SPI_ReadByte(uint8_t reg_addr);

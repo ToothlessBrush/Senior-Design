@@ -46,6 +46,7 @@ int lora_init(void);
 int lora_is_ready(void);
 int lora_error_code(void);
 void lora_set_ready(uint8_t ready);
+void lora_service(void);
 
 // Blocking send - waits for +OK response
 int lora_send_at_command(const char *cmd, char *response, uint16_t max_len,
@@ -57,4 +58,10 @@ int lora_send_string(uint8_t dest_address, const char *str);
 int lora_send_data_nb(uint8_t dest_address, const uint8_t *data,
                       uint8_t length);
 int lora_send_string_nb(uint8_t dest_address, const char *str);
+
+// Receive data functions
+int lora_data_available(void);
+lora_message_t *lora_get_received_data(void);
+void lora_clear_received_flag(void);
+
 #endif // LORA_H

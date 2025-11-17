@@ -21,6 +21,11 @@ typedef struct {
 
   // Output limits
   float output_limit; // Minimum output value
+
+  // Individual term values (for telemetry)
+  float p_term;
+  float i_term;
+  float d_term;
 } PIDController;
 
 /**
@@ -36,7 +41,7 @@ typedef struct {
   PIDController roll_pid;  // Roll axis controller
   PIDController yaw_pid;   // Yaw axis controller
 
-} PIDContext;
+} PID;
 
 typedef struct {
   float roll_Kp;
@@ -63,7 +68,7 @@ typedef struct {
  * @param pid Pointer to PID context to initialize
  * @param create_info info for creating pid such as gains and limits
  */
-void pid_init(PIDContext *pid, PIDCreateInfo create_info);
+void pid_init(PID *pid, PIDCreateInfo create_info);
 
 /**
  * Update all PID controllers with current IMU measurements
@@ -73,7 +78,7 @@ void pid_init(PIDContext *pid, PIDCreateInfo create_info);
  * @param imu Pointer to IMU context (provides current attitude)
  * @param dt Time delta since last update (seconds)
  */
-void pid_update(PIDContext *pid, IMUContext *imu, float dt);
+void pid_update(PID *pid, IMU *imu, float dt);
 
 /**
  * Calculate PID output for a single axis

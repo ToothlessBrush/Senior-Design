@@ -9,6 +9,10 @@
 static volatile uint8_t module_ready = 1;
 static volatile int last_error_code = -1;
 
+// Received data tracking
+static volatile uint8_t data_received_flag = 0;
+static lora_message_t received_message;
+
 // Check if module is ready to send
 int lora_is_ready(void) { return module_ready; }
 
@@ -96,7 +100,6 @@ int lora_init(void) {
       LORA_OK) {
     return LORA_ERROR;
   }
-  delay_ms(100);
 
   // Set address
   snprintf(cmd, sizeof(cmd), "AT+ADDRESS=%d", LORA_ADDRESS);
@@ -104,7 +107,6 @@ int lora_init(void) {
       LORA_OK) {
     return LORA_ERROR;
   }
-  delay_ms(100);
 
   // Set network ID
   snprintf(cmd, sizeof(cmd), "AT+NETWORKID=%d", LORA_NETWORK_ID);
@@ -112,7 +114,6 @@ int lora_init(void) {
       LORA_OK) {
     return LORA_ERROR;
   }
-  delay_ms(100);
 
   // Set frequency band
   snprintf(cmd, sizeof(cmd), "AT+BAND=%lu", (unsigned long)LORA_BAND);
@@ -120,7 +121,6 @@ int lora_init(void) {
       LORA_OK) {
     return LORA_ERROR;
   }
-  delay_ms(100);
 
   // Set parameters: SF, BW, CR, Preamble
   snprintf(cmd, sizeof(cmd), "AT+PARAMETER=%d,%d,%d,%d", LORA_SF, LORA_BW,
@@ -129,7 +129,6 @@ int lora_init(void) {
       LORA_OK) {
     return LORA_ERROR;
   }
-  delay_ms(100);
 
   module_ready = 1;
   return LORA_OK;
@@ -198,9 +197,73 @@ int lora_send_string_nb(uint8_t dest_address, const char *str) {
   return lora_send_data_nb(dest_address, (const uint8_t *)str, len);
 }
 
+// Check if data has been received
+int lora_data_available(void) { return data_received_flag; }
+
+// Get pointer to received data
+lora_message_t *lora_get_received_data(void) { return &received_message; }
+
+// Clear the received data flag
+void lora_clear_received_flag(void) { data_received_flag = 0; }
+
+// Parse +RCV=from,length,str,snr,rssi format
+static void parse_rcv_message(const char *buffer) {
+  // Format: +RCV=from,length,str,snr,rssi\r\n
+  char *ptr = strstr(buffer, "+RCV=");
+  if (!ptr)
+    return;
+
+  ptr += 5; // Skip "+RCV="
+
+  // Parse sender address
+  received_message.sender_address = atoi(ptr);
+
+  // Find next comma
+  ptr = strchr(ptr, ',');
+  if (!ptr)
+    return;
+  ptr++; // Skip comma
+
+  // Parse length
+  received_message.length = atoi(ptr);
+
+  // Find next comma
+  ptr = strchr(ptr, ',');
+  if (!ptr)
+    return;
+  ptr++; // Skip comma
+
+  // Extract data string (until next comma)
+  uint16_t i = 0;
+  while (*ptr && *ptr != ',' && i < LORA_MAX_PAYLOAD) {
+    received_message.data[i++] = *ptr++;
+  }
+  received_message.data[i] = '\0';
+
+  // Find SNR comma
+  if (!*ptr || *ptr != ',')
+    return;
+  ptr++; // Skip comma
+
+  // Parse SNR
+  received_message.snr = atoi(ptr);
+
+  // Find RSSI comma
+  ptr = strchr(ptr, ',');
+  if (!ptr)
+    return;
+  ptr++; // Skip comma
+
+  // Parse RSSI
+  received_message.rssi = atoi(ptr);
+
+  // Set flag that data is available
+  data_received_flag = 1;
+}
+
 // checks to see if loras gotten a response call this in loop
 void lora_service(void) {
-  static char response_buffer[64];
+  static char response_buffer[LORA_RX_LINE_SIZE];
   static uint16_t response_idx = 0;
 
   // Process any incoming bytes (non-blocking)
@@ -219,7 +282,10 @@ void lora_service(void) {
 
       if (strstr(response_buffer, "+OK") != NULL) {
         module_ready = 1; // Ready for next command
+      } else if (strstr(response_buffer, "+RCV=") != NULL) {
+        parse_rcv_message(response_buffer); // Parse received data
       }
+
       // Reset for next response
       response_idx = 0;
       response_buffer[0] = '\0';

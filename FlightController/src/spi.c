@@ -1,7 +1,8 @@
 #include "spi.h"
 #include "stm32f411xe.h"
+#include <stdbool.h>
 
-void SPI1_Init(void) {
+bool SPI1_Init(void) {
   // Enable clocks
   RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN; // GPIO A
   RCC->APB2ENR |= RCC_APB2ENR_SPI1EN;  // SPI1
@@ -44,6 +45,12 @@ void SPI1_Init(void) {
   SPI1->CR1 |= SPI_CR1_SSM;  // Software slave management
   SPI1->CR1 |= SPI_CR1_SSI;  // Internal slave select
   SPI1->CR1 |= SPI_CR1_SPE;  // Enable SPI
+
+  // Verify SPI is actually enabled
+  if (!(SPI1->CR1 & SPI_CR1_SPE)) {
+    return false;
+  }
+  return true;
 }
 
 void SPI_CS_Low(void) {

@@ -23,17 +23,12 @@ typedef struct {
   float gyro[3];
   float acc[3];
   Attitude attitude;
-} IMUContext;
+} IMU;
 
 /**
  * check if the IMU is pluged in a and ready via spi
  */
 bool verifyIMU(void);
-
-/**
- * enables the imu by setting up spi and configuring the DSL.
- */
-void enableIMU(void);
 
 /**
  * read the raw acceleration data
@@ -47,8 +42,8 @@ void accToG(int acc_raw[], float acc_g[]);
 void updateOrientation(Attitude *attitude, float acc_g[], float gyro_rad_s[],
                        float dt);
 
-void imu_init(IMUContext *ctx);
-void IMU_update_context(IMUContext *ctx, float dt);
+bool imu_init(IMU *imu);
+void IMU_update(IMU *imu, float dt);
 bool imu_data_ready();
 
 // Helper functions

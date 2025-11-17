@@ -2,7 +2,7 @@
 
 const float PI = 3.141592;
 
-void pid_init(PIDContext *pid, PIDCreateInfo create_info) {
+void pid_init(PID *pid, PIDCreateInfo create_info) {
   PIDController roll_controller = (PIDController){
       .Kp = create_info.roll_Kp,
       .Ki = create_info.roll_Ki,
@@ -33,7 +33,7 @@ void pid_init(PIDContext *pid, PIDCreateInfo create_info) {
       .integral_limit = 0.25,
   };
 
-  *pid = (PIDContext){
+  *pid = (PID){
       .pitch_pid = pitch_controller,
       .roll_pid = roll_controller,
       .yaw_pid = yaw_controller,
@@ -75,6 +75,11 @@ float get_pid_output(PIDController *pid, float setpoint, float measurement,
   // D term (brake force)
   float D = -pid->Kd * angular_velocity;
 
+  // Store individual terms for telemetry
+  pid->p_term = P;
+  pid->i_term = I;
+  pid->d_term = D;
+
   float output = P + I + D;
 
   output = constrainf(output, -pid->output_limit, pid->output_limit);
@@ -85,7 +90,7 @@ float get_pid_output(PIDController *pid, float setpoint, float measurement,
 }
 
 // update all 3 pid axis
-void pid_update(PIDContext *pid, IMUContext *imu, float dt) {
+void pid_update(PID *pid, IMU *imu, float dt) {
   pid->measurement = imu->attitude;
 
   pid->output.pitch = get_pid_output(&pid->pitch_pid, pid->setpoints.pitch,

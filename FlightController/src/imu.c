@@ -3,11 +3,12 @@
 #include "LSM6DSL.h"
 #include "spi.h"
 #include "stm32f411xe.h"
+#include "systick.h"
 #include <math.h>
 #include <stdbool.h>
 #include <stdint.h>
 
-int BerryIMUversion = 4; // Always v4
+int BerryIMUversion = 3;
 
 #define GYRO_SENSITIVITY_500DPS 17.50f
 
@@ -108,65 +109,50 @@ void updateOrientation(Attitude *orient, float acc_g[], float gyro_rad_s[],
   orient->yaw += gyro_rad_s[2] * dt;
 }
 
-void enableIMU(void) {
-  initGyroInterrupt();
-  SPI1_Init();
-
-  SPI_WriteByte(LSM6DSL_CTRL3_C,
-                0x1); // sw_reset reset where we flash without cutting power
-
-  // Enable gyroscope (SPI) - ODR 6.66 kHz, 2000 dps
-  SPI_WriteByte(LSM6DSL_CTRL2_G, 0b10100100);
-
-  // Enable accelerometer (SPI) - ODR 6.66 kHz, +/- 8g
-  SPI_WriteByte(LSM6DSL_CTRL1_XL, 0b10101111);
-  SPI_WriteByte(LSM6DSL_CTRL8_XL, 0b11001000); // Low pass filter enabled
-  SPI_WriteByte(LSM6DSL_CTRL3_C,
-                0b01000100); // Block Data update enabled
-
-  // Enable gyroscope Data Ready interrupt on INT1 pad
-  SPI_WriteByte(LSM6DSL_INT1_CTRL, 0b00000010); // Set INT1_DRDY_G bit
-  // SPI_WriteByte(LSM6DSL_PULSE_CFG_G,
-  //               0x80); // Set it to pulse mode which reset int right after
-  //               its
-  //                      // triggered instead of when its read
-}
-
-void imu_init(IMUContext *ctx) {
-  // zero imu
-  *ctx = (IMUContext){0};
+bool imu_init(IMU *imu) {
+  *imu = (IMU){0};
 
   initGyroInterrupt();
   SPI1_Init();
+  delay_ms(100); // SPI/power stabilization
 
-  SPI_WriteByte(LSM6DSL_CTRL3_C,
-                0x1); // sw_reset reset where we flash without cutting power
+  if (!verifyIMU()) {
+    return false;
+  }
 
-  // Enable gyroscope (SPI) - ODR 6.66 kHz, 2000 dps
+  // Software reset
+  SPI_WriteByte(LSM6DSL_CTRL3_C, 0x01);
+  delay_ms(50); // Wait for reset to complete
+
+  // Configure gyroscope: ODR 6.66kHz, 2000 dps
   SPI_WriteByte(LSM6DSL_CTRL2_G, 0b10100100);
 
-  // Enable accelerometer (SPI) - ODR 6.66 kHz, +/- 8g
+  // Configure accelerometer: ODR 6.66kHz, ±8g
   SPI_WriteByte(LSM6DSL_CTRL1_XL, 0b10101111);
-  SPI_WriteByte(LSM6DSL_CTRL8_XL, 0b11001000); // Low pass filter enabled
-  SPI_WriteByte(LSM6DSL_CTRL3_C,
-                0b01000100); // Block Data update enabled
 
-  // Enable gyroscope Data Ready interrupt on INT1 pad
-  SPI_WriteByte(LSM6DSL_INT1_CTRL, 0b00000010); // Set INT1_DRDY_G bit
-  // SPI_WriteByte(LSM6DSL_PULSE_CFG_G,
-  //               0x80); // Set it to pulse mode which reset int right after
-  //               its
-  //                      // triggered instead of when its read
+  // Low-pass filter for accelerometer
+  SPI_WriteByte(LSM6DSL_CTRL8_XL, 0b11001000);
+
+  // Block Data Update (BDU) enabled, IF_INC enabled
+  SPI_WriteByte(LSM6DSL_CTRL3_C, 0b01000100);
+
+  // Gyro data ready interrupt on INT1
+  SPI_WriteByte(LSM6DSL_INT1_CTRL, 0b00000010);
+
+  // Pulse mode interrupt (auto-clear)
+  // SPI_WriteByte(LSM6DSL_PULSE_CFG_G, 0x80);
+
+  return true;
 }
 
-void IMU_update_context(IMUContext *ctx, float dt) {
-  readGyroRaw(ctx->gyro_raw);
-  readAccRaw(ctx->acc_raw);
+void IMU_update(IMU *imu, float dt) {
+  readGyroRaw(imu->gyro_raw);
+  readAccRaw(imu->acc_raw);
 
-  gyroToRadPS(ctx->gyro_raw, ctx->gyro);
-  accToG(ctx->acc_raw, ctx->acc);
+  gyroToRadPS(imu->gyro_raw, imu->gyro);
+  accToG(imu->acc_raw, imu->acc);
 
-  updateOrientation(&ctx->attitude, ctx->acc, ctx->gyro, dt);
+  updateOrientation(&imu->attitude, imu->acc, imu->gyro, dt);
 }
 
 bool imu_data_ready() {

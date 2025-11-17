@@ -8,6 +8,8 @@
 #include "uart.h"
 #include <math.h>
 #include <stdint.h>
+#include <stdio.h>
+#include <string.h>
 
 #define IMU_ODR_HZ 6660.0f
 #define FIXED_DT (1.0f / IMU_ODR_HZ) // ~0.00015015 seconds
@@ -27,12 +29,12 @@ typedef enum {
 
 void led_init(void);
 void toggle_led(void) { GPIOC->ODR ^= GPIO_ODR_ODR_13; }
-void drive_motors(float base_throttle, PIDContext *pid);
+void drive_motors(float base_throttle, PID *pid);
 
 int main(void) {
   State state = STATE_INIT;
-  IMUContext imu = {0};
-  PIDContext pid = {0};
+  IMU imu = {0};
+  PID pid = {0};
 
   PIDCreateInfo pid_info = (PIDCreateInfo){
       .roll_Kp = 0.0f,
@@ -59,57 +61,70 @@ int main(void) {
       // microcontroller config
       SystemClock_Config_100MHz_HSE();
       systick_init();
-      led_init();
-      enableIMU();
-      uart_init();
-
+      // uart_init();
       // Initialize LoRa module
-      if (lora_init() == LORA_OK) {
-        lora_send_string_nb(1, "FC:INIT_OK");
-      } else {
-        lora_send_string_nb(1, "FC:INIT_FAIL");
+      // if (lora_init() == LORA_OK) {
+      //   lora_send_string(1, "LOG:INIT_OK");
+      // } else {
+      //   lora_send_string(1, "LOG:INIT_FAIL");
+      // }
+
+      // HALT if IMU failed to init
+      if (!imu_init(&imu)) {
+        while (1)
+          ;
       }
 
-      // flight controller init
-      imu_init(&imu);
-      // will need to use seperate coefficents for pitch,roll,yaw in future
-      pid_init(&pid, pid_info);
-      InitMotors();
+      // pid_init(&pid, pid_info);
+      // InitMotors();
 
       // Set initial target attitude
       pid.setpoints.roll = 0.0f;
       pid.setpoints.pitch = 0.0f;
       pid.setpoints.yaw = 0.0f;
+      // lora_send_string(1, "LOG:DISARMED");
+
+      led_init();
 
       state = STATE_DISARMED;
       break;
 
     case STATE_DISARMED:
-      // idle until start condition currently just delay
-      delay_ms(1000);
-      toggle_led();
+      lora_service();
+
+      // idle until start condition
+      // if (lora_data_available()) {
+      //   lora_message_t *message = lora_get_received_data();
+      //   if (message->data != NULL &&
+      //       strncmp((char *)message->data, "start", 5) == 0) {
+      //     state = STATE_ARMING;
+      //   }
+      // }
 
       state = STATE_ARMING;
+
       break;
     case STATE_ARMING:
-      lora_send_string_nb(1, "FC:ARMING");
+      // lora_send_string(1, "LOG:ARMING");
       StartMotors();
       toggle_led();
 
-      delay_ms(10000);
+      delay_ms(1000);
 
       drive_motors(0.1, &pid);
-      lora_send_string_nb(1, "FC:ARMED");
+      // lora_send_string(1, "LOG:ARMED");
       state = STATE_FLYING;
       break;
 
     case STATE_FLYING:
+      // lora_service();
+
       if (!imu_data_ready()) {
         break;
       }
 
       // Update IMU measurements and attitude
-      IMU_update_context(&imu, FIXED_DT);
+      IMU_update(&imu, FIXED_DT);
 
       // stop if greater then max angle
       // if (fabsf(imu.attitude.roll) > MAX_ANGLE ||
@@ -118,6 +133,28 @@ int main(void) {
       //   state = STATE_EMERGENCY_STOP;
       //   break;
       // }
+
+      static int samples = 0;
+      static char telem_buffer[200];
+
+      // if (lora_is_ready() && samples > 10000) {
+      //   // Format:
+      //   //
+      //   "TELEM:roll,pitch,yaw,roll_p,roll_i,roll_d,pitch_p,pitch_i,pitch_d,yaw_p,yaw_i,yaw_d,alt,voltage"
+      //   sprintf(telem_buffer,
+      //           "LOG:%.3f:%.3f:%.3f:%.3f:%.3f:%.3f:%.3f:%.3f:%.3f:%.3f:%.3f:%"
+      //           ".3f:%.1f:%.2f",
+      //           imu.attitude.roll, imu.attitude.pitch, imu.attitude.yaw,
+      //           pid.roll_pid.p_term, pid.roll_pid.i_term,
+      //           pid.roll_pid.d_term, pid.pitch_pid.p_term,
+      //           pid.pitch_pid.i_term, pid.pitch_pid.d_term,
+      //           pid.yaw_pid.p_term, pid.yaw_pid.i_term, pid.yaw_pid.d_term,
+      //           0.0f, 0.0f); // alt and voltage set to 0
+      //   lora_send_string_nb(1, telem_buffer);
+      //   samples = 0;
+      // }
+
+      samples++;
 
       // Update PID controllers
       pid_update(&pid, &imu, FIXED_DT);
@@ -158,7 +195,7 @@ void led_init(void) {
   GPIOC->OSPEEDR &= ~(GPIO_OSPEEDER_OSPEEDR13);
 }
 
-void drive_motors(float base_throttle, PIDContext *pid) {
+void drive_motors(float base_throttle, PID *pid) {
 
   int motor1_speed = base_throttle + pid->output.roll + pid->output.pitch +
                      pid->output.yaw; // north east
