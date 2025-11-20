@@ -9,8 +9,8 @@
 |          | C14        | 5V         |         |
 |          | C15        | B9         |         |
 |          | R          | B8         |         |
-| IMU INT1 | A0 (EXTI0) | B7         |         |
-|          | A1         | B6         |         |
+| IMU INT1 | A0 (EXTI0) | B7 (I2C)   |         |
+|          | A1         | B6 (I2C)   |         |
 | LORA RX  | A2 (TX)    | B5         | Motor 2 |
 | LORA TX  | A3 (RX)    | B4         | Motor 1 |
 | IMU CS   | A4 (GPIO)  | B3         |         |
