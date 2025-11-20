@@ -20,8 +20,8 @@ with programming pins on top
 | IMU SDI  | A7 (MOSI   | A11        |         |
 | Motor 3  | B0         | A10        |         |
 | Motor 4  | B1         | A9         |         |
-|          | B2         | A8         |         |
-|          | B10        | B15        |         |
+| SONAR echo | B2         | A8         |         |
+| SONAR trig | B10        | B15        |         |
 |          | 3v3        | B14        |         |
 |          | G          | B13        |         |
 |          | 5V         | B12        |         |
