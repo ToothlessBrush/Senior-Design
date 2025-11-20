@@ -2,7 +2,7 @@
 
 
 ## Flight Controller pinout
-| Site     | Left Side  | Right Side | Modesty |
+| Connection | Left Side  | Right Side | Connection |
 | -------- | ---------- | ---------- | ------- |
 |          | VB         | 3v3        |         |
 |          | C13        | G          |         |
