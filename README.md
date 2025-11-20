@@ -2,6 +2,7 @@
 
 
 ## Flight Controller pinout
+with programming pins on top
 | Connection | Left Side  | Right Side | Connection |
 | -------- | ---------- | ---------- | ------- |
 |          | VB         | 3v3        |         |
