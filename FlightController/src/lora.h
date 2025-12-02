@@ -10,15 +10,17 @@
 #define LORA_BAND 915000000  // 915MHz for US, 868MHz for EU
 #define LORA_MAX_PAYLOAD 240 // Maximum data length per packet
 
+#define MIN_SEND_INTERVAL 150
+
 // LoRa parameters: Spreading Factor, Bandwidth, Coding Rate, Preamble
 // SF: 7-12 (7=fastest/shortest range, 12=slowest/longest range)
 // BW: 7=125kHz, 8=250kHz, 9=500kHz
 // CR: 1=4/5, 2=4/6, 3=4/7, 4=4/8
 // Preamble: 4-7
-#define LORA_SF 9       // Spreading Factor (9 = good balance)
-#define LORA_BW 7       // Bandwidth (125kHz)
-#define LORA_CR 1       // Coding Rate (4/5)
-#define LORA_PREAMBLE 4 // Preamble length
+#define LORA_SF 7        // Spreading Factor (9 = good balance)
+#define LORA_BW 9        // Bandwidth (125kHz)
+#define LORA_CR 1        // Coding Rate (4/5)
+#define LORA_PREAMBLE 12 // Preamble length
 
 // Response timeout in milliseconds
 #define LORA_TIMEOUT_MS 1000

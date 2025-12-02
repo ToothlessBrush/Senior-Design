@@ -3,6 +3,9 @@
  * Implements proportional-integral-derivative control for pitch, roll, and yaw
  */
 
+#ifndef PID_H
+#define PID_H
+
 #include "imu.h"
 
 /**
@@ -93,3 +96,5 @@ void pid_update(PID *pid, IMU *imu, float dt);
  */
 float get_pid_output(PIDController *pid, float setpoint, float measurement,
                      float angular_velocity, float dt);
+
+#endif // PID_H

@@ -31,6 +31,8 @@ set(SOURCES
     src/dshot.c
     src/lora.c
     src/motor_control.c
+    src/system.c
+    src/utils.c
 )
 
 # Create executable
