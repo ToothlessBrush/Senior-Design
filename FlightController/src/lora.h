@@ -28,19 +28,19 @@
 
 // LoRa status
 typedef enum {
-  LORA_OK = 0,
-  LORA_ERROR = -1,
-  LORA_TIMEOUT = -2,
-  LORA_BUSY = -3
+    LORA_OK = 0,
+    LORA_ERROR = -1,
+    LORA_TIMEOUT = -2,
+    LORA_BUSY = -3
 } lora_status_t;
 
 // LoRa received message structure
 typedef struct {
-  uint8_t sender_address;
-  uint8_t length;
-  uint8_t data[LORA_MAX_PAYLOAD + 1]; // +1 for null terminator
-  int16_t rssi;
-  int8_t snr;
+    uint8_t sender_address;
+    uint8_t length;
+    uint8_t data[LORA_MAX_PAYLOAD + 1]; // +1 for null terminator
+    int16_t rssi;
+    int8_t snr;
 } lora_message_t;
 
 // Function prototypes

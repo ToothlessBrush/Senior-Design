@@ -17,10 +17,11 @@ typedef struct {
     uint16_t throttle;
 } dshotMotor;
 
-void ConstructDshotFrame(dshotMotor* motor, uint16_t throttle);
+void ConstructDshotFrame(dshotMotor *motor, uint16_t throttle);
 
-void InitDshot(dshotMotor* motor1, dshotMotor* motor2, dshotMotor* motor3, dshotMotor* motor4);
+void InitDshot(dshotMotor *motor1, dshotMotor *motor2, dshotMotor *motor3,
+               dshotMotor *motor4);
 
-void InitiMotor(dshotMotor* motor);
+void InitiMotor(dshotMotor *motor);
 
 #endif

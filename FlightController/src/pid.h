@@ -12,23 +12,23 @@
  * Single-axis PID controller
  */
 typedef struct {
-  // PID gains
-  float Kp; // Proportional gain
-  float Ki; // Integral gain
-  float Kd; // Derivative gain
+    // PID gains
+    float Kp; // Proportional gain
+    float Ki; // Integral gain
+    float Kd; // Derivative gain
 
-  // Internal state
-  float integral;       // Accumulated integral term
-  float previous_error; // Error from previous timestep (for derivative)
-  float integral_limit;
+    // Internal state
+    float integral;       // Accumulated integral term
+    float previous_error; // Error from previous timestep (for derivative)
+    float integral_limit;
 
-  // Output limits
-  float output_limit; // Minimum output value
+    // Output limits
+    float output_limit; // Minimum output value
 
-  // Individual term values (for telemetry)
-  float p_term;
-  float i_term;
-  float d_term;
+    // Individual term values (for telemetry)
+    float p_term;
+    float i_term;
+    float d_term;
 } PIDController;
 
 /**
@@ -36,31 +36,31 @@ typedef struct {
  * Contains separate PID controllers for pitch, roll, and yaw
  */
 typedef struct {
-  Attitude setpoints;   // Desired attitude (target angles)
-  Attitude measurement; // Current attitude (from IMU)
-  Attitude output;      // PID control outputs
+    Attitude setpoints;   // Desired attitude (target angles)
+    Attitude measurement; // Current attitude (from IMU)
+    Attitude output;      // PID control outputs
 
-  PIDController pitch_pid; // Pitch axis controller
-  PIDController roll_pid;  // Roll axis controller
-  PIDController yaw_pid;   // Yaw axis controller
+    PIDController pitch_pid; // Pitch axis controller
+    PIDController roll_pid;  // Roll axis controller
+    PIDController yaw_pid;   // Yaw axis controller
 
 } PID;
 
 typedef struct {
-  float roll_Kp;
-  float roll_Ki;
-  float roll_Kd;
-  float roll_limit;
+    float roll_Kp;
+    float roll_Ki;
+    float roll_Kd;
+    float roll_limit;
 
-  float pitch_Kp;
-  float pitch_Ki;
-  float pitch_Kd;
-  float pitch_limit;
+    float pitch_Kp;
+    float pitch_Ki;
+    float pitch_Kd;
+    float pitch_limit;
 
-  float yaw_Kp;
-  float yaw_Ki;
-  float yaw_Kd;
-  float yaw_limit;
+    float yaw_Kp;
+    float yaw_Ki;
+    float yaw_Kd;
+    float yaw_limit;
 
 } PIDCreateInfo;
 
