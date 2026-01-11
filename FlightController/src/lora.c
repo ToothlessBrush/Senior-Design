@@ -24,177 +24,179 @@ void lora_set_ready(uint8_t ready) { module_ready = ready; }
 // Send AT command and wait for response (blocking)
 int lora_send_at_command(const char *cmd, char *response, uint16_t max_len,
                          uint32_t timeout_ms) {
-  uint32_t elapsed = 0;
-  uint16_t idx = 0; // index of response
-  char full_response[256] = {0};
+    uint32_t elapsed = 0;
+    uint16_t idx = 0; // index of response
+    char full_response[256] = {0};
 
-  // Clear any pending data
-  uart_flush();
+    // Clear any pending data
+    uart_flush();
 
-  // Send command
-  uart_send_string(cmd);
-  uart_send_string("\r\n");
+    // Send command
+    uart_send_string(cmd);
+    uart_send_string("\r\n");
 
-  if (response) {
-    response[0] = '\0';
-  }
-
-  // Wait for response
-  while (elapsed < timeout_ms) {
-    if (uart_data_available()) {
-      uint8_t c = uart_receive_byte();
-
-      if (response && idx < max_len - 1) {
-        response[idx] = c;
-        response[idx + 1] = '\0';
-      }
-
-      if (idx < sizeof(full_response) - 1) {
-        full_response[idx] = c;
-        full_response[idx + 1] = '\0';
-      }
-
-      idx++;
-
-      // Check for complete response
-      if (idx >= 2 && full_response[idx - 2] == '\r' &&
-          full_response[idx - 1] == '\n') {
-
-        if (strstr(full_response, "+OK\r\n") != NULL) {
-          // response OK
-          return LORA_OK;
-
-        } else if (strstr(full_response, "+ERR=") != NULL) {
-          // response ERR
-          char *err_pos =
-              strstr(full_response, "+ERR="); // go to where response is +ERR=
-          if (err_pos != NULL) {              // if it exists
-            last_error_code =
-                atoi(err_pos +
-                     5); // get the char at the 5th position and convert to int
-          }
-          return LORA_ERROR;
-
-        } else {
-          // Unknown response
-          return LORA_ERROR;
-        }
-      }
+    if (response) {
+        response[0] = '\0';
     }
-    delay_ms(1);
-    elapsed++;
-  }
 
-  return LORA_TIMEOUT;
+    // Wait for response
+    while (elapsed < timeout_ms) {
+        if (uart_data_available()) {
+            uint8_t c = uart_receive_byte();
+
+            if (response && idx < max_len - 1) {
+                response[idx] = c;
+                response[idx + 1] = '\0';
+            }
+
+            if (idx < sizeof(full_response) - 1) {
+                full_response[idx] = c;
+                full_response[idx + 1] = '\0';
+            }
+
+            idx++;
+
+            // Check for complete response
+            if (idx >= 2 && full_response[idx - 2] == '\r' &&
+                full_response[idx - 1] == '\n') {
+
+                if (strstr(full_response, "+OK\r\n") != NULL) {
+                    // response OK
+                    return LORA_OK;
+
+                } else if (strstr(full_response, "+ERR=") != NULL) {
+                    // response ERR
+                    char *err_pos =
+                        strstr(full_response,
+                               "+ERR=");   // go to where response is +ERR=
+                    if (err_pos != NULL) { // if it exists
+                        last_error_code =
+                            atoi(err_pos + 5); // get the char at the 5th
+                                               // position and convert to int
+                    }
+                    return LORA_ERROR;
+
+                } else {
+                    // Unknown response
+                    return LORA_ERROR;
+                }
+            }
+        }
+        delay_ms(1);
+        elapsed++;
+    }
+
+    return LORA_TIMEOUT;
 }
 
 // Initialize LoRa module
 int lora_init(void) {
-  char response[128];
-  char cmd[64];
+    char response[128];
+    char cmd[64];
 
-  delay_ms(500); // Wait for module to power up
+    delay_ms(500); // Wait for module to power up
 
-  // Test connection
-  if (lora_send_at_command("AT", response, sizeof(response), LORA_TIMEOUT_MS) !=
-      LORA_OK) {
-    return LORA_ERROR;
-  }
+    // Test connection
+    if (lora_send_at_command("AT", response, sizeof(response),
+                             LORA_TIMEOUT_MS) != LORA_OK) {
+        return LORA_ERROR;
+    }
 
-  // Set address
-  snprintf(cmd, sizeof(cmd), "AT+ADDRESS=%d", LORA_ADDRESS);
-  if (lora_send_at_command(cmd, response, sizeof(response), LORA_TIMEOUT_MS) !=
-      LORA_OK) {
-    return LORA_ERROR;
-  }
+    // Set address
+    snprintf(cmd, sizeof(cmd), "AT+ADDRESS=%d", LORA_ADDRESS);
+    if (lora_send_at_command(cmd, response, sizeof(response),
+                             LORA_TIMEOUT_MS) != LORA_OK) {
+        return LORA_ERROR;
+    }
 
-  // Set network ID
-  snprintf(cmd, sizeof(cmd), "AT+NETWORKID=%d", LORA_NETWORK_ID);
-  if (lora_send_at_command(cmd, response, sizeof(response), LORA_TIMEOUT_MS) !=
-      LORA_OK) {
-    return LORA_ERROR;
-  }
+    // Set network ID
+    snprintf(cmd, sizeof(cmd), "AT+NETWORKID=%d", LORA_NETWORK_ID);
+    if (lora_send_at_command(cmd, response, sizeof(response),
+                             LORA_TIMEOUT_MS) != LORA_OK) {
+        return LORA_ERROR;
+    }
 
-  // Set frequency band
-  snprintf(cmd, sizeof(cmd), "AT+BAND=%lu", (unsigned long)LORA_BAND);
-  if (lora_send_at_command(cmd, response, sizeof(response), LORA_TIMEOUT_MS) !=
-      LORA_OK) {
-    return LORA_ERROR;
-  }
+    // Set frequency band
+    snprintf(cmd, sizeof(cmd), "AT+BAND=%lu", (unsigned long)LORA_BAND);
+    if (lora_send_at_command(cmd, response, sizeof(response),
+                             LORA_TIMEOUT_MS) != LORA_OK) {
+        return LORA_ERROR;
+    }
 
-  // Set parameters: SF, BW, CR, Preamble
-  snprintf(cmd, sizeof(cmd), "AT+PARAMETER=%d,%d,%d,%d", LORA_SF, LORA_BW,
-           LORA_CR, LORA_PREAMBLE);
-  if (lora_send_at_command(cmd, response, sizeof(response), LORA_TIMEOUT_MS) !=
-      LORA_OK) {
-    return LORA_ERROR;
-  }
+    // Set parameters: SF, BW, CR, Preamble
+    snprintf(cmd, sizeof(cmd), "AT+PARAMETER=%d,%d,%d,%d", LORA_SF, LORA_BW,
+             LORA_CR, LORA_PREAMBLE);
+    if (lora_send_at_command(cmd, response, sizeof(response),
+                             LORA_TIMEOUT_MS) != LORA_OK) {
+        return LORA_ERROR;
+    }
 
-  module_ready = 1;
-  return LORA_OK;
+    module_ready = 1;
+    return LORA_OK;
 }
 
 // Blocking send - waits for +OK
 int lora_send_data(uint8_t dest_address, const uint8_t *data, uint8_t length) {
-  if (length > LORA_MAX_PAYLOAD) {
-    return LORA_ERROR;
-  }
+    if (length > LORA_MAX_PAYLOAD) {
+        return LORA_ERROR;
+    }
 
-  char cmd[LORA_MAX_PAYLOAD + 50];
-  int cmd_len =
-      snprintf(cmd, sizeof(cmd), "AT+SEND=%d,%d,", dest_address, length);
+    char cmd[LORA_MAX_PAYLOAD + 50];
+    int cmd_len =
+        snprintf(cmd, sizeof(cmd), "AT+SEND=%d,%d,", dest_address, length);
 
-  // Append data
-  for (uint8_t i = 0; i < length; i++) {
-    cmd[cmd_len++] = data[i];
-  }
-  cmd[cmd_len] = '\0';
+    // Append data
+    for (uint8_t i = 0; i < length; i++) {
+        cmd[cmd_len++] = data[i];
+    }
+    cmd[cmd_len] = '\0';
 
-  char response[64];
-  return lora_send_at_command(cmd, response, sizeof(response), LORA_TIMEOUT_MS);
+    char response[64];
+    return lora_send_at_command(cmd, response, sizeof(response),
+                                LORA_TIMEOUT_MS);
 }
 
 // Blocking string send
 int lora_send_string(uint8_t dest_address, const char *str) {
-  uint8_t len = strlen(str);
-  return lora_send_data(dest_address, (const uint8_t *)str, len);
+    uint8_t len = strlen(str);
+    return lora_send_data(dest_address, (const uint8_t *)str, len);
 }
 
 // Non-blocking send - returns immediately
 int lora_send_data_nb(uint8_t dest_address, const uint8_t *data,
                       uint8_t length) {
 
-  if (!module_ready) {
-    return LORA_BUSY;
-  }
+    if (!module_ready) {
+        return LORA_BUSY;
+    }
 
-  if (length > LORA_MAX_PAYLOAD) {
-    return LORA_ERROR;
-  }
+    if (length > LORA_MAX_PAYLOAD) {
+        return LORA_ERROR;
+    }
 
-  // Build command
-  char cmd[LORA_MAX_PAYLOAD + 50];
-  int cmd_len =
-      snprintf(cmd, sizeof(cmd), "AT+SEND=%d,%d,", dest_address, length);
+    // Build command
+    char cmd[LORA_MAX_PAYLOAD + 50];
+    int cmd_len =
+        snprintf(cmd, sizeof(cmd), "AT+SEND=%d,%d,", dest_address, length);
 
-  // Append data
-  for (uint8_t i = 0; i < length; i++) {
-    cmd[cmd_len++] = data[i];
-  }
+    // Append data
+    for (uint8_t i = 0; i < length; i++) {
+        cmd[cmd_len++] = data[i];
+    }
 
-  // Send command without waiting
-  uart_send_data((uint8_t *)cmd, cmd_len);
-  uart_send_string("\r\n");
+    // Send command without waiting
+    uart_send_data((uint8_t *)cmd, cmd_len);
+    uart_send_string("\r\n");
 
-  module_ready = 0; // Mark as busy until we get +OK
+    module_ready = 0; // Mark as busy until we get +OK
 
-  return LORA_OK;
+    return LORA_OK;
 }
 
 // Non-blocking string send
 int lora_send_string_nb(uint8_t dest_address, const char *str) {
-  uint8_t len = strlen(str);
-  return lora_send_data_nb(dest_address, (const uint8_t *)str, len);
+    uint8_t len = strlen(str);
+    return lora_send_data_nb(dest_address, (const uint8_t *)str, len);
 }
 
 // Check if data has been received
@@ -208,88 +210,88 @@ void lora_clear_received_flag(void) { data_received_flag = 0; }
 
 // Parse +RCV=from,length,str,snr,rssi format
 static void parse_rcv_message(const char *buffer) {
-  // Format: +RCV=from,length,str,snr,rssi\r\n
-  char *ptr = strstr(buffer, "+RCV=");
-  if (!ptr)
-    return;
+    // Format: +RCV=from,length,str,snr,rssi\r\n
+    char *ptr = strstr(buffer, "+RCV=");
+    if (!ptr)
+        return;
 
-  ptr += 5; // Skip "+RCV="
+    ptr += 5; // Skip "+RCV="
 
-  // Parse sender address
-  received_message.sender_address = atoi(ptr);
+    // Parse sender address
+    received_message.sender_address = atoi(ptr);
 
-  // Find next comma
-  ptr = strchr(ptr, ',');
-  if (!ptr)
-    return;
-  ptr++; // Skip comma
+    // Find next comma
+    ptr = strchr(ptr, ',');
+    if (!ptr)
+        return;
+    ptr++; // Skip comma
 
-  // Parse length
-  received_message.length = atoi(ptr);
+    // Parse length
+    received_message.length = atoi(ptr);
 
-  // Find next comma
-  ptr = strchr(ptr, ',');
-  if (!ptr)
-    return;
-  ptr++; // Skip comma
+    // Find next comma
+    ptr = strchr(ptr, ',');
+    if (!ptr)
+        return;
+    ptr++; // Skip comma
 
-  // Extract data string (until next comma)
-  uint16_t i = 0;
-  while (*ptr && *ptr != ',' && i < LORA_MAX_PAYLOAD) {
-    received_message.data[i++] = *ptr++;
-  }
-  received_message.data[i] = '\0';
+    // Extract data string (until next comma)
+    uint16_t i = 0;
+    while (*ptr && *ptr != ',' && i < LORA_MAX_PAYLOAD) {
+        received_message.data[i++] = *ptr++;
+    }
+    received_message.data[i] = '\0';
 
-  // Find SNR comma
-  if (!*ptr || *ptr != ',')
-    return;
-  ptr++; // Skip comma
+    // Find SNR comma
+    if (!*ptr || *ptr != ',')
+        return;
+    ptr++; // Skip comma
 
-  // Parse SNR
-  received_message.snr = atoi(ptr);
+    // Parse SNR
+    received_message.snr = atoi(ptr);
 
-  // Find RSSI comma
-  ptr = strchr(ptr, ',');
-  if (!ptr)
-    return;
-  ptr++; // Skip comma
+    // Find RSSI comma
+    ptr = strchr(ptr, ',');
+    if (!ptr)
+        return;
+    ptr++; // Skip comma
 
-  // Parse RSSI
-  received_message.rssi = atoi(ptr);
+    // Parse RSSI
+    received_message.rssi = atoi(ptr);
 
-  // Set flag that data is available
-  data_received_flag = 1;
+    // Set flag that data is available
+    data_received_flag = 1;
 }
 
 // checks to see if loras gotten a response call this in loop
 void lora_service(void) {
-  static char response_buffer[LORA_RX_LINE_SIZE];
-  static uint16_t response_idx = 0;
+    static char response_buffer[LORA_RX_LINE_SIZE];
+    static uint16_t response_idx = 0;
 
-  // Process any incoming bytes (non-blocking)
-  while (uart_data_available()) {
-    uint8_t c = uart_receive_byte();
+    // Process any incoming bytes (non-blocking)
+    while (uart_data_available()) {
+        uint8_t c = uart_receive_byte();
 
-    if (response_idx < sizeof(response_buffer) - 1) {
-      response_buffer[response_idx] = c;
-      response_buffer[response_idx + 1] = '\0';
+        if (response_idx < sizeof(response_buffer) - 1) {
+            response_buffer[response_idx] = c;
+            response_buffer[response_idx + 1] = '\0';
+        }
+        response_idx++;
+
+        // Check for complete response
+        if (response_idx >= 2 && response_buffer[response_idx - 2] == '\r' &&
+            response_buffer[response_idx - 1] == '\n') {
+
+            if (strstr(response_buffer, "+OK") != NULL) {
+                module_ready = 1; // Ready for next command
+            } else if (strstr(response_buffer, "+RCV=") != NULL) {
+                parse_rcv_message(response_buffer); // Parse received data
+            }
+
+            // Reset for next response
+            response_idx = 0;
+            response_buffer[0] = '\0';
+            break; // Process one response per call
+        }
     }
-    response_idx++;
-
-    // Check for complete response
-    if (response_idx >= 2 && response_buffer[response_idx - 2] == '\r' &&
-        response_buffer[response_idx - 1] == '\n') {
-
-      if (strstr(response_buffer, "+OK") != NULL) {
-        module_ready = 1; // Ready for next command
-      } else if (strstr(response_buffer, "+RCV=") != NULL) {
-        parse_rcv_message(response_buffer); // Parse received data
-      }
-
-      // Reset for next response
-      response_idx = 0;
-      response_buffer[0] = '\0';
-      break; // Process one response per call
-    }
-  }
 }

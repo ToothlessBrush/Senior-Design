@@ -6,9 +6,9 @@
 #include <stdint.h>
 
 typedef struct {
-  int sign;    // 1 for positive, -1 for negative
-  int whole;   // whole part (always positive)
-  int decimal; // decimal part (always positive)
+    int sign;    // 1 for positive, -1 for negative
+    int whole;   // whole part (always positive)
+    int decimal; // decimal part (always positive)
 } float_parts_t;
 
 // Splits a float into sign, whole, and decimal parts for formatted output

@@ -14,10 +14,10 @@ void I2C_ReadBlock(uint8_t device_addr, uint8_t reg_addr, uint8_t size,
 
 // Error handling
 typedef enum {
-  I2C_OK = 0,
-  I2C_ERROR_TIMEOUT,
-  I2C_ERROR_NACK,
-  I2C_ERROR_BUS_BUSY
+    I2C_OK = 0,
+    I2C_ERROR_TIMEOUT,
+    I2C_ERROR_NACK,
+    I2C_ERROR_BUS_BUSY
 } I2C_Status_t;
 
 #endif

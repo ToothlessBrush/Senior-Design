@@ -8,9 +8,9 @@
  * Orientation contains pitch, roll, and yaw
  */
 typedef struct {
-  float roll;
-  float pitch;
-  float yaw;
+    float roll;
+    float pitch;
+    float yaw;
 } Attitude;
 
 /**
@@ -18,11 +18,11 @@ typedef struct {
  * acceleration, and attitude.
  */
 typedef struct {
-  int gyro_raw[3];
-  int acc_raw[3];
-  float gyro[3];
-  float acc[3];
-  Attitude attitude;
+    int gyro_raw[3];
+    int acc_raw[3];
+    float gyro[3];
+    float acc[3];
+    Attitude attitude;
 } IMU;
 
 /**
