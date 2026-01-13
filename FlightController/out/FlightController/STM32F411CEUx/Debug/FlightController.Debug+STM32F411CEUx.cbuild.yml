@@ -1,29 +1,33 @@
 build:
-  generated-by: csolution version 2.10.0
-  solution: ../FlightController.csolution.yml
-  project: FlightController.cproject.yml
+  generated-by: csolution version 2.12.0
+  solution: ../../../../FlightController.csolution.yml
+  project: ../../../../FlightController/FlightController.cproject.yml
   context: FlightController.Debug+STM32F411CEUx
   compiler: AC6
   device: STMicroelectronics::STM32F411CEUx
-  device-pack: Keil::STM32F4xx_DFP@2.4.0
+  device-pack: Keil::STM32F4xx_DFP@3.1.1
   device-books:
-    - name: ${CMSIS_PACK_ROOT}/Keil/STM32F4xx_DFP/2.4.0/Documentation/DM00119316.pdf
+    - name: https://www.st.com/resource/en/reference_manual/rm0383-stm32f411xce-advanced-armbased-32bit-mcus-stmicroelectronics.pdf
       title: STM32F411xC/E Reference Manual
-    - name: ${CMSIS_PACK_ROOT}/Keil/STM32F4xx_DFP/2.4.0/Documentation/DM00115249.pdf
-      title: STM32F411xC/411xE Data Sheet
-    - name: ${CMSIS_PACK_ROOT}/Keil/STM32F4xx_DFP/2.4.0/Documentation/dui0553a_cortex_m4_dgug.pdf
-      title: Cortex-M4 Generic User Guide
-    - name: ${CMSIS_PACK_ROOT}/Keil/STM32F4xx_DFP/2.4.0/Documentation/DM00105879.pdf
+    - name: https://www.st.com/resource/en/datasheet/stm32f411ce.pdf
+      title: STM32F411xC/411xE Datasheet
+    - name: https://www.st.com/resource/en/user_manual/um1725-description-of-stm32f4-hal-and-lowlayer-drivers-stmicroelectronics.pdf
       title: STM32F4xx HAL Drivers
+    - name: https://developer.arm.com/documentation/dui0553/latest
+      title: Cortex-M4 Generic User Guide
+  dbgconf:
+    - file: ../../../../.cmsis/FlightController+STM32F411CEUx.dbgconf
+      version: 1.0.1
   processor:
+    dsp: on
     endian: little
     fpu: sp
     core: Cortex-M4
   packs:
     - pack: ARM::CMSIS@6.2.0
       path: ${CMSIS_PACK_ROOT}/ARM/CMSIS/6.2.0
-    - pack: Keil::STM32F4xx_DFP@2.4.0
-      path: ${CMSIS_PACK_ROOT}/Keil/STM32F4xx_DFP/2.4.0
+    - pack: Keil::STM32F4xx_DFP@3.1.1
+      path: ${CMSIS_PACK_ROOT}/Keil/STM32F4xx_DFP/3.1.1
   optimize: none
   debug: on
   misc:
@@ -45,7 +49,7 @@ build:
       - -Wno-license-management
     Link:
       - --entry=Reset_Handler
-      - --info summarysizes
+      - --info=summarysizes
       - --summary_stderr
       - --diag_suppress=L6314W
   define:
@@ -55,17 +59,15 @@ build:
     - STM32F411xE
     - _RTE_
   add-path:
-    - RTE/_Debug_STM32F411CEUx
+    - ../../../../FlightController/RTE/_Debug_STM32F411CEUx
     - ${CMSIS_PACK_ROOT}/ARM/CMSIS/6.2.0/CMSIS/Core/Include
-    - ${CMSIS_PACK_ROOT}/Keil/STM32F4xx_DFP/2.4.0/Drivers/CMSIS/Device/ST/STM32F4xx/Include
   add-path-asm:
-    - RTE/_Debug_STM32F411CEUx
+    - ../../../../FlightController/RTE/_Debug_STM32F411CEUx
     - ${CMSIS_PACK_ROOT}/ARM/CMSIS/6.2.0/CMSIS/Core/Include
-    - ${CMSIS_PACK_ROOT}/Keil/STM32F4xx_DFP/2.4.0/Drivers/CMSIS/Device/ST/STM32F4xx/Include
   output-dirs:
-    intdir: ../tmp
-    outdir: ../out/FlightController/STM32F411CEUx/Debug
-    rtedir: RTE
+    intdir: ../../../../tmp
+    outdir: .
+    rtedir: ../../../../FlightController/RTE
   output:
     - type: elf
       file: FlightController.axf
@@ -98,87 +100,62 @@ build:
         - file: ${CMSIS_PACK_ROOT}/ARM/CMSIS/6.2.0/CMSIS/Documentation/html/Core/index.html
           category: doc
           version: 6.1.1
-    - component: Keil::Device:Startup@2.1.0
-      condition: STM32F4 CMSIS
-      from-pack: Keil::STM32F4xx_DFP@2.4.0
-      selected-by: Device:Startup
-      files:
-        - file: ${CMSIS_PACK_ROOT}/Keil/STM32F4xx_DFP/2.4.0/Drivers/CMSIS/Device/ST/STM32F4xx/Include
-          category: include
-          version: 2.1.0
-        - file: ${CMSIS_PACK_ROOT}/Keil/STM32F4xx_DFP/2.4.0/Drivers/CMSIS/Device/ST/STM32F4xx/Include/stm32f4xx.h
-          category: header
-          version: 2.1.0
-        - file: ${CMSIS_PACK_ROOT}/Keil/STM32F4xx_DFP/2.4.0/MDK/Device/Source/ARM/STM32F4xx_OTP.s
-          category: source
-          attr: template
-          version: 2.1.0
-          select: Flash One-Time programmable Bytes
-        - file: RTE/Device/STM32F411CEUx/startup_stm32f411xe.s
-          category: source
-          attr: config
-          version: 2.1.0
-        - file: RTE/Device/STM32F411CEUx/system_stm32f4xx.c
-          category: source
-          attr: config
-          version: 2.1.0
   linker:
-    script: RTE/Device/STM32F411CEUx/ac6_linker_script.sct.src
-    regions: RTE/Device/STM32F411CEUx/regions_STM32F411CEUx.h
+    script: ../../../../FlightController/RTE/Device/STM32F411CEUx/ac6_linker_script.sct.src
+    regions: ../../../../FlightController/RTE/Device/STM32F411CEUx/regions_STM32F411CEUx.h
   groups:
     - group: Source Files
       groups:
         - group: src
           files:
-            - file: ../src/dshot.c
+            - file: ../../../../src/dshot.c
               category: sourceC
-            - file: ../src/dshot.h
+            - file: ../../../../src/dshot.h
               category: header
-            - file: ../src/motor_control.c
+            - file: ../../../../src/motor_control.c
               category: sourceC
-            - file: ../src/motor_control.h
+            - file: ../../../../src/motor_control.h
               category: header
-            - file: ../src/i2c.c
+            - file: ../../../../src/i2c.c
               category: sourceC
-            - file: ../src/i2c.h
+            - file: ../../../../src/i2c.h
               category: header
-            - file: ../src/imu.c
+            - file: ../../../../src/imu.c
               category: sourceC
-            - file: ../src/imu.h
+            - file: ../../../../src/imu.h
               category: header
-            - file: ../src/main.c
+            - file: ../../../../src/main.c
               category: sourceC
-            - file: ../src/pid.c
+            - file: ../../../../src/pid.c
               category: sourceC
-            - file: ../src/pid.h
+            - file: ../../../../src/pid.h
               category: header
-            - file: ../src/spi.c
+            - file: ../../../../src/spi.c
               category: sourceC
-            - file: ../src/spi.h
+            - file: ../../../../src/spi.h
               category: header
-            - file: ../src/systick.c
+            - file: ../../../../src/systick.c
               category: sourceC
-            - file: ../src/systick.h
+            - file: ../../../../src/systick.h
               category: header
-            - file: ../src/uart.c
+            - file: ../../../../src/uart.c
               category: sourceC
-            - file: ../src/uart.h
+            - file: ../../../../src/uart.h
               category: header
         - group: inc
           files:
-            - file: ../inc/LSM6DSL.h
+            - file: ../../../../inc/LSM6DSL.h
               category: header
   constructed-files:
-    - file: RTE/_Debug_STM32F411CEUx/RTE_Components.h
+    - file: ../../../../FlightController/RTE/_Debug_STM32F411CEUx/RTE_Components.h
       category: header
   licenses:
-    - license: <unknown>
-      packs:
-        - pack: Keil::STM32F4xx_DFP@2.4.0
-      components:
-        - component: Keil::Device:Startup@2.1.0
     - license: Apache-2.0
       packs:
         - pack: ARM::CMSIS@6.2.0
+        - pack: Keil::STM32F4xx_DFP@3.1.1
       components:
         - component: ARM::CMSIS:CORE@6.1.1
+    - license: BSD-3-Clause
+      packs:
+        - pack: Keil::STM32F4xx_DFP@3.1.1
