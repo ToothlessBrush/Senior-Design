@@ -1,13 +1,33 @@
 project:
   groups:
     - group: Source Files
-      files:
-        - file: ./main.c
-        - file: ../src/dshot.c
-        - file: ../src/dshot.h
-        - file: ../src/motor_control.c
-        - file: ../src/motor_control.h
-
+      # files:
+      # - file: ../src/main.c
+      groups:
+        - group: src
+          files:
+            - file: ../src/dshot.c
+            - file: ../src/dshot.h
+            - file: ../src/motor_control.c
+            - file: ../src/motor_control.h
+            - file: ../src/i2c.c
+            - file: ../src/i2c.h
+            - file: ../src/imu.c
+            - file: ../src/imu.h
+            - file: ../src/main.c
+            - file: ../src/pid.c
+            - file: ../src/pid.h
+            - file: ../src/spi.c
+            - file: ../src/spi.h
+            - file: ../src/systick.c
+            - file: ../src/systick.h
+            - file: ../src/uart.c
+            - file: ../src/uart.h
+            - file: ../src/system.h
+            - file: ../src/system.c
+        - group: inc
+          files:
+            - file: ../inc/LSM6DSL.h
   components:
     - component: ARM::CMSIS:CORE
     - component: Device:Startup

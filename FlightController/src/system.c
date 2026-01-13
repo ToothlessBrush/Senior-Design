@@ -46,11 +46,11 @@ void SystemClock_Config_100MHz_HSE(void) {
     // SYSCLK = VCO / PLLP = 200 MHz / 2 = 100 MHz
     // USB clock = VCO / PLLQ = 200 MHz / 4 = 50 MHz
 
-    RCC->PLLCFGR = (25 << RCC_PLLCFGR_PLLM_Pos) |  // PLLM = 25
-                   (200 << RCC_PLLCFGR_PLLN_Pos) | // PLLN = 200
-                   (0 << RCC_PLLCFGR_PLLP_Pos) |   // PLLP = 2 (00 = /2)
-                   RCC_PLLCFGR_PLLSRC_HSE |        // PLL source = HSE
-                   (4 << RCC_PLLCFGR_PLLQ_Pos);    // PLLQ = 4
+    RCC->PLLCFGR = (25 << 0) |  // PLLM = 25
+                    (200 << 6) | // PLLN = 200
+                    (0 << 16) |   // PLLP = 2 (00 = /2)
+                    RCC_PLLCFGR_PLLSRC_HSE |        // PLL source = HSE
+                    (4 << 24);    // PLLQ = 4
 
     // Enable PLL
     RCC->CR |= RCC_CR_PLLON;

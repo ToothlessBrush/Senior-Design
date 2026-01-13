@@ -127,17 +127,51 @@ build:
     regions: RTE/Device/STM32F411CEUx/regions_STM32F411CEUx.h
   groups:
     - group: Source Files
-      files:
-        - file: main.c
-          category: sourceC
-        - file: ../src/dshot.c
-          category: sourceC
-        - file: ../src/dshot.h
-          category: header
-        - file: ../src/motor_control.c
-          category: sourceC
-        - file: ../src/motor_control.h
-          category: header
+      groups:
+        - group: src
+          files:
+            - file: ../src/dshot.c
+              category: sourceC
+            - file: ../src/dshot.h
+              category: header
+            - file: ../src/motor_control.c
+              category: sourceC
+            - file: ../src/motor_control.h
+              category: header
+            - file: ../src/i2c.c
+              category: sourceC
+            - file: ../src/i2c.h
+              category: header
+            - file: ../src/imu.c
+              category: sourceC
+            - file: ../src/imu.h
+              category: header
+            - file: ../src/main.c
+              category: sourceC
+            - file: ../src/pid.c
+              category: sourceC
+            - file: ../src/pid.h
+              category: header
+            - file: ../src/spi.c
+              category: sourceC
+            - file: ../src/spi.h
+              category: header
+            - file: ../src/systick.c
+              category: sourceC
+            - file: ../src/systick.h
+              category: header
+            - file: ../src/uart.c
+              category: sourceC
+            - file: ../src/uart.h
+              category: header
+            - file: ../src/system.h
+              category: header
+            - file: ../src/system.c
+              category: sourceC
+        - group: inc
+          files:
+            - file: ../inc/LSM6DSL.h
+              category: header
   constructed-files:
     - file: RTE/_Debug_STM32F411CEUx/RTE_Components.h
       category: header
