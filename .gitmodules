@@ -1,3 +1,6 @@
 [submodule "FlightController/vendor/STM32CubeF4"]
 	path = FlightController/vendor/STM32CubeF4
 	url = https://github.com/STMicroelectronics/STM32CubeF4.git
+[submodule "drone_gui"]
+	path = drone_gui
+	url = https://github.com/ToothlessBrush/drone_gui.git
