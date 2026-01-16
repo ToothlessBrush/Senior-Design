@@ -104,7 +104,7 @@ int main(void) {
             InitMotors();
             StartMotors();
 
-            delay_ms(1000);
+            delay_ms(2500);
 
             lora_send_string(1, "LOG:ARMED");
             state = STATE_FLYING;
@@ -121,15 +121,15 @@ int main(void) {
             IMU_update(&imu, FIXED_DT);
 
             // stop if greater then max angle
-            if (fabsf(imu.attitude.roll) > MAX_ANGLE ||
-                fabsf(imu.attitude.pitch) > MAX_ANGLE) {
-                StopMotors();
-                state = STATE_EMERGENCY_STOP;
-                break;
-            }
+            // if (fabsf(imu.attitude.roll) > MAX_ANGLE ||
+            //     fabsf(imu.attitude.pitch) > MAX_ANGLE) {
+            //     StopMotors();
+            //     state = STATE_EMERGENCY_STOP;
+            //     break;
+            // }
 
             // Update PID controllers
-            pid_update(&pid, &imu, FIXED_DT);
+            // pid_update(&pid, &imu, FIXED_DT);
 
             drive_motors(1.0, &pid);
 

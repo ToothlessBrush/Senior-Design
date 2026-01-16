@@ -69,7 +69,7 @@ void send_telem(IMU *imu, PID *pid) {
 
         sprintf(
             telem_buffer,
-            "LOG:%s%d.%03d:%s%d.%03d:%s%d.%03d:%s%d.%03d:%s%d.%03d:%s%d.%03d:"
+            "TELEM:%s%d.%03d:%s%d.%03d:%s%d.%03d:%s%d.%03d:%s%d.%03d:%s%d.%03d:"
             "%s%d.%03d:%s%d.%03d:%s%d.%03d:%s%d.%03d:%s%d.%03d:%s%d.%03d:"
             "%s%d.%01d:%s%d.%02d",
             // Roll, pitch, yaw
