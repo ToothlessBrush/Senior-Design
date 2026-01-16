@@ -1,5 +1,6 @@
 #include "utils.h"
 #include "lora.h"
+#include "protocol.h"
 #include "systick.h"
 #include <stdio.h>
 #include <string.h>
@@ -96,4 +97,61 @@ void send_telem(IMU *imu, PID *pid) {
         samples = 0;
     }
     samples++;
+}
+
+// Send binary telemetry (much more efficient than string format)
+void send_telem_binary(IMU *imu, PID *pid, uint8_t state) {
+    static uint32_t last_send = 0;
+    uint32_t now = millis();
+
+    if (now - last_send >= MIN_SEND_INTERVAL) {
+        last_send = now;
+
+        TelemetryPacket packet = {0};
+
+        // Fill in timestamp
+        packet.timestamp_ms = now;
+
+        // Fill in attitude (roll, pitch, yaw)
+        packet.roll = imu->attitude.roll;
+        packet.pitch = imu->attitude.pitch;
+        packet.yaw = imu->attitude.yaw;
+
+        // Fill in gyro data (rad/s)
+        packet.gyro_x = imu->gyro[0];
+        packet.gyro_y = imu->gyro[1];
+        packet.gyro_z = imu->gyro[2];
+
+        // Fill in PID outputs
+        packet.pid_roll_output = pid->output.roll;
+        packet.pid_pitch_output = pid->output.pitch;
+        packet.pid_yaw_output = pid->output.yaw;
+
+        // Fill in PID terms for roll
+        packet.roll_p_term = pid->roll_pid.p_term;
+        packet.roll_i_term = pid->roll_pid.i_term;
+        packet.roll_d_term = pid->roll_pid.d_term;
+
+        // Fill in PID terms for pitch
+        packet.pitch_p_term = pid->pitch_pid.p_term;
+        packet.pitch_i_term = pid->pitch_pid.i_term;
+        packet.pitch_d_term = pid->pitch_pid.d_term;
+
+        // Fill in PID terms for yaw
+        packet.yaw_p_term = pid->yaw_pid.p_term;
+        packet.yaw_i_term = pid->yaw_pid.i_term;
+        packet.yaw_d_term = pid->yaw_pid.d_term;
+
+        // Additional telemetry (currently unused)
+        packet.altitude = 0.0f;
+        packet.battery_volt = 0.0f;
+
+        // State and flags
+        packet.state = state;
+        packet.flags = 0x00; // TODO: Add status flags (motors armed, IMU ready,
+                             // etc.)
+
+        // Send as binary data
+        lora_send_data_nb(1, (const uint8_t *)&packet, sizeof(TelemetryPacket));
+    }
 }

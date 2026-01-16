@@ -3,6 +3,7 @@
 #include "lora.h"
 #include "motor_control.h"
 #include "pid.h"
+#include "protocol.h"
 #include "system.h"
 #include "systick.h"
 #include "uart.h"
@@ -23,6 +24,7 @@ typedef enum {
     STATE_INIT,           // initial state
     STATE_DISARMED,       // initialized but not running
     STATE_ARMING,         // transitioning to flying
+    STATE_DISARMING,      // transition to disarmed
     STATE_FLYING,         // currently flying
     STATE_EMERGENCY_STOP, // stop everthing
 } State;
@@ -90,12 +92,28 @@ int main(void) {
         case STATE_DISARMED:
             lora_service();
 
-            // idle until start condition
+            // Process incoming commands
             if (lora_data_available()) {
                 lora_message_t *message = lora_get_received_data();
-                if (strncmp((char *)message->data, "FC:START", 5) == 0) {
+                CommandType cmd = parse_command(message->data, message->length);
+
+                switch (cmd) {
+                case CMD_START:
+                    lora_send_string(1, "LOG:CMD_START");
                     state = STATE_ARMING;
+                    break;
+
+                case CMD_RESET:
+                    lora_send_string(1, "LOG:CMD_RESET");
+                    state = STATE_INIT;
+                    break;
+
+                default:
+                    // Unknown or invalid command in DISARMED state
+                    break;
                 }
+
+                lora_clear_received_flag();
             }
 
             break;
@@ -110,8 +128,55 @@ int main(void) {
             state = STATE_FLYING;
             break;
 
+        case STATE_DISARMING:
+            lora_send_string(1, "LOG:DISARMING");
+            StopMotors();
+            state = STATE_DISARMED;
+            break;
+
         case STATE_FLYING:
             lora_service();
+
+            // Check for incoming commands while flying
+            if (lora_data_available()) {
+                lora_message_t *message = lora_get_received_data();
+                CommandType cmd = parse_command(message->data, message->length);
+
+                switch (cmd) {
+                case CMD_STOP:
+                    lora_send_string(1, "LOG:CMD_STOP");
+                    StopMotors();
+                    state = STATE_DISARMED;
+                    break;
+
+                case CMD_EMERGENCY_STOP:
+                    lora_send_string(1, "LOG:CMD_EMERGENCY_STOP");
+                    StopMotors();
+                    state = STATE_EMERGENCY_STOP;
+                    break;
+
+                case CMD_SET_ATTITUDE:
+                    // TODO: Parse attitude setpoint from message
+                    // CommandSetAttitude *att_cmd = (CommandSetAttitude
+                    // *)message->data; pid.setpoints.roll = att_cmd->roll;
+                    // pid.setpoints.pitch = att_cmd->pitch;
+                    // pid.setpoints.yaw = att_cmd->yaw;
+                    break;
+
+                case CMD_SET_THROTTLE:
+                    // TODO: Parse throttle from message
+                    break;
+
+                case CMD_UPDATE_PID:
+                    // TODO: Parse PID gains from message
+                    break;
+
+                default:
+                    break;
+                }
+
+                lora_clear_received_flag();
+            }
 
             if (!imu_data_ready()) {
                 break;
@@ -133,11 +198,27 @@ int main(void) {
 
             drive_motors(1.0, &pid);
 
+            // Send string telemetry (required for LoRa AT command format)
             send_telem(&imu, &pid);
 
             break;
 
         case STATE_EMERGENCY_STOP:
+            lora_service();
+
+            // Check for reset command
+            if (lora_data_available()) {
+                lora_message_t *message = lora_get_received_data();
+                CommandType cmd = parse_command(message->data, message->length);
+
+                if (cmd == CMD_RESET) {
+                    lora_send_string(1, "LOG:RESET_FROM_EMERGENCY");
+                    state = STATE_DISARMED;
+                }
+
+                lora_clear_received_flag();
+            }
+
             // constant stop motors
             StopMotors();
 

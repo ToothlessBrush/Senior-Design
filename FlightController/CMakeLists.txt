@@ -35,6 +35,7 @@ set(SOURCES
     src/motor_control.c
     src/system.c
     src/utils.c
+    src/protocol.c
 )
 
 # Create executable
