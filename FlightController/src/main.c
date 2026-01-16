@@ -27,6 +27,7 @@ typedef enum {
     STATE_DISARMING,      // transition to disarmed
     STATE_FLYING,         // currently flying
     STATE_EMERGENCY_STOP, // stop everthing
+    STATE_CALIBRATE,
 } State;
 
 void drive_motors(float base_throttle, PID *pid);
@@ -81,7 +82,6 @@ int main(void) {
             pid.setpoints.roll = 0.0f;
             pid.setpoints.pitch = 0.0f;
             pid.setpoints.yaw = 0.0f;
-            // lora_send_string(1, "LOG:DISARMED");
 
             // turn on led to signal init success
             led_init();
@@ -107,6 +107,10 @@ int main(void) {
                     lora_send_string(1, "LOG:CMD_RESET");
                     state = STATE_INIT;
                     break;
+                case CMD_CALIBRATE:
+                    lora_send_string(1, "LOG:CMD_CALIBRATE");
+                    state = STATE_CALIBRATE;
+                    break;
 
                 default:
                     // Unknown or invalid command in DISARMED state
@@ -117,7 +121,17 @@ int main(void) {
             }
 
             break;
+
+        case STATE_CALIBRATE:
+            toggle_led();
+            IMU_calibrate_accel(&imu, 1);
+            IMU_calibrate_gyro(&imu, 1);
+            toggle_led();
+            state = STATE_DISARMED;
+            break;
+
         case STATE_ARMING:
+            lora_service(); // Process any pending LoRa data
             lora_send_string(1, "LOG:ARMING");
             InitMotors();
             StartMotors();
@@ -125,6 +139,7 @@ int main(void) {
             delay_ms(2500);
 
             lora_send_string(1, "LOG:ARMED");
+            lora_service(); // Ensure message is processed
             state = STATE_FLYING;
             break;
 

@@ -152,6 +152,15 @@ void IMU_update(IMU *imu, float dt) {
     gyroToRadPS(imu->gyro_raw, imu->gyro);
     accToG(imu->acc_raw, imu->acc);
 
+    // Apply calibration (if not calibrated, bias is 0)
+    imu->gyro[0] -= imu->cal.gyro_bias[0];
+    imu->gyro[1] -= imu->cal.gyro_bias[1];
+    imu->gyro[2] -= imu->cal.gyro_bias[2];
+
+    imu->acc[0] -= imu->cal.accel_bias[0];
+    imu->acc[1] -= imu->cal.accel_bias[1];
+    imu->acc[2] -= imu->cal.accel_bias[2];
+
     updateOrientation(&imu->attitude, imu->acc, imu->gyro, dt);
 }
 
@@ -162,4 +171,75 @@ bool imu_data_ready() {
     }
 
     return false;
+}
+
+void IMU_calibrate_gyro(IMU *imu, uint16_t samples) {
+    // Calibrate gyroscope by averaging samples while stationary
+    // This finds the bias (offset) that should be subtracted from readings
+
+    float gyro_sum[3] = {0.0f, 0.0f, 0.0f};
+
+    // Collect samples
+    for (uint16_t i = 0; i < samples; i++) {
+        // Wait for data ready
+        while (!imu_data_ready()) {
+            // Wait for next sample
+        }
+
+        // Read raw gyro data
+        readGyroRaw(imu->gyro_raw);
+
+        // Convert to rad/s and accumulate
+        float gyro_temp[3];
+        gyroToRadPS(imu->gyro_raw, gyro_temp);
+
+        gyro_sum[0] += gyro_temp[0];
+        gyro_sum[1] += gyro_temp[1];
+        gyro_sum[2] += gyro_temp[2];
+    }
+
+    // Calculate average bias
+    imu->cal.gyro_bias[0] = gyro_sum[0] / samples;
+    imu->cal.gyro_bias[1] = gyro_sum[1] / samples;
+    imu->cal.gyro_bias[2] = gyro_sum[2] / samples;
+}
+
+void IMU_calibrate_accel(IMU *imu, uint16_t samples) {
+    // Calibrate accelerometer by averaging samples while stationary
+    // Assumes device is level with Z-axis pointing up (should read [0, 0, 1g])
+
+    float accel_sum[3] = {0.0f, 0.0f, 0.0f};
+
+    // Collect samples
+    for (uint16_t i = 0; i < samples; i++) {
+        // Wait for data ready
+        while (!imu_data_ready()) {
+            // Wait for next sample
+        }
+
+        // Read gyro data first to clear sensor's internal data ready flag
+        readGyroRaw(imu->gyro_raw);
+
+        // Read raw accel data
+        readAccRaw(imu->acc_raw);
+
+        // Convert to g and accumulate
+        float acc_temp[3];
+        accToG(imu->acc_raw, acc_temp);
+
+        accel_sum[0] += acc_temp[0];
+        accel_sum[1] += acc_temp[1];
+        accel_sum[2] += acc_temp[2];
+    }
+
+    // Calculate average
+    float accel_avg[3];
+    accel_avg[0] = accel_sum[0] / samples;
+    accel_avg[1] = accel_sum[1] / samples;
+    accel_avg[2] = accel_sum[2] / samples;
+
+    // Bias is the difference from expected [0, 0, 1g]
+    imu->cal.accel_bias[0] = accel_avg[0] - 0.0f;
+    imu->cal.accel_bias[1] = accel_avg[1] - 0.0f;
+    imu->cal.accel_bias[2] = accel_avg[2] - 1.0f;
 }
