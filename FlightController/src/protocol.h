@@ -96,6 +96,11 @@ typedef struct __attribute__((packed)) {
 // For binary commands, directly returns the command byte
 CommandType parse_command(const uint8_t *data, uint8_t length);
 
+// Parse throttle value from FC:SET_THROTTLE:<value> string command
+// Returns 1 on success, 0 on failure
+// throttle_out will be set to the parsed value (0.0 to 1.0)
+int parse_throttle_value(const uint8_t *data, uint8_t length, float *throttle_out);
+
 // Helper to check if received data is a binary command (vs string)
 int is_binary_command(const uint8_t *data, uint8_t length);
 

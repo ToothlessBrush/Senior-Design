@@ -50,16 +50,19 @@ typedef struct {
     float roll_Kp;
     float roll_Ki;
     float roll_Kd;
+    float roll_Ki_limit;
     float roll_limit;
 
     float pitch_Kp;
     float pitch_Ki;
     float pitch_Kd;
+    float pitch_Ki_limit;
     float pitch_limit;
 
     float yaw_Kp;
     float yaw_Ki;
     float yaw_Kd;
+    float yaw_Ki_limit;
     float yaw_limit;
 
 } PIDCreateInfo;

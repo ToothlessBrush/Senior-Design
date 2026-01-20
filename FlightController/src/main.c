@@ -36,21 +36,25 @@ int main(void) {
     State state = STATE_INIT;
     IMU imu = {0};
     PID pid = {0};
+    float base_throttle = 0.0f; // Base throttle (0.0 to 1.0)
 
     PIDCreateInfo pid_info = (PIDCreateInfo){
-        .roll_Kp = 0.0f,
-        .roll_Ki = 0.0f,
-        .roll_Kd = 0.0f,
+        .roll_Kp = 0.1f,
+        .roll_Ki = 0.1f,
+        .roll_Kd = 0.1f,
+        .roll_Ki_limit = 10.25f,
         .roll_limit = 0.2f, // 20% throttle
 
-        .pitch_Kp = 0.0f,
+        .pitch_Kp = 0.1f,
         .pitch_Ki = 0.0f,
         .pitch_Kd = 0.0f,
+        .pitch_Ki_limit = 10.25f,
         .pitch_limit = 0.2f, // 20% throttle
 
-        .yaw_Kp = 0.0f,
+        .yaw_Kp = 0.1f,
         .yaw_Ki = 0.0f,
         .yaw_Kd = 0.0f,
+        .yaw_Ki_limit = 10.25f,
         .yaw_limit = 0.1f, // 10% throttle
 
     };
@@ -178,9 +182,17 @@ int main(void) {
                     // pid.setpoints.yaw = att_cmd->yaw;
                     break;
 
-                case CMD_SET_THROTTLE:
-                    // TODO: Parse throttle from message
+                case CMD_SET_THROTTLE: {
+                    float throttle_value;
+                    if (parse_throttle_value(message->data, message->length,
+                                             &throttle_value)) {
+                        base_throttle = throttle_value;
+                        lora_send_string(1, "LOG:THROTTLE_SET");
+                    } else {
+                        lora_send_string(1, "LOG:THROTTLE_PARSE_FAIL");
+                    }
                     break;
+                }
 
                 case CMD_UPDATE_PID:
                     // TODO: Parse PID gains from message
@@ -209,9 +221,9 @@ int main(void) {
             // }
 
             // Update PID controllers
-            // pid_update(&pid, &imu, FIXED_DT);
+            pid_update(&pid, &imu, FIXED_DT);
 
-            drive_motors(1.0, &pid);
+            drive_motors(base_throttle, &pid);
 
             // Send string telemetry (required for LoRa AT command format)
             send_telem(&imu, &pid);

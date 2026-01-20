@@ -10,7 +10,7 @@ void pid_init(PID *pid, PIDCreateInfo create_info) {
         .integral = 0,
         .previous_error = 0,
         .output_limit = create_info.roll_limit,
-        .integral_limit = 0.25,
+        .integral_limit = create_info.roll_Ki_limit,
     };
 
     PIDController pitch_controller = (PIDController){
@@ -20,7 +20,7 @@ void pid_init(PID *pid, PIDCreateInfo create_info) {
         .integral = 0,
         .previous_error = 0,
         .output_limit = create_info.pitch_limit,
-        .integral_limit = 0.25,
+        .integral_limit = create_info.pitch_Ki_limit,
     };
 
     PIDController yaw_controller = (PIDController){
@@ -30,7 +30,7 @@ void pid_init(PID *pid, PIDCreateInfo create_info) {
         .integral = 0,
         .previous_error = 0,
         .output_limit = create_info.yaw_limit,
-        .integral_limit = 0.25,
+        .integral_limit = create_info.yaw_Ki_limit,
     };
 
     *pid = (PID){
