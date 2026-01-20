@@ -3,6 +3,10 @@
 #include <stdint.h>
 #include <stm32f411xe.h>
 
+// NOTE:
+// This implementation has a prototype Bi-Directional DSHOT telemetry decoder
+// To Enable telemetry reading, uncomment the EXTI interrupts in the DMA interrupt handlers
+
 // Provide single definitions for the motor objects and pointers declared extern
 // in the header.
 static dshotMotor motor1_obj;
@@ -135,7 +139,7 @@ void DMA1_Stream4_IRQHandler() {
 
         GPIOB->MODER &= ~(3 << 8); // Set pin to input
         EXTI->PR |= (1 << 4);      // Clear the interrupt
-        __NVIC_EnableIRQ(EXTI4_IRQn);
+        // __NVIC_EnableIRQ(EXTI4_IRQn);
     }
 }
 
