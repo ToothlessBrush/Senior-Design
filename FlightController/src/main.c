@@ -20,6 +20,8 @@
 #define KI 0.0f
 #define KD 0.0f
 
+#define MIN_THROTTLE 0.05f
+
 typedef enum {
     STATE_INIT,           // initial state
     STATE_DISARMED,       // initialized but not running
@@ -273,7 +275,17 @@ void drive_motors(float base_throttle, PID *pid) {
     motor3_speed = fmaxf(0.0f, fminf(1.0f, motor3_speed));
     motor4_speed = fmaxf(0.0f, fminf(1.0f, motor4_speed));
 
-    // 1-2000 range
+    // Ensure each motor is above minimum throttle
+    if (motor1_speed < MIN_THROTTLE)
+            motor1_speed = MIN_THROTTLE;
+    if (motor2_speed < MIN_THROTTLE)
+            motor2_speed = MIN_THROTTLE;
+    if (motor3_speed < MIN_THROTTLE)
+            motor3_speed = MIN_THROTTLE;
+    if (motor4_speed < MIN_THROTTLE)
+            motor4_speed = MIN_THROTTLE;
+
+    // 50-1024 range
     SetMotorThrottle(motor1, (int16_t)(motor1_speed * 1000.0 + 1.0));
     SetMotorThrottle(motor2, (int16_t)(motor2_speed * 1000.0 + 1.0));
     SetMotorThrottle(motor3, (int16_t)(motor3_speed * 1000.0 + 1.0));

@@ -109,8 +109,10 @@ void StopMotors() {
 }
 
 void SetMotorThrottle(dshotMotor *motor, uint16_t throttle) {
-    // if(throttle > 1000)
-    //     throttle = 1000;
+
+    // Cap throttle to valid range
+    if(throttle > 1024)
+        throttle = 1024;
     ConstructDshotFrame(motor, throttle);
 }
 
