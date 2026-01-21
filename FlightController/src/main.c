@@ -10,7 +10,6 @@
 #include "utils.h"
 #include <math.h>
 #include <stdint.h>
-#include <string.h>
 
 #define IMU_ODR_HZ 6660.0f
 #define FIXED_DT (1.0f / IMU_ODR_HZ) // ~0.00015015 seconds
@@ -33,6 +32,75 @@ typedef enum {
 } State;
 
 void drive_motors(float base_throttle, PID *pid);
+
+static State handle_disarmed_command(CommandType cmd) {
+    switch (cmd) {
+    case CMD_START:
+        lora_send_string(1, "LOG:CMD_START");
+        return STATE_ARMING;
+
+    case CMD_RESET:
+        lora_send_string(1, "LOG:CMD_RESET");
+        return STATE_INIT;
+
+    case CMD_CALIBRATE:
+        lora_send_string(1, "LOG:CMD_CALIBRATE");
+        return STATE_CALIBRATE;
+
+    default:
+        return STATE_DISARMED;
+    }
+}
+
+static State handle_flying_command(CommandType cmd, lora_message_t *message,
+                                   float *base_throttle) {
+    switch (cmd) {
+    case CMD_STOP:
+        lora_send_string_nb(1, "LOG:CMD_STOP");
+        StopMotors();
+        return STATE_DISARMED;
+
+    case CMD_EMERGENCY_STOP:
+        lora_send_string_nb(1, "LOG:CMD_EMERGENCY_STOP");
+        StopMotors();
+        return STATE_EMERGENCY_STOP;
+
+    case CMD_SET_ATTITUDE:
+        // TODO: Parse attitude setpoint from message
+        // CommandSetAttitude *att_cmd = (CommandSetAttitude *)message->data;
+        // pid.setpoints.roll = att_cmd->roll;
+        // pid.setpoints.pitch = att_cmd->pitch;
+        // pid.setpoints.yaw = att_cmd->yaw;
+        return STATE_FLYING;
+
+    case CMD_SET_THROTTLE: {
+        float throttle_value;
+        if (parse_throttle_value(message->data, message->length,
+                                 &throttle_value)) {
+            lora_send_string_nb(1, "LOG:THROTTLE_SET");
+            *base_throttle = throttle_value;
+        } else {
+            lora_send_string_nb(1, "LOG:THROTTLE_PARSE_FAIL");
+        }
+        return STATE_FLYING;
+    }
+
+    case CMD_UPDATE_PID:
+        // TODO: Parse PID gains from message
+        return STATE_FLYING;
+
+    default:
+        return STATE_FLYING;
+    }
+}
+
+static State handle_emergency_stop_command(CommandType cmd) {
+    if (cmd == CMD_RESET) {
+        lora_send_string(1, "LOG:RESET_FROM_EMERGENCY");
+        return STATE_DISARMED;
+    }
+    return STATE_EMERGENCY_STOP;
+}
 
 int main(void) {
     State state = STATE_INIT;
@@ -98,31 +166,10 @@ int main(void) {
         case STATE_DISARMED:
             lora_service();
 
-            // Process incoming commands
             if (lora_data_available()) {
                 lora_message_t *message = lora_get_received_data();
                 CommandType cmd = parse_command(message->data, message->length);
-
-                switch (cmd) {
-                case CMD_START:
-                    lora_send_string(1, "LOG:CMD_START");
-                    state = STATE_ARMING;
-                    break;
-
-                case CMD_RESET:
-                    lora_send_string(1, "LOG:CMD_RESET");
-                    state = STATE_INIT;
-                    break;
-                case CMD_CALIBRATE:
-                    lora_send_string(1, "LOG:CMD_CALIBRATE");
-                    state = STATE_CALIBRATE;
-                    break;
-
-                default:
-                    // Unknown or invalid command in DISARMED state
-                    break;
-                }
-
+                state = handle_disarmed_command(cmd);
                 lora_clear_received_flag();
             }
 
@@ -158,52 +205,10 @@ int main(void) {
         case STATE_FLYING:
             lora_service();
 
-            // Check for incoming commands while flying
             if (lora_data_available()) {
                 lora_message_t *message = lora_get_received_data();
                 CommandType cmd = parse_command(message->data, message->length);
-
-                switch (cmd) {
-                case CMD_STOP:
-                    lora_send_string(1, "LOG:CMD_STOP");
-                    StopMotors();
-                    state = STATE_DISARMED;
-                    break;
-
-                case CMD_EMERGENCY_STOP:
-                    lora_send_string(1, "LOG:CMD_EMERGENCY_STOP");
-                    StopMotors();
-                    state = STATE_EMERGENCY_STOP;
-                    break;
-
-                case CMD_SET_ATTITUDE:
-                    // TODO: Parse attitude setpoint from message
-                    // CommandSetAttitude *att_cmd = (CommandSetAttitude
-                    // *)message->data; pid.setpoints.roll = att_cmd->roll;
-                    // pid.setpoints.pitch = att_cmd->pitch;
-                    // pid.setpoints.yaw = att_cmd->yaw;
-                    break;
-
-                case CMD_SET_THROTTLE: {
-                    float throttle_value;
-                    if (parse_throttle_value(message->data, message->length,
-                                             &throttle_value)) {
-                        base_throttle = throttle_value;
-                        lora_send_string(1, "LOG:THROTTLE_SET");
-                    } else {
-                        lora_send_string(1, "LOG:THROTTLE_PARSE_FAIL");
-                    }
-                    break;
-                }
-
-                case CMD_UPDATE_PID:
-                    // TODO: Parse PID gains from message
-                    break;
-
-                default:
-                    break;
-                }
-
+                state = handle_flying_command(cmd, message, &base_throttle);
                 lora_clear_received_flag();
             }
 
@@ -223,10 +228,10 @@ int main(void) {
             // }
 
             // Update PID controllers
-            pid_update(&pid, &imu, FIXED_DT);
+            // pid_update(&pid, &imu, FIXED_DT);
 
             drive_motors(base_throttle, &pid);
-            
+
             // Send string telemetry (required for LoRa AT command format)
             send_telem(&imu, &pid);
 
@@ -235,20 +240,13 @@ int main(void) {
         case STATE_EMERGENCY_STOP:
             lora_service();
 
-            // Check for reset command
             if (lora_data_available()) {
                 lora_message_t *message = lora_get_received_data();
                 CommandType cmd = parse_command(message->data, message->length);
-
-                if (cmd == CMD_RESET) {
-                    lora_send_string(1, "LOG:RESET_FROM_EMERGENCY");
-                    state = STATE_DISARMED;
-                }
-
+                state = handle_emergency_stop_command(cmd);
                 lora_clear_received_flag();
             }
 
-            // constant stop motors
             StopMotors();
 
             break;
@@ -261,14 +259,13 @@ int main(void) {
 void drive_motors(float base_throttle, PID *pid) {
 
     float motor1_speed = base_throttle + pid->output.roll + pid->output.pitch +
-                       pid->output.yaw; // north east
+                         pid->output.yaw; // north east
     float motor2_speed = base_throttle - pid->output.roll + pid->output.pitch -
-                       pid->output.yaw; // north west
+                         pid->output.yaw; // north west
     float motor3_speed = base_throttle + pid->output.roll - pid->output.pitch +
-                       pid->output.yaw; // south east
+                         pid->output.yaw; // south east
     float motor4_speed = base_throttle - pid->output.roll - pid->output.pitch -
-                       pid->output.yaw; // south west
-
+                         pid->output.yaw; // south west
     // Clamp to 0-1 range
     motor1_speed = fmaxf(0.0f, fminf(1.0f, motor1_speed));
     motor2_speed = fmaxf(0.0f, fminf(1.0f, motor2_speed));
@@ -277,13 +274,13 @@ void drive_motors(float base_throttle, PID *pid) {
 
     // Ensure each motor is above minimum throttle
     if (motor1_speed < MIN_THROTTLE)
-            motor1_speed = MIN_THROTTLE;
+        motor1_speed = MIN_THROTTLE;
     if (motor2_speed < MIN_THROTTLE)
-            motor2_speed = MIN_THROTTLE;
+        motor2_speed = MIN_THROTTLE;
     if (motor3_speed < MIN_THROTTLE)
-            motor3_speed = MIN_THROTTLE;
+        motor3_speed = MIN_THROTTLE;
     if (motor4_speed < MIN_THROTTLE)
-            motor4_speed = MIN_THROTTLE;
+        motor4_speed = MIN_THROTTLE;
 
     // 50-1024 range
     SetMotorThrottle(motor1, (int16_t)(motor1_speed * 1000.0 + 1.0));

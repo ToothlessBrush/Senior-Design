@@ -2,6 +2,7 @@
 #include "LIS3MDL.h"
 #include "LSM6DSL.h"
 #include "spi.h"
+#include "i2c.h"
 #include "stm32f411xe.h"
 #include "systick.h"
 #include <math.h>

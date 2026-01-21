@@ -275,8 +275,13 @@ void lora_service(void) {
         if (response_idx < sizeof(response_buffer) - 1) {
             response_buffer[response_idx] = c;
             response_buffer[response_idx + 1] = '\0';
+            response_idx++;
+        } else {
+            // Buffer full - reset and discard this response to prevent corruption
+            response_idx = 0;
+            response_buffer[0] = '\0';
+            continue;
         }
-        response_idx++;
 
         // Check for complete response
         if (response_idx >= 2 && response_buffer[response_idx - 2] == '\r' &&
@@ -291,7 +296,7 @@ void lora_service(void) {
             // Reset for next response
             response_idx = 0;
             response_buffer[0] = '\0';
-            break; // Process one response per call
+            // Continue processing - don't break to handle multiple responses per call
         }
     }
 }

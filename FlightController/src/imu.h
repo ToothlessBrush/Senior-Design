@@ -19,17 +19,21 @@ typedef struct {
 typedef struct {
     float gyro_bias[3];      // Gyroscope bias (rad/s)
     float accel_bias[3];     // Accelerometer bias (g)
+    float mag_offset[3];     // Magnetometer hard iron offset (gauss)
+    float mag_scale[3];      // Magnetometer soft iron scale factors
 } IMU_Calibration;
 
 /**
  * contains the context of the imu including its current gyro acceleration,
- * acceleration, and attitude.
+ * acceleration, magnetometer, and attitude.
  */
 typedef struct {
     int gyro_raw[3];
     int acc_raw[3];
+    int mag_raw[3];
     float gyro[3];
     float acc[3];
+    float mag[3];              // Magnetometer (gauss)
     Attitude attitude;
     IMU_Calibration cal;     // Calibration data
 } IMU;
@@ -46,8 +50,10 @@ bool verifyIMU(void);
  */
 void readAccRaw(int a[]);
 void readGyroRaw(int g[]);
+void readMagRaw(int m[]);
 void gyroToRadPS(int gyro_raw[], float gyro_dps[]);
 void accToG(int acc_raw[], float acc_g[]);
+void magToGauss(int mag_raw[], float mag_gauss[]);
 void updateOrientation(Attitude *attitude, float acc_g[], float gyro_rad_s[],
                        float dt);
 
@@ -58,6 +64,7 @@ bool imu_data_ready();
 // Calibration functions
 void IMU_calibrate_gyro(IMU *imu, uint16_t samples);
 void IMU_calibrate_accel(IMU *imu, uint16_t samples);
+void IMU_calibrate_mag(IMU *imu, uint16_t samples);
 
 // Helper functions
 void writeAccReg(uint8_t reg, uint8_t value);

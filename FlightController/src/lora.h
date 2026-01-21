@@ -10,7 +10,7 @@
 #define LORA_BAND 915000000  // 915MHz for US, 868MHz for EU
 #define LORA_MAX_PAYLOAD 240 // Maximum data length per packet
 
-#define MIN_SEND_INTERVAL 150
+#define MIN_SEND_INTERVAL 300 // 150 minimum 250 more stable
 
 // LoRa parameters: Spreading Factor, Bandwidth, Coding Rate, Preamble
 // SF: 7-12 (7=fastest/shortest range, 12=slowest/longest range)
