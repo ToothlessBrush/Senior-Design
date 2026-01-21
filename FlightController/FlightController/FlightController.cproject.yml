@@ -25,6 +25,12 @@ project:
             - file: ../src/uart.h
             - file: ../src/system.h
             - file: ../src/system.c
+            - file: ../src/lora.c
+            - file: ../src/lora.h
+            - file: ../src/protocol.c
+            - file: ../src/protocol.h
+            - file: ../src/utils.c
+            - file: ../src/utils.h
         - group: inc
           files:
             - file: ../inc/LSM6DSL.h

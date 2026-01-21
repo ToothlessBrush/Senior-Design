@@ -168,6 +168,18 @@ build:
               category: header
             - file: ../src/system.c
               category: sourceC
+            - file: ../src/lora.c
+              category: sourceC
+            - file: ../src/lora.h
+              category: header
+            - file: ../src/protocol.c
+              category: sourceC
+            - file: ../src/protocol.h
+              category: header
+            - file: ../src/utils.c
+              category: sourceC
+            - file: ../src/utils.h
+              category: header
         - group: inc
           files:
             - file: ../inc/LSM6DSL.h

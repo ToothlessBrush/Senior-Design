@@ -36,7 +36,7 @@ int main(void) {
     State state = STATE_INIT;
     IMU imu = {0};
     PID pid = {0};
-    float base_throttle = 0.0f; // Base throttle (0.0 to 1.0)
+    float base_throttle = 0.10f; // Base throttle (0.0 to 1.0)
 
     PIDCreateInfo pid_info = (PIDCreateInfo){
         .roll_Kp = 0.1f,
@@ -224,7 +224,7 @@ int main(void) {
             pid_update(&pid, &imu, FIXED_DT);
 
             drive_motors(base_throttle, &pid);
-
+            
             // Send string telemetry (required for LoRa AT command format)
             send_telem(&imu, &pid);
 
@@ -258,13 +258,13 @@ int main(void) {
 
 void drive_motors(float base_throttle, PID *pid) {
 
-    int motor1_speed = base_throttle + pid->output.roll + pid->output.pitch +
+    float motor1_speed = base_throttle + pid->output.roll + pid->output.pitch +
                        pid->output.yaw; // north east
-    int motor2_speed = base_throttle - pid->output.roll + pid->output.pitch -
+    float motor2_speed = base_throttle - pid->output.roll + pid->output.pitch -
                        pid->output.yaw; // north west
-    int motor3_speed = base_throttle + pid->output.roll - pid->output.pitch +
+    float motor3_speed = base_throttle + pid->output.roll - pid->output.pitch +
                        pid->output.yaw; // south east
-    int motor4_speed = base_throttle - pid->output.roll - pid->output.pitch -
+    float motor4_speed = base_throttle - pid->output.roll - pid->output.pitch -
                        pid->output.yaw; // south west
 
     // Clamp to 0-1 range
