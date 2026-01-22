@@ -116,6 +116,28 @@ void SetMotorThrottle(dshotMotor *motor, uint16_t throttle) {
     ConstructDshotFrame(motor, throttle);
 }
 
+void IdleMotors() {
+    DMA1_Stream4->CR |= (1<<8); // Enable circular mode
+    NVIC_DisableIRQ(DMA1_Stream4_IRQn);
+    DMA1_Stream5->CR |= (1<<8); // Enable circular mode 
+    NVIC_DisableIRQ(DMA1_Stream5_IRQn);
+    DMA1_Stream7->CR |= (1<<8); // Enable circular mode 
+    NVIC_DisableIRQ(DMA1_Stream7_IRQn);
+    DMA1_Stream2->CR |= (1<<8); // Enable circular mode 
+    NVIC_DisableIRQ(DMA1_Stream2_IRQn);
+}
+
+void StopIdleMotors() {
+    DMA1_Stream4->CR &= ~(1<<8); // Disable circular mode
+    NVIC_EnableIRQ(DMA1_Stream4_IRQn);
+    DMA1_Stream5->CR &= ~(1<<8); // Disable circular mode 
+    NVIC_EnableIRQ(DMA1_Stream5_IRQn);
+    DMA1_Stream7->CR &= ~(1<<8); // Disable circular mode 
+    NVIC_EnableIRQ(DMA1_Stream7_IRQn);
+    DMA1_Stream2->CR &= ~(1<<8); // Disable circular mode 
+    NVIC_EnableIRQ(DMA1_Stream2_IRQn);
+}
+
 // Motor 1 dma interrupt handler
 void DMA1_Stream4_IRQHandler() {
     if (DMA1->HISR & (1 << 5)) // If transfer complete interrupt

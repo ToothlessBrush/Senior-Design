@@ -19,6 +19,10 @@ void StopMotors();
 
 void SetMotorThrottle(dshotMotor* motor, uint16_t throttle);
 
+void IdleMotors();
+
+void StopIdleMotors();
+
 // Motor 1 dma interrupt handler
 void DMA1_Stream4_IRQHandler();
 
