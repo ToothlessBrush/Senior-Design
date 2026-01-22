@@ -19,8 +19,10 @@ void StopMotors();
 
 void SetMotorThrottle(dshotMotor* motor, uint16_t throttle);
 
+// This function can be used to keep the motors running in the background
 void IdleMotors();
 
+// This function is used to restart the normal motor control after idling
 void StopIdleMotors();
 
 // Motor 1 dma interrupt handler

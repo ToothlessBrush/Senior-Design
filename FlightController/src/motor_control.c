@@ -116,6 +116,7 @@ void SetMotorThrottle(dshotMotor *motor, uint16_t throttle) {
     ConstructDshotFrame(motor, throttle);
 }
 
+// This function can be used to keep the motors running in the background
 void IdleMotors() {
     DMA1_Stream4->CR |= (1<<8); // Enable circular mode
     NVIC_DisableIRQ(DMA1_Stream4_IRQn);
@@ -127,6 +128,7 @@ void IdleMotors() {
     NVIC_DisableIRQ(DMA1_Stream2_IRQn);
 }
 
+// This function is used to restart the normal motor control after idling
 void StopIdleMotors() {
     DMA1_Stream4->CR &= ~(1<<8); // Disable circular mode
     NVIC_EnableIRQ(DMA1_Stream4_IRQn);
