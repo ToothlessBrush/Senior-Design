@@ -166,9 +166,10 @@ int lora_send_string(uint8_t dest_address, const char *str) {
 int lora_send_data_nb(uint8_t dest_address, const uint8_t *data,
                       uint8_t length) {
 
-    if (!module_ready) {
-        return LORA_BUSY;
-    }
+    // commented out since if we miss one +OK then LoRa breaks
+    // if (!module_ready) {
+    //     return LORA_BUSY;
+    // }
 
     if (length > LORA_MAX_PAYLOAD) {
         return LORA_ERROR;
