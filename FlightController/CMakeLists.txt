@@ -58,9 +58,11 @@ target_compile_options(${PROJECT_NAME} PRIVATE
     -ffunction-sections
     -Wall
     -Wextra
-    -Og
-    -g3
-    -fno-math-errno # no errno for cortex
+    $<$<CONFIG:Debug>:-Og>        # Debug: Optimize for debugging
+    $<$<CONFIG:Debug>:-g3>        # Debug: Full debug symbols
+    $<$<CONFIG:Release>:-O3>      # Release: Maximum optimization
+    $<$<CONFIG:Release>:-flto>    # Release: Link-time optimization
+    -fno-math-errno               # No errno for cortex (faster math)
 )
 
 
@@ -78,6 +80,7 @@ target_link_options(${PROJECT_NAME} PRIVATE
     -Wl,--end-group
     -Wl,--gc-sections
     -Wl,--print-memory-usage
+    $<$<CONFIG:Release>:-flto>    # Link-time optimization for release
 )
 
 # Generate binary file

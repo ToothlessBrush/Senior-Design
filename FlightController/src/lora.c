@@ -166,9 +166,10 @@ int lora_send_string(uint8_t dest_address, const char *str) {
 int lora_send_data_nb(uint8_t dest_address, const uint8_t *data,
                       uint8_t length) {
 
-    if (!module_ready) {
-        return LORA_BUSY;
-    }
+    // commented out since if we miss one +OK then LoRa breaks
+    // if (!module_ready) {
+    //     return LORA_BUSY;
+    // }
 
     if (length > LORA_MAX_PAYLOAD) {
         return LORA_ERROR;
@@ -277,7 +278,8 @@ void lora_service(void) {
             response_buffer[response_idx + 1] = '\0';
             response_idx++;
         } else {
-            // Buffer full - reset and discard this response to prevent corruption
+            // Buffer full - reset and discard this response to prevent
+            // corruption
             response_idx = 0;
             response_buffer[0] = '\0';
             continue;
@@ -296,7 +298,8 @@ void lora_service(void) {
             // Reset for next response
             response_idx = 0;
             response_buffer[0] = '\0';
-            // Continue processing - don't break to handle multiple responses per call
+            // Continue processing - don't break to handle multiple responses
+            // per call
         }
     }
 }

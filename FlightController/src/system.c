@@ -22,6 +22,10 @@ void led_init(void) {
 
 void toggle_led(void) { GPIOC->ODR ^= GPIO_ODR_ODR_13; }
 
+void led_on(void) { GPIOC->ODR &= ~GPIO_ODR_ODR_13; }  // Active low
+
+void led_off(void) { GPIOC->ODR |= GPIO_ODR_ODR_13; }  // Active low
+
 // config chip to use 25mhz HSL clock and PLL x4 for a total of 100mhz
 void SystemClock_Config_100MHz_HSE(void) {
     // Enable HSE (your 25 MHz external crystal)

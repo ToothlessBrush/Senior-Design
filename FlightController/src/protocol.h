@@ -56,16 +56,6 @@ typedef struct __attribute__((packed)) {
     float pitch;
     float yaw;
 
-    // Angular velocities (rad/s)
-    float gyro_x;
-    float gyro_y;
-    float gyro_z;
-
-    // PID outputs (normalized 0-1)
-    float pid_roll_output;
-    float pid_pitch_output;
-    float pid_yaw_output;
-
     // PID terms for roll
     float roll_p_term;
     float roll_i_term;
@@ -80,14 +70,6 @@ typedef struct __attribute__((packed)) {
     float yaw_p_term;
     float yaw_i_term;
     float yaw_d_term;
-
-    // Additional telemetry
-    float altitude;     // meters (currently unused, set to 0)
-    float battery_volt; // volts (currently unused, set to 0)
-
-    uint8_t state; // Flight controller state
-    uint8_t flags; // Status flags (bit 0: motors armed, bit 1: IMU ready, etc.)
-
 } TelemetryPacket;
 
 // Command parsing function
@@ -99,7 +81,8 @@ CommandType parse_command(const uint8_t *data, uint8_t length);
 // Parse throttle value from FC:SET_THROTTLE:<value> string command
 // Returns 1 on success, 0 on failure
 // throttle_out will be set to the parsed value (0.0 to 1.0)
-int parse_throttle_value(const uint8_t *data, uint8_t length, float *throttle_out);
+int parse_throttle_value(const uint8_t *data, uint8_t length,
+                         float *throttle_out);
 
 // Helper to check if received data is a binary command (vs string)
 int is_binary_command(const uint8_t *data, uint8_t length);
