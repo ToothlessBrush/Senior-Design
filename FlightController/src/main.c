@@ -164,8 +164,6 @@ int main(void) {
             break;
 
         case STATE_DISARMED:
-            state = STATE_ARMING;
-            break;
             lora_service();
 
             if (lora_data_available()) {
