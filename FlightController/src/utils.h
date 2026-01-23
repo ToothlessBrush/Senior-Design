@@ -15,10 +15,10 @@ typedef struct {
 // Splits a float into sign, whole, and decimal parts for formatted output
 void split_float(float value, int decimal_places, float_parts_t *result);
 
-// Send telemetry data over LoRa (legacy string format)
+// Send telemetry over LoRa as hex-encoded binary (much faster than sprintf)
+// Format: "H:<hex_data>" where hex_data is TelemetryPacket encoded as hex
+// string ~10x faster than floating-point sprintf - critical for real-time
+// control loop
 void send_telem(IMU *imu, PID *pid);
-
-// Send telemetry data over LoRa (binary packed format)
-void send_telem_binary(IMU *imu, PID *pid, uint8_t state);
 
 #endif // UTILS_H

@@ -109,19 +109,19 @@ int main(void) {
     float base_throttle = 0.10f; // Base throttle (0.0 to 1.0)
 
     PIDCreateInfo pid_info = (PIDCreateInfo){
-        .roll_Kp = 0.1f,
-        .roll_Ki = 0.1f,
-        .roll_Kd = 0.1f,
+        .roll_Kp = 1.0f,
+        .roll_Ki = 0.0f,
+        .roll_Kd = 0.0f,
         .roll_Ki_limit = 10.25f,
         .roll_limit = 0.2f, // 20% throttle
 
-        .pitch_Kp = 0.1f,
+        .pitch_Kp = 1.0f,
         .pitch_Ki = 0.0f,
         .pitch_Kd = 0.0f,
         .pitch_Ki_limit = 10.25f,
         .pitch_limit = 0.2f, // 20% throttle
 
-        .yaw_Kp = 0.1f,
+        .yaw_Kp = 1.0f,
         .yaw_Ki = 0.0f,
         .yaw_Kd = 0.0f,
         .yaw_Ki_limit = 10.25f,
@@ -164,6 +164,8 @@ int main(void) {
             break;
 
         case STATE_DISARMED:
+            state = STATE_ARMING;
+            break;
             lora_service();
 
             if (lora_data_available()) {
@@ -203,19 +205,23 @@ int main(void) {
             break;
 
         case STATE_FLYING:
-            lora_service();
-
-            if (lora_data_available()) {
-                lora_message_t *message = lora_get_received_data();
-                CommandType cmd = parse_command(message->data, message->length);
-                state = handle_flying_command(cmd, message, &base_throttle);
-                lora_clear_received_flag();
-            }
-
             if (!imu_data_ready()) {
+                // IMU not ready - use idle time for non-critical tasks
+                lora_service();
+
+                if (lora_data_available()) {
+                    lora_message_t *message = lora_get_received_data();
+                    CommandType cmd =
+                        parse_command(message->data, message->length);
+                    state = handle_flying_command(cmd, message, &base_throttle);
+                    lora_clear_received_flag();
+                }
+
+                // Send telemetry during idle time (never blocks control loop)
                 break;
             }
 
+            // IMU data ready - CRITICAL TIMING SECTION (no blocking allowed)
             // Update IMU measurements and attitude
             IMU_update(&imu, FIXED_DT);
 
@@ -228,11 +234,10 @@ int main(void) {
             // }
 
             // Update PID controllers
-            // pid_update(&pid, &imu, FIXED_DT);
+            pid_update(&pid, &imu, FIXED_DT);
 
             drive_motors(base_throttle, &pid);
 
-            // Send string telemetry (required for LoRa AT command format)
             send_telem(&imu, &pid);
 
             break;

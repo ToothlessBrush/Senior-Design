@@ -30,4 +30,7 @@ uint16_t uart_bytes_available(void);
 // Flush RX buffer
 void uart_flush(void);
 
+// Check if UART TX is busy (DMA transfer in progress)
+int uart_tx_busy(void);
+
 #endif // UART_H

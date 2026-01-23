@@ -8,6 +8,12 @@ void led_init(void);
 // Toggle LED state
 void toggle_led(void);
 
+// Turn LED on
+void led_on(void);
+
+// Turn LED off
+void led_off(void);
+
 void SystemClock_Config_100MHz_HSE(void);
 
 #endif // SYSTEM_H

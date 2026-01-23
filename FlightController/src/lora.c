@@ -277,7 +277,8 @@ void lora_service(void) {
             response_buffer[response_idx + 1] = '\0';
             response_idx++;
         } else {
-            // Buffer full - reset and discard this response to prevent corruption
+            // Buffer full - reset and discard this response to prevent
+            // corruption
             response_idx = 0;
             response_buffer[0] = '\0';
             continue;
@@ -296,7 +297,8 @@ void lora_service(void) {
             // Reset for next response
             response_idx = 0;
             response_buffer[0] = '\0';
-            // Continue processing - don't break to handle multiple responses per call
+            // Continue processing - don't break to handle multiple responses
+            // per call
         }
     }
 }
