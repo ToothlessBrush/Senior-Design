@@ -26,19 +26,7 @@ sudo apt install gcc-arm-none-eabi cmake openocd gdb-multiarch make
 - ST-Link V2 programmer/debugger
 - USB cables for power and programming
 
-## Project Structure
-```
-├── src/
-│   ├── main.c                    # Main application code
-│   └── startup_stm32f411xx.s     # Startup assembly file
-├── inc/                          # Header files directory
-├── linker/
-│   └── STM32F411CEUx_FLASH.ld    # Linker script
-├── cmake/
-│   └── stm32f411.cmake           # CMake toolchain file
-├── build/                        # Build output directory
-└── CMakeLists.txt               # CMake configuration
-```
+``
 
 ## Building the Project
 
