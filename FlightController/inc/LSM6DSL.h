@@ -11,6 +11,8 @@
 #define LSM6DSL_INT1_CTRL          0x0D
 #define LSM6DSL_CTRL3_C            0x12
 #define LSM6DSL_CTRL4_C            0x13
+#define LSM6DSL_CTRL6_C            0x15
+#define LSM6DSL_CTRL7_G            0x16
 
 #define LSM6DSL_STEP_COUNTER_L     0x4B
 #define LSM6DSL_STEP_COUNTER_H     0x4C

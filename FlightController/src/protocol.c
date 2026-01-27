@@ -109,3 +109,36 @@ int parse_throttle_value(const uint8_t *data, uint8_t length,
     *throttle_out = value;
     return 1;
 }
+
+int parse_set_point_value(const uint8_t *data, uint8_t length,
+                          float *throttle_out) {
+    if (length < 17) { // Minimum: "FC:SET_THROTTLE:0"
+        return 0;
+    }
+
+    // Check for correct prefix
+    if (strncmp((const char *)data, "FC:SET_POINT:", 13) != 0) {
+        return 0;
+    }
+
+    // Extract the value part (after the colon)
+    const char *value_str = (const char *)data + 16;
+
+    // Validate that we have at least one digit
+    if (*value_str < '0' || *value_str > '9') {
+        return 0;
+    }
+
+    // Convert string to float using custom parser
+    float value = simple_atof(value_str);
+
+    // Clamp value to 0.0 - 1.0 range
+    if (value < 0.0f) {
+        value = 0.0f;
+    } else if (value > 1.0f) {
+        value = 1.0f;
+    }
+
+    *throttle_out = value;
+    return 1;
+}

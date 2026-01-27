@@ -53,7 +53,7 @@ static State handle_disarmed_command(CommandType cmd) {
 }
 
 static State handle_flying_command(CommandType cmd, lora_message_t *message,
-                                   float *base_throttle) {
+                                   float *base_throttle, PID *pid) {
     switch (cmd) {
     case CMD_STOP:
         lora_send_string_nb(1, "LOG:CMD_STOP");
@@ -121,7 +121,7 @@ int main(void) {
         .pitch_Ki_limit = 10.25f,
         .pitch_limit = 0.2f, // 20% throttle
 
-        .yaw_Kp = 1.0f,
+        .yaw_Kp = 0.0f,
         .yaw_Ki = 0.0f,
         .yaw_Kd = 0.0f,
         .yaw_Ki_limit = 10.25f,
@@ -211,7 +211,8 @@ int main(void) {
                     lora_message_t *message = lora_get_received_data();
                     CommandType cmd =
                         parse_command(message->data, message->length);
-                    state = handle_flying_command(cmd, message, &base_throttle);
+                    state = handle_flying_command(cmd, message, &base_throttle,
+                                                  &pid);
                     lora_clear_received_flag();
                 }
 

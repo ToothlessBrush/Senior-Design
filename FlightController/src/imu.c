@@ -1,8 +1,8 @@
 #include "imu.h"
 #include "LIS3MDL.h"
 #include "LSM6DSL.h"
-#include "spi.h"
 #include "i2c.h"
+#include "spi.h"
 #include "stm32f411xe.h"
 #include "systick.h"
 #include <math.h>
@@ -131,17 +131,49 @@ bool imu_init(IMU *imu) {
     // Configure accelerometer: ODR 6.66kHz, ±8g
     SPI_WriteByte(LSM6DSL_CTRL1_XL, 0b10101111);
 
-    // Low-pass filter for accelerometer
-    SPI_WriteByte(LSM6DSL_CTRL8_XL, 0b11001000);
-
     // Block Data Update (BDU) enabled, IF_INC enabled
     SPI_WriteByte(LSM6DSL_CTRL3_C, 0b01000100);
+
+    // Configure gyro low-pass filter bandwidth
+    // Bit 0: LPF1_SEL_G = 1 (enable LPF1)
+    // This enables the gyro low-pass filter for noise reduction
+    SPI_WriteByte(LSM6DSL_CTRL6_C, 0b00000001);
+
+    // Configure gyro for high-performance mode with LPF1 enabled
+    // Bit 7: G_HM_MODE = 0 (high-performance mode)
+    // Bit 6: HP_G_EN = 0 (high-pass filter disabled, we want low-pass)
+    // Bits 5-0: Other settings = 0
+    SPI_WriteByte(LSM6DSL_CTRL7_G, 0b00000000);
+
+    // Low-pass filter for accelerometer (composite filter)
+    // Bit 7: LPF2_XL_EN = 1 (enable LPF2)
+    // Bit 6: HPCF_XL[1] = 1
+    // Bit 3: HP_SLOPE_XL_EN = 1 (enable slope filter)
+    // Bits 2-0: Input composite = 000
+    // This creates a stronger low-pass filter to reduce motor vibrations
+    SPI_WriteByte(LSM6DSL_CTRL8_XL, 0b11001000);
 
     // Gyro data ready interrupt on INT1
     SPI_WriteByte(LSM6DSL_INT1_CTRL, 0b00000010);
 
     // Pulse mode interrupt (auto-clear)
     // SPI_WriteByte(LSM6DSL_PULSE_CFG_G, 0x80);
+
+    // Initialize software low-pass filters
+    // Sample rate is 6.66 kHz (6660 Hz)
+    float sample_rate = 6660.0f;
+
+    // Gyro filters: 100 Hz cutoff (good balance between noise rejection and
+    // responsiveness)
+    for (int i = 0; i < 3; i++) {
+        biquad_lpf_init(&imu->gyro_filter[i], 100.0f, sample_rate);
+    }
+
+    // Accel filters: 50 Hz cutoff (more aggressive filtering for noisier
+    // accelerometer)
+    for (int i = 0; i < 3; i++) {
+        biquad_lpf_init(&imu->acc_filter[i], 50.0f, sample_rate);
+    }
 
     return true;
 }
@@ -161,6 +193,15 @@ void IMU_update(IMU *imu, float dt) {
     imu->acc[0] -= imu->cal.accel_bias[0];
     imu->acc[1] -= imu->cal.accel_bias[1];
     imu->acc[2] -= imu->cal.accel_bias[2];
+
+    // Apply software low-pass filters to reduce motor noise
+    imu->gyro[0] = biquad_apply(&imu->gyro_filter[0], imu->gyro[0]);
+    imu->gyro[1] = biquad_apply(&imu->gyro_filter[1], imu->gyro[1]);
+    imu->gyro[2] = biquad_apply(&imu->gyro_filter[2], imu->gyro[2]);
+
+    imu->acc[0] = biquad_apply(&imu->acc_filter[0], imu->acc[0]);
+    imu->acc[1] = biquad_apply(&imu->acc_filter[1], imu->acc[1]);
+    imu->acc[2] = biquad_apply(&imu->acc_filter[2], imu->acc[2]);
 
     updateOrientation(&imu->attitude, imu->acc, imu->gyro, dt);
 }
@@ -243,4 +284,45 @@ void IMU_calibrate_accel(IMU *imu, uint16_t samples) {
     imu->cal.accel_bias[0] = accel_avg[0] - 0.0f;
     imu->cal.accel_bias[1] = accel_avg[1] - 0.0f;
     imu->cal.accel_bias[2] = accel_avg[2] - 1.0f;
+}
+
+void biquad_lpf_init(Biquad_t *filter, float cutoff_freq, float sample_freq) {
+    // Butterworth low-pass filter (Q = 0.707 for flat passband)
+    float omega = 2.0f * 3.14159265359f * cutoff_freq / sample_freq;
+    float sn = sinf(omega);
+    float cs = cosf(omega);
+    float alpha = sn / (2.0f * 0.707f); // Q = 0.707 for Butterworth response
+
+    // Biquad coefficients
+    float b0 = (1.0f - cs) / 2.0f;
+    float b1 = 1.0f - cs;
+    float b2 = (1.0f - cs) / 2.0f;
+    float a0 = 1.0f + alpha;
+    float a1 = -2.0f * cs;
+    float a2 = 1.0f - alpha;
+
+    // Normalize by a0
+    filter->b0 = b0 / a0;
+    filter->b1 = b1 / a0;
+    filter->b2 = b2 / a0;
+    filter->a1 = a1 / a0;
+    filter->a2 = a2 / a0;
+
+    // Initialize history to zero
+    filter->x1 = filter->x2 = filter->y1 = filter->y2 = 0.0f;
+}
+
+float biquad_apply(Biquad_t *filter, float input) {
+    // Direct Form II Transposed implementation
+    float output = filter->b0 * input + filter->b1 * filter->x1 +
+                   filter->b2 * filter->x2 - filter->a1 * filter->y1 -
+                   filter->a2 * filter->y2;
+
+    // Update history
+    filter->x2 = filter->x1;
+    filter->x1 = input;
+    filter->y2 = filter->y1;
+    filter->y1 = output;
+
+    return output;
 }

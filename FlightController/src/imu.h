@@ -5,6 +5,16 @@
 #include <stdint.h>
 
 /**
+ * Biquad low-pass filter for noise reduction
+ */
+typedef struct {
+    float b0, b1, b2;  // Numerator coefficients
+    float a1, a2;      // Denominator coefficients (a0 normalized to 1)
+    float x1, x2;      // Input history
+    float y1, y2;      // Output history
+} Biquad_t;
+
+/**
  * Orientation contains pitch, roll, and yaw
  */
 typedef struct {
@@ -35,7 +45,9 @@ typedef struct {
     float acc[3];
     float mag[3];              // Magnetometer (gauss)
     Attitude attitude;
-    IMU_Calibration cal;     // Calibration data
+    IMU_Calibration cal;       // Calibration data
+    Biquad_t gyro_filter[3];   // Low-pass filters for gyro (X, Y, Z)
+    Biquad_t acc_filter[3];    // Low-pass filters for accel (X, Y, Z)
 } IMU;
 
 /**
@@ -65,6 +77,10 @@ bool imu_data_ready();
 void IMU_calibrate_gyro(IMU *imu, uint16_t samples);
 void IMU_calibrate_accel(IMU *imu, uint16_t samples);
 void IMU_calibrate_mag(IMU *imu, uint16_t samples);
+
+// Filter functions
+void biquad_lpf_init(Biquad_t *filter, float cutoff_freq, float sample_freq);
+float biquad_apply(Biquad_t *filter, float input);
 
 // Helper functions
 void writeAccReg(uint8_t reg, uint8_t value);

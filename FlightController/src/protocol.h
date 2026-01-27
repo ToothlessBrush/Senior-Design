@@ -14,6 +14,7 @@ typedef enum {
     CMD_SET_ATTITUDE = 0x06,   // Set target attitude (roll/pitch/yaw setpoints)
     CMD_CALIBRATE = 0x07,      // Calibrate IMU
     CMD_RESET = 0x08,          // Reset flight controller
+    CMD_SET_POINT = 0x09, // set the set point of the pid (the goal for angle)
 } CommandType;
 
 // Command structure with payload data
