@@ -33,8 +33,8 @@ typedef enum {
 
 void drive_motors(float base_throttle, PID *pid);
 
-static State handle_disarmed_command(CommandType cmd) {
-    switch (cmd) {
+static State handle_disarmed_command(ParsedCommand cmd) {
+    switch (cmd.type) {
     case CMD_START:
         lora_send_string(1, "LOG:CMD_START");
         return STATE_ARMING;
@@ -52,9 +52,9 @@ static State handle_disarmed_command(CommandType cmd) {
     }
 }
 
-static State handle_flying_command(CommandType cmd, lora_message_t *message,
+static State handle_flying_command(ParsedCommand cmd, lora_message_t *message,
                                    float *base_throttle, PID *pid) {
-    switch (cmd) {
+    switch (cmd.type) {
     case CMD_STOP:
         lora_send_string_nb(1, "LOG:CMD_STOP");
         StopMotors();
@@ -65,23 +65,16 @@ static State handle_flying_command(CommandType cmd, lora_message_t *message,
         StopMotors();
         return STATE_EMERGENCY_STOP;
 
-    case CMD_SET_ATTITUDE:
-        // TODO: Parse attitude setpoint from message
-        // CommandSetAttitude *att_cmd = (CommandSetAttitude *)message->data;
-        // pid.setpoints.roll = att_cmd->roll;
-        // pid.setpoints.pitch = att_cmd->pitch;
-        // pid.setpoints.yaw = att_cmd->yaw;
+    case CMD_SET_POINT:
+        lora_send_string_nb(1, "LOG:SET_POINT_SET");
+        pid->setpoints.pitch = cmd.payload.setpoint.pitch;
+        pid->setpoints.roll = cmd.payload.setpoint.roll;
+        pid->setpoints.yaw = cmd.payload.setpoint.yaw;
         return STATE_FLYING;
 
     case CMD_SET_THROTTLE: {
-        float throttle_value;
-        if (parse_throttle_value(message->data, message->length,
-                                 &throttle_value)) {
-            lora_send_string_nb(1, "LOG:THROTTLE_SET");
-            *base_throttle = throttle_value;
-        } else {
-            lora_send_string_nb(1, "LOG:THROTTLE_PARSE_FAIL");
-        }
+        lora_send_string_nb(1, "LOG:THROTTLE_SET");
+        *base_throttle = cmd.payload.throttle.value;
         return STATE_FLYING;
     }
 
@@ -94,8 +87,8 @@ static State handle_flying_command(CommandType cmd, lora_message_t *message,
     }
 }
 
-static State handle_emergency_stop_command(CommandType cmd) {
-    if (cmd == CMD_RESET) {
+static State handle_emergency_stop_command(ParsedCommand cmd) {
+    if (cmd.type == CMD_RESET) {
         lora_send_string(1, "LOG:RESET_FROM_EMERGENCY");
         return STATE_DISARMED;
     }
@@ -168,7 +161,8 @@ int main(void) {
 
             if (lora_data_available()) {
                 lora_message_t *message = lora_get_received_data();
-                CommandType cmd = parse_command(message->data, message->length);
+                ParsedCommand cmd =
+                    parse_command(message->data, message->length);
                 state = handle_disarmed_command(cmd);
                 lora_clear_received_flag();
             }
@@ -209,7 +203,7 @@ int main(void) {
 
                 if (lora_data_available()) {
                     lora_message_t *message = lora_get_received_data();
-                    CommandType cmd =
+                    ParsedCommand cmd =
                         parse_command(message->data, message->length);
                     state = handle_flying_command(cmd, message, &base_throttle,
                                                   &pid);
@@ -246,7 +240,8 @@ int main(void) {
 
             if (lora_data_available()) {
                 lora_message_t *message = lora_get_received_data();
-                CommandType cmd = parse_command(message->data, message->length);
+                ParsedCommand cmd =
+                    parse_command(message->data, message->length);
                 state = handle_emergency_stop_command(cmd);
                 lora_clear_received_flag();
             }
