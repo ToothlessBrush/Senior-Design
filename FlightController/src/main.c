@@ -221,7 +221,6 @@ int main(void) {
                 break;
             }
 
-            // IMU data ready - CRITICAL TIMING SECTION (no blocking allowed)
             // Update IMU measurements and attitude
             IMU_update(&imu, FIXED_DT);
 
@@ -264,13 +263,14 @@ int main(void) {
 
 void drive_motors(float base_throttle, PID *pid) {
 
-    float motor1_speed = base_throttle + pid->output.roll + pid->output.pitch +
+    // these values are flipped since they are wired opposite of placement
+    float motor4_speed = base_throttle + pid->output.roll + pid->output.pitch +
                          pid->output.yaw; // north east
-    float motor2_speed = base_throttle - pid->output.roll + pid->output.pitch -
+    float motor3_speed = base_throttle - pid->output.roll + pid->output.pitch -
                          pid->output.yaw; // north west
-    float motor3_speed = base_throttle + pid->output.roll - pid->output.pitch +
+    float motor2_speed = base_throttle + pid->output.roll - pid->output.pitch +
                          pid->output.yaw; // south east
-    float motor4_speed = base_throttle - pid->output.roll - pid->output.pitch -
+    float motor1_speed = base_throttle - pid->output.roll - pid->output.pitch -
                          pid->output.yaw; // south west
     // Clamp to 0-1 range
     motor1_speed = fmaxf(0.0f, fminf(1.0f, motor1_speed));
