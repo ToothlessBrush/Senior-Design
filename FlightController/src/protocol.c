@@ -68,5 +68,10 @@ ParsedCommand parse_command(const uint8_t *data, uint8_t length) {
         hex_to_bytes(&data[3], 24, (uint8_t *)&cmd.payload.setpoint, 12);
     }
 
+    else if (starts_with(data, length, "HB:") && length >= 27) { // 3 + 32 hex
+        cmd.type = CMD_SET_POINT;
+        hex_to_bytes(&data[3], 24, (uint8_t *)&cmd.payload.heartbeat, 16);
+    }
+
     return cmd;
 }

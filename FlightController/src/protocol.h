@@ -14,6 +14,7 @@ typedef enum {
     CMD_CALIBRATE,      // Calibrate IMU
     CMD_RESET,          // Reset flight controller
     CMD_SET_POINT,      // set the set point of the pid (the goal for angle)
+    CMD_HEART_BEAT,
 } CommandType;
 
 // Throttle command payload
@@ -27,6 +28,13 @@ typedef struct __attribute__((packed)) {
     float pitch; // radians
     float yaw;   // radians
 } CommandSetPoint;
+
+typedef struct __attribute__((packed)) {
+    float base_throttle;
+    float roll;
+    float pitch;
+    float yaw;
+} CommandHeartBeat;
 
 // Telemetry packet structure - packed for efficient transmission
 typedef struct __attribute__((packed)) {
@@ -58,6 +66,7 @@ typedef struct {
     union {
         CommandSetThrottle throttle;
         CommandSetPoint setpoint;
+        CommandHeartBeat heartbeat;
     } payload;
 } ParsedCommand;
 

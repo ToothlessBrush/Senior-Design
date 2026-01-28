@@ -72,11 +72,18 @@ static State handle_flying_command(ParsedCommand cmd, lora_message_t *message,
         pid->setpoints.yaw = cmd.payload.setpoint.yaw;
         return STATE_FLYING;
 
-    case CMD_SET_THROTTLE: {
+    case CMD_SET_THROTTLE:
         lora_send_string_nb(1, "LOG:THROTTLE_SET");
         *base_throttle = cmd.payload.throttle.value;
         return STATE_FLYING;
-    }
+
+    case CMD_HEART_BEAT:
+        *base_throttle = cmd.payload.heartbeat.base_throttle;
+
+        pid->setpoints.pitch = cmd.payload.heartbeat.pitch;
+        pid->setpoints.roll = cmd.payload.heartbeat.roll;
+        pid->setpoints.yaw = cmd.payload.heartbeat.yaw;
+        return STATE_FLYING;
 
     case CMD_UPDATE_PID:
         // TODO: Parse PID gains from message
