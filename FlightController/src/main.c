@@ -14,12 +14,13 @@
 #define IMU_ODR_HZ 6660.0f
 #define FIXED_DT (1.0f / IMU_ODR_HZ) // ~0.00015015 seconds
 
-#define MAX_ANGLE 0.17f
+#define MAX_ANGLE 1.0f
 #define KP 0.0f
 #define KI 0.0f
 #define KD 0.0f
 
 #define MIN_THROTTLE 0.05f
+#define HEARTBEAT_TIMEOUT_MS 2000
 
 typedef enum {
     STATE_INIT,           // initial state
@@ -33,7 +34,7 @@ typedef enum {
 
 void drive_motors(float base_throttle, PID *pid);
 
-static State handle_disarmed_command(ParsedCommand cmd) {
+static State handle_disarmed_command(ParsedCommand cmd, PID *pid) {
     switch (cmd.type) {
     case CMD_START:
         lora_send_string(1, "LOG:CMD_START");
@@ -46,6 +47,31 @@ static State handle_disarmed_command(ParsedCommand cmd) {
     case CMD_CALIBRATE:
         lora_send_string(1, "LOG:CMD_CALIBRATE");
         return STATE_CALIBRATE;
+    case CMD_SET_PID:
+        lora_send_string(1, "LOG:CMD_SET_PID");
+        PIDController *active_pid;
+        switch (cmd.payload.pid.axis) {
+        case 0: // pitch
+            active_pid = &pid->pitch_pid;
+            break;
+        case 1: // roll
+            active_pid = &pid->roll_pid;
+            break;
+        case 2: // yaw
+            active_pid = &pid->yaw_pid;
+            break;
+        default:
+            lora_send_string(1, "LOG:INVALID PID AXIS");
+            return STATE_DISARMED;
+        }
+        active_pid->Kp = cmd.payload.pid.P;
+        active_pid->Ki = cmd.payload.pid.I;
+        active_pid->Kd = cmd.payload.pid.D;
+        active_pid->integral_limit = cmd.payload.pid.I_limit;
+        active_pid->output_limit = cmd.payload.pid.pid_limit;
+
+        lora_send_string(1, "LOG:PID_SET_SUCCESS");
+        return STATE_DISARMED;
 
     default:
         return STATE_DISARMED;
@@ -53,7 +79,8 @@ static State handle_disarmed_command(ParsedCommand cmd) {
 }
 
 static State handle_flying_command(ParsedCommand cmd, lora_message_t *message,
-                                   float *base_throttle, PID *pid) {
+                                   float *base_throttle, PID *pid,
+                                   uint32_t *last_heartbeat_time) {
     switch (cmd.type) {
     case CMD_STOP:
         lora_send_string_nb(1, "LOG:CMD_STOP");
@@ -83,6 +110,9 @@ static State handle_flying_command(ParsedCommand cmd, lora_message_t *message,
         pid->setpoints.pitch = cmd.payload.heartbeat.pitch;
         pid->setpoints.roll = cmd.payload.heartbeat.roll;
         pid->setpoints.yaw = cmd.payload.heartbeat.yaw;
+
+        // Update heartbeat timestamp
+        *last_heartbeat_time = millis();
         return STATE_FLYING;
 
     case CMD_UPDATE_PID:
@@ -107,25 +137,26 @@ int main(void) {
     IMU imu = {0};
     PID pid = {0};
     float base_throttle = 0.10f; // Base throttle (0.0 to 1.0)
+    uint32_t last_heartbeat_time = 0;
 
     PIDCreateInfo pid_info = (PIDCreateInfo){
-        .roll_Kp = 1.0f,
+        .roll_Kp = 0.0f,
         .roll_Ki = 0.0f,
         .roll_Kd = 0.0f,
-        .roll_Ki_limit = 10.25f,
-        .roll_limit = 0.2f, // 20% throttle
+        .roll_Ki_limit = 0.0f,
+        .roll_limit = 0.0f, // 20% throttle
 
-        .pitch_Kp = 1.0f,
+        .pitch_Kp = 0.0f,
         .pitch_Ki = 0.0f,
         .pitch_Kd = 0.0f,
-        .pitch_Ki_limit = 10.25f,
-        .pitch_limit = 0.2f, // 20% throttle
+        .pitch_Ki_limit = 0.0f,
+        .pitch_limit = 0.0f, // 20% throttle
 
         .yaw_Kp = 0.0f,
         .yaw_Ki = 0.0f,
         .yaw_Kd = 0.0f,
-        .yaw_Ki_limit = 10.25f,
-        .yaw_limit = 0.1f, // 10% throttle
+        .yaw_Ki_limit = 0.0f,
+        .yaw_limit = 0.0f, // 10% throttle
 
     };
 
@@ -170,7 +201,7 @@ int main(void) {
                 lora_message_t *message = lora_get_received_data();
                 ParsedCommand cmd =
                     parse_command(message->data, message->length);
-                state = handle_disarmed_command(cmd);
+                state = handle_disarmed_command(cmd, &pid);
                 lora_clear_received_flag();
             }
 
@@ -178,13 +209,15 @@ int main(void) {
 
         case STATE_CALIBRATE:
             toggle_led();
-            IMU_calibrate_accel(&imu, 1);
-            IMU_calibrate_gyro(&imu, 1);
+            IMU_calibrate_accel(&imu, 1000);
+            IMU_calibrate_gyro(&imu, 1000);
             toggle_led();
             state = STATE_DISARMED;
             break;
 
         case STATE_ARMING:
+            base_throttle = 0.0;
+            pid_reset(&pid);
             lora_service(); // Process any pending LoRa data
             lora_send_string(1, "LOG:ARMING");
             InitMotors();
@@ -193,7 +226,8 @@ int main(void) {
             delay_ms(2500);
 
             lora_send_string(1, "LOG:ARMED");
-            lora_service(); // Ensure message is processed
+            lora_service();                 // Ensure message is processed
+            last_heartbeat_time = millis(); // Initialize heartbeat timer
             state = STATE_FLYING;
             break;
 
@@ -204,6 +238,14 @@ int main(void) {
             break;
 
         case STATE_FLYING:
+            // Check for heartbeat timeout
+            if (millis() - last_heartbeat_time > HEARTBEAT_TIMEOUT_MS) {
+                lora_send_string_nb(1, "LOG:HEARTBEAT_TIMEOUT");
+                StopMotors();
+                state = STATE_EMERGENCY_STOP;
+                break;
+            }
+
             if (!imu_data_ready()) {
                 // IMU not ready - use idle time for non-critical tasks
                 lora_service();
@@ -213,7 +255,7 @@ int main(void) {
                     ParsedCommand cmd =
                         parse_command(message->data, message->length);
                     state = handle_flying_command(cmd, message, &base_throttle,
-                                                  &pid);
+                                                  &pid, &last_heartbeat_time);
                     lora_clear_received_flag();
                 }
 
@@ -225,12 +267,12 @@ int main(void) {
             IMU_update(&imu, FIXED_DT);
 
             // stop if greater then max angle
-            // if (fabsf(imu.attitude.roll) > MAX_ANGLE ||
-            //     fabsf(imu.attitude.pitch) > MAX_ANGLE) {
-            //     StopMotors();
-            //     state = STATE_EMERGENCY_STOP;
-            //     break;
-            // }
+            if (fabsf(imu.attitude.roll) > MAX_ANGLE ||
+                fabsf(imu.attitude.pitch) > MAX_ANGLE) {
+                StopMotors();
+                state = STATE_EMERGENCY_STOP;
+                break;
+            }
 
             // Update PID controllers
             pid_update(&pid, &imu, FIXED_DT);
@@ -264,15 +306,12 @@ int main(void) {
 void drive_motors(float base_throttle, PID *pid) {
 
     // these values are flipped since they are wired opposite of placement
-    float motor4_speed = base_throttle + pid->output.roll + pid->output.pitch +
-                         pid->output.yaw; // north east
-    float motor3_speed = base_throttle - pid->output.roll + pid->output.pitch -
-                         pid->output.yaw; // north west
-    float motor2_speed = base_throttle + pid->output.roll - pid->output.pitch +
-                         pid->output.yaw; // south east
-    float motor1_speed = base_throttle - pid->output.roll - pid->output.pitch -
-                         pid->output.yaw; // south west
-    // Clamp to 0-1 range
+    float motor4_speed = base_throttle + pid->output.pitch;
+    float motor3_speed = base_throttle - pid->output.roll; // north west
+    float motor2_speed = base_throttle + pid->output.roll;
+    float motor1_speed =
+        base_throttle - pid->output.pitch; // south west
+                                           // Clamp to 0-1 range
     motor1_speed = fmaxf(0.0f, fminf(1.0f, motor1_speed));
     motor2_speed = fmaxf(0.0f, fminf(1.0f, motor2_speed));
     motor3_speed = fmaxf(0.0f, fminf(1.0f, motor3_speed));

@@ -58,19 +58,27 @@ ParsedCommand parse_command(const uint8_t *data, uint8_t length) {
     }
 
     // ST:<hex> - throttle
-    if (starts_with(data, length, "ST:") && length >= 11) { // 3 + 8 hex
+    if (starts_with(data, length, "ST:") && length >= 11) { // 3 header + 8 hex
         cmd.type = CMD_SET_THROTTLE;
         hex_to_bytes(&data[3], 8, (uint8_t *)&cmd.payload.throttle, 4);
     }
     // SP:<hex> - setpoint
-    else if (starts_with(data, length, "SP:") && length >= 27) { // 3 + 24 hex
+    else if (starts_with(data, length, "SP:") &&
+             length >= 27) { // 3 header + 24 hex
         cmd.type = CMD_SET_POINT;
         hex_to_bytes(&data[3], 24, (uint8_t *)&cmd.payload.setpoint, 12);
     }
 
-    else if (starts_with(data, length, "HB:") && length >= 35) { // 3 + 32 hex
+    else if (starts_with(data, length, "HB:") &&
+             length >= 35) { // 3 header + 32 hex
         cmd.type = CMD_HEART_BEAT,
-        hex_to_bytes(&data[3], 24, (uint8_t *)&cmd.payload.heartbeat, 16);
+        hex_to_bytes(&data[3], 32, (uint8_t *)&cmd.payload.heartbeat, 16);
+    }
+
+    else if (starts_with(data, length, "TP:") &&
+             length >= 45) { // 3 header + 42 hex
+        cmd.type = CMD_SET_PID,
+        hex_to_bytes(&data[3], 42, (uint8_t *)&cmd.payload.pid, 21);
     }
 
     return cmd;

@@ -86,6 +86,8 @@ void pid_init(PID *pid, PIDCreateInfo create_info);
  */
 void pid_update(PID *pid, IMU *imu, float dt);
 
+void pid_reset(PID *pid);
+
 /**
  * Calculate PID output for a single axis
  * Implements the full PID algorithm with output clamping

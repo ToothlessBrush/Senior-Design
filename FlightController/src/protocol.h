@@ -15,6 +15,7 @@ typedef enum {
     CMD_RESET,          // Reset flight controller
     CMD_SET_POINT,      // set the set point of the pid (the goal for angle)
     CMD_HEART_BEAT,
+    CMD_SET_PID,
 } CommandType;
 
 // Throttle command payload
@@ -36,7 +37,15 @@ typedef struct __attribute__((packed)) {
     float yaw;
 } CommandHeartBeat;
 
-// Telemetry packet structure - packed for efficient transmission
+typedef struct __attribute__((packed)) {
+    float P;
+    float I;
+    float D;
+    float I_limit;
+    float pid_limit;
+    uint8_t axis; // axis at end for better alignment
+} CommandSetPid;
+
 typedef struct __attribute__((packed)) {
     uint32_t timestamp_ms; // System timestamp in milliseconds
 
@@ -67,6 +76,7 @@ typedef struct {
         CommandSetThrottle throttle;
         CommandSetPoint setpoint;
         CommandHeartBeat heartbeat;
+        CommandSetPid pid;
     } payload;
 } ParsedCommand;
 

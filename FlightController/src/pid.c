@@ -58,6 +58,18 @@ static float normalize_angle(float angle) {
     return angle;
 }
 
+void pid_reset(PID *pid) {
+    PIDController *pitch = &pid->pitch_pid;
+    pitch->integral = 0.0;
+    pitch->previous_error = 0.0;
+    PIDController *roll = &pid->roll_pid;
+    roll->integral = 0.0;
+    roll->previous_error = 0.0;
+    PIDController *yaw = &pid->yaw_pid;
+    yaw->integral = 0.0;
+    yaw->previous_error = 0.0;
+}
+
 // get output from error
 float get_pid_output(PIDController *pid, float setpoint, float measurement,
                      float angular_velocity, float dt) {
