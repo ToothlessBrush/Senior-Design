@@ -36,6 +36,10 @@ static uint8_t hex_to_bytes(const uint8_t *hex, uint8_t hex_len, uint8_t *out,
 ParsedCommand parse_command(const uint8_t *data, uint8_t length) {
     ParsedCommand cmd = {.type = CMD_NONE};
 
+    if (starts_with(data, length, "FC:MANUAL")) {
+        cmd.type = CMD_START_MANUAL;
+        return cmd;
+    }
     if (starts_with(data, length, "FC:START")) {
         cmd.type = CMD_START;
         return cmd;
@@ -79,6 +83,12 @@ ParsedCommand parse_command(const uint8_t *data, uint8_t length) {
              length >= 45) { // 3 header + 42 hex
         cmd.type = CMD_SET_PID,
         hex_to_bytes(&data[3], 42, (uint8_t *)&cmd.payload.pid, 21);
+    }
+
+    else if (starts_with(data, length, "MB:") && length > 19) {
+        cmd.type = CMD_SET_MOTOR_BIAS;
+
+        hex_to_bytes(&data[3], 16, (uint8_t *)&cmd.payload.bias, 8);
     }
 
     return cmd;

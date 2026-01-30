@@ -166,13 +166,13 @@ bool imu_init(IMU *imu) {
     // Gyro filters: 100 Hz cutoff (good balance between noise rejection and
     // responsiveness)
     for (int i = 0; i < 3; i++) {
-        biquad_lpf_init(&imu->gyro_filter[i], 100.0f, sample_rate);
+        biquad_lpf_init(&imu->gyro_filter[i], 50.0f, sample_rate);
     }
 
     // Accel filters: 50 Hz cutoff (more aggressive filtering for noisier
     // accelerometer)
     for (int i = 0; i < 3; i++) {
-        biquad_lpf_init(&imu->acc_filter[i], 50.0f, sample_rate);
+        biquad_lpf_init(&imu->acc_filter[i], 25.0f, sample_rate);
     }
 
     return true;

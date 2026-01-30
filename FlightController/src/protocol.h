@@ -16,6 +16,8 @@ typedef enum {
     CMD_SET_POINT,      // set the set point of the pid (the goal for angle)
     CMD_HEART_BEAT,
     CMD_SET_PID,
+    CMD_SET_MOTOR_BIAS,
+    CMD_START_MANUAL,
 } CommandType;
 
 // Throttle command payload
@@ -45,6 +47,13 @@ typedef struct __attribute__((packed)) {
     float pid_limit;
     uint8_t axis; // axis at end for better alignment
 } CommandSetPid;
+
+typedef struct __attribute__((packed)) {
+    uint16_t motor1;
+    uint16_t motor2;
+    uint16_t motor3;
+    uint16_t motor4;
+} CommandMotorBias;
 
 typedef struct __attribute__((packed)) {
     uint32_t timestamp_ms; // System timestamp in milliseconds
@@ -77,6 +86,7 @@ typedef struct {
         CommandSetPoint setpoint;
         CommandHeartBeat heartbeat;
         CommandSetPid pid;
+        CommandMotorBias bias;
     } payload;
 } ParsedCommand;
 

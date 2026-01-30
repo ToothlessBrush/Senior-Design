@@ -14,12 +14,13 @@
 #define IMU_ODR_HZ 6660.0f
 #define FIXED_DT (1.0f / IMU_ODR_HZ) // ~0.00015015 seconds
 
-#define MAX_ANGLE 1.0f
+#define MAX_ANGLE 1.5f
 #define KP 0.0f
 #define KI 0.0f
 #define KD 0.0f
 
 #define MIN_THROTTLE 0.05f
+#define MAX_THROTTLE 1.0f
 #define HEARTBEAT_TIMEOUT_MS 2000
 
 typedef enum {
@@ -30,9 +31,32 @@ typedef enum {
     STATE_FLYING,         // currently flying
     STATE_EMERGENCY_STOP, // stop everthing
     STATE_CALIBRATE,
+    STATE_MANUAL,
 } State;
 
-void drive_motors(float base_throttle, PID *pid);
+typedef struct {
+    int16_t motor1;
+    int16_t motor2;
+    int16_t motor3;
+    int16_t motor4;
+} MotorBias;
+
+void drive_motors(float base_throttle, PID *pid, MotorBias *bias);
+
+static State handle_manual_command(ParsedCommand cmd, MotorBias *bias,
+                                   uint32_t *last_heartbeat_time) {
+    switch (cmd.type) {
+    case CMD_HEART_BEAT:
+        *last_heartbeat_time = millis();
+        return STATE_MANUAL;
+    case CMD_SET_MOTOR_BIAS:
+        bias->motor1 = cmd.payload.bias.motor1;
+        bias->motor2 = cmd.payload.bias.motor2;
+        bias->motor1 = cmd.payload.bias.motor3;
+        bias->motor1 = cmd.payload.bias.motor4;
+        return STATE_MANUAL;
+    }
+}
 
 static State handle_disarmed_command(ParsedCommand cmd, PID *pid) {
     switch (cmd.type) {
@@ -72,6 +96,10 @@ static State handle_disarmed_command(ParsedCommand cmd, PID *pid) {
 
         lora_send_string(1, "LOG:PID_SET_SUCCESS");
         return STATE_DISARMED;
+    case CMD_START_MANUAL:
+
+        lora_send_string(1, "LOG:CMD_START_MANUAL");
+        return STATE_MANUAL;
 
     default:
         return STATE_DISARMED;
@@ -136,6 +164,7 @@ int main(void) {
     State state = STATE_INIT;
     IMU imu = {0};
     PID pid = {0};
+    MotorBias bias = {0};
     float base_throttle = 0.10f; // Base throttle (0.0 to 1.0)
     uint32_t last_heartbeat_time = 0;
 
@@ -167,6 +196,8 @@ int main(void) {
             // microcontroller config
             SystemClock_Config_100MHz_HSE();
             systick_init();
+            // wait for component power on
+            delay_ms(1000);
             uart_init();
             // Initialize LoRa module
             if (lora_init() == LORA_OK) {
@@ -259,7 +290,6 @@ int main(void) {
                     lora_clear_received_flag();
                 }
 
-                // Send telemetry during idle time (never blocks control loop)
                 break;
             }
 
@@ -267,19 +297,31 @@ int main(void) {
             IMU_update(&imu, FIXED_DT);
 
             // stop if greater then max angle
-            if (fabsf(imu.attitude.roll) > MAX_ANGLE ||
-                fabsf(imu.attitude.pitch) > MAX_ANGLE) {
-                StopMotors();
-                state = STATE_EMERGENCY_STOP;
-                break;
-            }
+            // if (fabsf(imu.attitude.roll) > MAX_ANGLE ||
+            //     fabsf(imu.attitude.pitch) > MAX_ANGLE) {
+            //     StopMotors();
+            //     lora_send_string_nb(1, "LOG:MAX_ANGLE_REACHED");
+            //     state = STATE_EMERGENCY_STOP;
+            //     break;
+            // }
 
             // Update PID controllers
             pid_update(&pid, &imu, FIXED_DT);
 
-            drive_motors(base_throttle, &pid);
+            drive_motors(base_throttle, &pid, &bias);
 
             send_telem(&imu, &pid);
+
+            break;
+        case STATE_MANUAL:
+
+            // Check for heartbeat timeout
+            if (millis() - last_heartbeat_time > HEARTBEAT_TIMEOUT_MS) {
+                lora_send_string_nb(1, "LOG:HEARTBEAT_TIMEOUT");
+                StopMotors();
+                state = STATE_EMERGENCY_STOP;
+                break;
+            }
 
             break;
 
@@ -303,29 +345,19 @@ int main(void) {
     return 0;
 }
 
-void drive_motors(float base_throttle, PID *pid) {
+void drive_motors(float base_throttle, PID *pid, MotorBias *bias) {
 
     // these values are flipped since they are wired opposite of placement
-    float motor4_speed = base_throttle + pid->output.pitch;
-    float motor3_speed = base_throttle - pid->output.roll; // north west
-    float motor2_speed = base_throttle + pid->output.roll;
-    float motor1_speed =
-        base_throttle - pid->output.pitch; // south west
-                                           // Clamp to 0-1 range
-    motor1_speed = fmaxf(0.0f, fminf(1.0f, motor1_speed));
-    motor2_speed = fmaxf(0.0f, fminf(1.0f, motor2_speed));
-    motor3_speed = fmaxf(0.0f, fminf(1.0f, motor3_speed));
-    motor4_speed = fmaxf(0.0f, fminf(1.0f, motor4_speed));
+    float motor4_speed = base_throttle + bias->motor4 + pid->output.pitch;
+    float motor3_speed = base_throttle + bias->motor3 - pid->output.roll;
+    float motor2_speed = base_throttle + bias->motor2 + pid->output.roll;
+    float motor1_speed = base_throttle + bias->motor1 - pid->output.pitch;
 
-    // Ensure each motor is above minimum throttle
-    if (motor1_speed < MIN_THROTTLE)
-        motor1_speed = MIN_THROTTLE;
-    if (motor2_speed < MIN_THROTTLE)
-        motor2_speed = MIN_THROTTLE;
-    if (motor3_speed < MIN_THROTTLE)
-        motor3_speed = MIN_THROTTLE;
-    if (motor4_speed < MIN_THROTTLE)
-        motor4_speed = MIN_THROTTLE;
+    // Clamp to 0-1 range
+    motor1_speed = fmaxf(MIN_THROTTLE, fminf(MAX_THROTTLE, motor1_speed));
+    motor2_speed = fmaxf(MIN_THROTTLE, fminf(MAX_THROTTLE, motor2_speed));
+    motor3_speed = fmaxf(MIN_THROTTLE, fminf(MAX_THROTTLE, motor3_speed));
+    motor4_speed = fmaxf(MIN_THROTTLE, fminf(MAX_THROTTLE, motor4_speed));
 
     // 50-1024 range
     SetMotorThrottle(motor1, (int16_t)(motor1_speed * 1000.0 + 1.0));
