@@ -27,6 +27,7 @@ typedef enum {
     STATE_INIT,           // initial state
     STATE_DISARMED,       // initialized but not running
     STATE_ARMING,         // transitioning to flying
+    STATE_ARMING_MANUAL,  // transitioning to manual mode
     STATE_DISARMING,      // transition to disarmed
     STATE_FLYING,         // currently flying
     STATE_EMERGENCY_STOP, // stop everthing
@@ -35,10 +36,10 @@ typedef enum {
 } State;
 
 typedef struct {
-    int16_t motor1;
-    int16_t motor2;
-    int16_t motor3;
-    int16_t motor4;
+    float motor1;
+    float motor2;
+    float motor3;
+    float motor4;
 } MotorBias;
 
 void drive_motors(float base_throttle, PID *pid, MotorBias *bias);
@@ -49,11 +50,27 @@ static State handle_manual_command(ParsedCommand cmd, MotorBias *bias,
     case CMD_HEART_BEAT:
         *last_heartbeat_time = millis();
         return STATE_MANUAL;
+
     case CMD_SET_MOTOR_BIAS:
+        // Values are already normalized (0.0-1.0)
         bias->motor1 = cmd.payload.bias.motor1;
         bias->motor2 = cmd.payload.bias.motor2;
-        bias->motor1 = cmd.payload.bias.motor3;
-        bias->motor1 = cmd.payload.bias.motor4;
+        bias->motor3 = cmd.payload.bias.motor3;
+        bias->motor4 = cmd.payload.bias.motor4;
+        lora_send_string_nb(1, "LOG:MOTOR_BIAS_SET");
+        return STATE_MANUAL;
+
+    case CMD_STOP:
+        lora_send_string_nb(1, "LOG:CMD_STOP");
+        StopMotors();
+        return STATE_DISARMED;
+
+    case CMD_EMERGENCY_STOP:
+        lora_send_string_nb(1, "LOG:CMD_EMERGENCY_STOP");
+        StopMotors();
+        return STATE_EMERGENCY_STOP;
+
+    default:
         return STATE_MANUAL;
     }
 }
@@ -97,9 +114,8 @@ static State handle_disarmed_command(ParsedCommand cmd, PID *pid) {
         lora_send_string(1, "LOG:PID_SET_SUCCESS");
         return STATE_DISARMED;
     case CMD_START_MANUAL:
-
         lora_send_string(1, "LOG:CMD_START_MANUAL");
-        return STATE_MANUAL;
+        return STATE_ARMING_MANUAL;
 
     default:
         return STATE_DISARMED;
@@ -262,6 +278,26 @@ int main(void) {
             state = STATE_FLYING;
             break;
 
+        case STATE_ARMING_MANUAL:
+            // Reset motor bias to zero
+            bias.motor1 = 0;
+            bias.motor2 = 0;
+            bias.motor3 = 0;
+            bias.motor4 = 0;
+
+            lora_service(); // Process any pending LoRa data
+            lora_send_string(1, "LOG:ARMING_MANUAL");
+            InitMotors();
+            StartMotors();
+
+            delay_ms(2500);
+
+            lora_send_string(1, "LOG:MANUAL_ARMED");
+            lora_service();                 // Ensure message is processed
+            last_heartbeat_time = millis(); // Initialize heartbeat timer
+            state = STATE_MANUAL;
+            break;
+
         case STATE_DISARMING:
             lora_send_string(1, "LOG:DISARMING");
             StopMotors();
@@ -314,7 +350,6 @@ int main(void) {
 
             break;
         case STATE_MANUAL:
-
             // Check for heartbeat timeout
             if (millis() - last_heartbeat_time > HEARTBEAT_TIMEOUT_MS) {
                 lora_send_string_nb(1, "LOG:HEARTBEAT_TIMEOUT");
@@ -322,6 +357,23 @@ int main(void) {
                 state = STATE_EMERGENCY_STOP;
                 break;
             }
+
+            lora_service();
+
+            if (lora_data_available()) {
+                lora_message_t *message = lora_get_received_data();
+                ParsedCommand cmd =
+                    parse_command(message->data, message->length);
+                state = handle_manual_command(cmd, &bias, &last_heartbeat_time);
+                lora_clear_received_flag();
+            }
+
+            // Drive motors with manual bias values (no PID correction)
+            // Set PID output to zero for manual mode
+            pid.output.pitch = 0.0f;
+            pid.output.roll = 0.0f;
+            pid.output.yaw = 0.0f;
+            drive_motors(0.0f, &pid, &bias);
 
             break;
 

@@ -85,10 +85,10 @@ ParsedCommand parse_command(const uint8_t *data, uint8_t length) {
         hex_to_bytes(&data[3], 42, (uint8_t *)&cmd.payload.pid, 21);
     }
 
-    else if (starts_with(data, length, "MB:") && length > 19) {
+    else if (starts_with(data, length, "MB:") &&
+             length >= 35) { // 3 header + 32 hex (16 bytes for 4 floats)
         cmd.type = CMD_SET_MOTOR_BIAS;
-
-        hex_to_bytes(&data[3], 16, (uint8_t *)&cmd.payload.bias, 8);
+        hex_to_bytes(&data[3], 32, (uint8_t *)&cmd.payload.bias, 16);
     }
 
     return cmd;

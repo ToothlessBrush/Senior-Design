@@ -49,10 +49,10 @@ typedef struct __attribute__((packed)) {
 } CommandSetPid;
 
 typedef struct __attribute__((packed)) {
-    uint16_t motor1;
-    uint16_t motor2;
-    uint16_t motor3;
-    uint16_t motor4;
+    float motor1;
+    float motor2;
+    float motor3;
+    float motor4;
 } CommandMotorBias;
 
 typedef struct __attribute__((packed)) {
