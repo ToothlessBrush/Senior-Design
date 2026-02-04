@@ -58,8 +58,8 @@ target_compile_options(${PROJECT_NAME} PRIVATE
     -ffunction-sections
     -Wall
     -Wextra
+    -g3                           # Always include debug symbols
     $<$<CONFIG:Debug>:-Og>        # Debug: Optimize for debugging
-    $<$<CONFIG:Debug>:-g3>        # Debug: Full debug symbols
     $<$<CONFIG:Release>:-O3>      # Release: Maximum optimization
     $<$<CONFIG:Release>:-flto>    # Release: Link-time optimization
     -fno-math-errno               # No errno for cortex (faster math)

@@ -117,6 +117,7 @@ static State handle_disarmed_command(ParsedCommand cmd, PID *pid,
         return STATE_DISARMED;
 
     case CMD_CONFIG:
+        lora_send_string(1, "LOG:SYNC_CONFIG");
 
         bias->motor1 = cmd.payload.sync.motor1;
         bias->motor2 = cmd.payload.sync.motor2;
@@ -135,11 +136,11 @@ static State handle_disarmed_command(ParsedCommand cmd, PID *pid,
         pid->roll_pid.integral_limit = cmd.payload.sync.roll_i_limit;
         pid->roll_pid.output_limit = cmd.payload.sync.roll_pid_limit;
 
-        pid->pitch_pid.Kp = cmd.payload.sync.yaw_Kp;
-        pid->pitch_pid.Ki = cmd.payload.sync.yaw_Ki;
-        pid->pitch_pid.Kd = cmd.payload.sync.yaw_Kd;
-        pid->pitch_pid.integral_limit = cmd.payload.sync.yaw_i_limit;
-        pid->pitch_pid.output_limit = cmd.payload.sync.yaw_pid_limit;
+        pid->yaw_pid.Kp = cmd.payload.sync.yaw_Kp;
+        pid->yaw_pid.Ki = cmd.payload.sync.yaw_Ki;
+        pid->yaw_pid.Kd = cmd.payload.sync.yaw_Kd;
+        pid->yaw_pid.integral_limit = cmd.payload.sync.yaw_i_limit;
+        pid->yaw_pid.output_limit = cmd.payload.sync.yaw_pid_limit;
         return STATE_DISARMED;
 
     case CMD_SET_MOTOR_BIAS:
@@ -280,7 +281,7 @@ int main(void) {
             SystemClock_Config_100MHz_HSE();
             systick_init();
             // wait for component power on
-            delay_ms(1000);
+            delay_ms(500);
             uart_init();
             // Initialize LoRa module
             if (lora_init() == LORA_OK) {
@@ -303,10 +304,11 @@ int main(void) {
             pid.setpoints.yaw = 0.0f;
 
             // turn on led to signal init success
-            led_init();
 
             lora_send_string(1, "CMD:GET_CONFIG");
+            delay_ms(300);
 
+            led_init();
             state = STATE_DISARMED;
             break;
 
@@ -469,11 +471,16 @@ int main(void) {
 void drive_motors(float base_throttle, PID *pid, MotorBias *bias) {
 
     // Motor mixing: pitch, roll, and yaw corrections
-    // CW props (1,4) create CCW torque -> add yaw | CCW props (2,3) create CW torque -> subtract yaw
-    float motor4_speed = base_throttle + bias->motor4 + pid->output.pitch + pid->output.yaw;
-    float motor3_speed = base_throttle + bias->motor3 - pid->output.roll - pid->output.yaw;
-    float motor2_speed = base_throttle + bias->motor2 + pid->output.roll - pid->output.yaw;
-    float motor1_speed = base_throttle + bias->motor1 - pid->output.pitch + pid->output.yaw;
+    // CW props (1,4) create CCW torque -> add yaw | CCW props (2,3) create CW
+    // torque -> subtract yaw
+    float motor4_speed =
+        base_throttle + bias->motor4 + pid->output.pitch + pid->output.yaw;
+    float motor3_speed =
+        base_throttle + bias->motor3 - pid->output.roll - pid->output.yaw;
+    float motor2_speed =
+        base_throttle + bias->motor2 + pid->output.roll - pid->output.yaw;
+    float motor1_speed =
+        base_throttle + bias->motor1 - pid->output.pitch + pid->output.yaw;
 
     // Clamp to 0-1 range
     motor1_speed = fmaxf(MIN_THROTTLE, fminf(MAX_THROTTLE, motor1_speed));
