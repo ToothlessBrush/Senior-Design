@@ -91,5 +91,11 @@ ParsedCommand parse_command(const uint8_t *data, uint8_t length) {
         hex_to_bytes(&data[3], 32, (uint8_t *)&cmd.payload.bias, 16);
     }
 
+    else if (starts_with(data, length, "CF:") &&
+             length >= 155) { // 3 header + 152 hex
+        cmd.type = CMD_CONFIG;
+        hex_to_bytes(&data[3], 152, (uint8_t *)&cmd.payload.sync, 76);
+    }
+
     return cmd;
 }

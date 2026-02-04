@@ -18,6 +18,7 @@ typedef enum {
     CMD_SET_PID,
     CMD_SET_MOTOR_BIAS,
     CMD_START_MANUAL,
+    CMD_CONFIG, // Request saved config from GUI
 } CommandType;
 
 // Throttle command payload
@@ -55,6 +56,36 @@ typedef struct __attribute__((packed)) {
     float motor4;
 } CommandMotorBias;
 
+// 8 * 19 = 152 char
+typedef struct __attribute__((packed)) {
+    // motor bias
+    float motor1;
+    float motor2;
+    float motor3;
+    float motor4;
+
+    // PID terms for roll
+    float roll_Kp;
+    float roll_Ki;
+    float roll_Kd;
+    float roll_i_limit;
+    float roll_pid_limit;
+
+    // PID terms for pitch
+    float pitch_Kp;
+    float pitch_Ki;
+    float pitch_Kd;
+    float pitch_i_limit;
+    float pitch_pid_limit;
+
+    // PID terms for yaw
+    float yaw_Kp;
+    float yaw_Ki;
+    float yaw_Kd;
+    float yaw_i_limit;
+    float yaw_pid_limit;
+} CommandConfig;
+
 typedef struct __attribute__((packed)) {
     uint32_t timestamp_ms; // System timestamp in milliseconds
 
@@ -87,6 +118,7 @@ typedef struct {
         CommandHeartBeat heartbeat;
         CommandSetPid pid;
         CommandMotorBias bias;
+        CommandConfig sync;
     } payload;
 } ParsedCommand;
 
