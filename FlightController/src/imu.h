@@ -55,6 +55,10 @@ typedef struct {
     IMU_Calibration cal;     // Calibration data
     Biquad_t gyro_filter[3]; // Low-pass filters for gyro (X, Y, Z)
     Biquad_t acc_filter[3];  // Low-pass filters for accel (X, Y, Z)
+
+    float velocity[2];
+    float accel_hp[2];
+    float accel_prev[2];
 } IMU;
 
 /**
@@ -92,6 +96,9 @@ float biquad_apply(Biquad_t *filter, float input);
 // Helper functions
 void writeAccReg(uint8_t reg, uint8_t value);
 void writeGyrReg(uint8_t reg, uint8_t value);
+
+// reset
+void IMU_reset_velocity(IMU *imu);
 
 // Version info
 extern int BerryIMUversion;

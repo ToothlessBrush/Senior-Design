@@ -213,6 +213,34 @@ void IMU_update(IMU *imu, float dt) {
     imu->acceleration.az = imu->acc[2];
 
     updateOrientation(&imu->attitude, imu->acc, imu->gyro, dt);
+
+    // Velocity estimation (dont ask me how this works)
+
+    float sin_pitch = sinf(imu->attitude.pitch);
+    float cos_pitch = cosf(imu->attitude.pitch);
+    float sin_roll = sinf(imu->attitude.roll);
+    float cos_roll = cosf(imu->attitude.roll);
+
+    float grav_x = -sin_pitch;
+    float grav_y = -sin_roll * cos_pitch;
+
+    float lin_ax = imu->acc[0] - grav_x;
+    float lin_ay = imu->acc[1] - grav_y;
+
+    // high pass filter
+    float tau = 0.5f;
+    float alpha_hp = tau / (tau + dt);
+
+    imu->accel_hp[0] =
+        alpha_hp * (imu->accel_hp[0] + lin_ax - imu->accel_prev[0]);
+    imu->accel_hp[1] =
+        alpha_hp * (imu->accel_hp[1] + lin_ay - imu->accel_prev[1]);
+    imu->accel_prev[0] = lin_ax;
+    imu->accel_prev[1] = lin_ay;
+
+    // integrate acceleration to get velocity in m/s
+    imu->velocity[0] += imu->accel_hp[0] * 9.81f * dt;
+    imu->velocity[1] += imu->accel_hp[1] * 9.81f * dt;
 }
 
 bool imu_data_ready() {
@@ -334,4 +362,13 @@ float biquad_apply(Biquad_t *filter, float input) {
     filter->y1 = output;
 
     return output;
+}
+
+void IMU_reset_velocity(IMU *imu) {
+    imu->velocity[0] = 0.0f;
+    imu->velocity[1] = 0.0f;
+    imu->accel_hp[0] = 0.0f;
+    imu->accel_hp[1] = 0.0f;
+    imu->accel_prev[0] = 0.0f;
+    imu->accel_prev[1] = 0.0f;
 }

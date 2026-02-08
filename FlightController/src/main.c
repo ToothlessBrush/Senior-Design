@@ -108,10 +108,10 @@ static State handle_disarmed_command(ParsedCommand cmd, PID *pid,
             active_pid = &pid->yaw_pid;
             break;
         case 3: // accel_x (forward/backward)
-            active_pid = &pid->accel_x_pid;
+            active_pid = &pid->velocity_x_pid;
             break;
         case 4: // accel_y (left/right)
-            active_pid = &pid->accel_y_pid;
+            active_pid = &pid->velocity_y_pid;
             break;
         default:
             lora_send_string(1, "LOG:INVALID PID AXIS");
@@ -233,10 +233,10 @@ static State handle_flying_command(ParsedCommand cmd, MotorBias *bias,
             active_pid = &pid->yaw_pid;
             break;
         case 3: // accel_x (forward/backward)
-            active_pid = &pid->accel_x_pid;
+            active_pid = &pid->velocity_x_pid;
             break;
         case 4: // accel_y (left/right)
-            active_pid = &pid->accel_y_pid;
+            active_pid = &pid->velocity_y_pid;
             break;
         default:
             lora_send_string_nb(1, "LOG:INVALID PID AXIS");
@@ -294,17 +294,18 @@ int main(void) {
         .yaw_limit = 0.0f, // 10% throttle
 
         // Acceleration correction PID (start with conservative values)
-        .accel_x_Kp = 0.1f,
-        .accel_x_Ki = 0.01f,
-        .accel_x_Kd = 0.0f,
-        .accel_x_Ki_limit = 0.1f, // Limit integral to 0.1 rad (~5.7 degrees)
-        .accel_x_limit = 0.2f, // Max angle correction: 0.2 rad (~11.5 degrees)
+        .velocity_x_Kp = 0.1f,
+        .velocity_x_Ki = 0.01f,
+        .velocity_x_Kd = 0.0f,
+        .velocity_x_Ki_limit = 0.1f, // Limit integral to 0.1 rad (~5.7 degrees)
+        .velocity_x_limit =
+            0.2f, // Max angle correction: 0.2 rad (~11.5 degrees)
 
-        .accel_y_Kp = 0.1f,
-        .accel_y_Ki = 0.01f,
-        .accel_y_Kd = 0.0f,
-        .accel_y_Ki_limit = 0.1f,
-        .accel_y_limit = 0.2f,
+        .velocity_y_Kp = 0.1f,
+        .velocity_y_Ki = 0.01f,
+        .velocity_y_Kd = 0.0f,
+        .velocity_y_Ki_limit = 0.1f,
+        .velocity_y_limit = 0.2f,
 
     };
 
@@ -338,7 +339,6 @@ int main(void) {
             pid.setpoints.pitch = 0.0f;
             pid.setpoints.yaw = 0.0f;
             pid.base_setpoints = pid.setpoints;
-            pid.accel_correction_enabled = true;
 
             lora_send_string(1, "CMD:GET_CONFIG");
             delay_ms(300);
@@ -379,9 +379,13 @@ int main(void) {
 
         case STATE_ARMING:
             base_throttle = 0.0;
+
             pid_reset(&pid);
+            IMU_reset_velocity(&imu);
+
             lora_service(); // Process any pending LoRa data
             lora_send_string(1, "LOG:ARMING");
+
             InitMotors();
             StartMotors();
 
@@ -447,6 +451,7 @@ int main(void) {
                                                   &pid, &last_heartbeat_time,
                                                   &led_flash_until);
                     lora_clear_received_flag();
+                    send_telem(&imu, &pid); // reply
                 }
 
                 break;
@@ -465,14 +470,14 @@ int main(void) {
             // }
 
             // Apply acceleration correction to adjust setpoints (if enabled)
-            pid_accel_correction(&pid, &imu, FIXED_DT);
+            // currently this uses the angle pid so velocitys about 3.14 will
+            // wrap around which might come up
+            pid_velocity_correction(&pid, &imu, FIXED_DT);
 
             // Update PID controllers
             pid_update(&pid, &imu, FIXED_DT);
 
             drive_motors(base_throttle, &pid, &bias);
-
-            send_telem(&imu, &pid);
 
             break;
         case STATE_MANUAL:
