@@ -33,10 +33,33 @@ void pid_init(PID *pid, PIDCreateInfo create_info) {
         .integral_limit = create_info.yaw_Ki_limit,
     };
 
+    PIDController accel_x_controller = (PIDController){
+        .Kp = create_info.accel_x_Kp,
+        .Ki = create_info.accel_x_Ki,
+        .Kd = create_info.accel_x_Kd,
+        .integral = 0,
+        .previous_error = 0,
+        .output_limit = create_info.accel_x_limit,
+        .integral_limit = create_info.accel_x_Ki_limit,
+    };
+
+    PIDController accel_y_controller = (PIDController){
+        .Kp = create_info.accel_y_Kp,
+        .Ki = create_info.accel_y_Ki,
+        .Kd = create_info.accel_y_Kd,
+        .integral = 0,
+        .previous_error = 0,
+        .output_limit = create_info.accel_y_limit,
+        .integral_limit = create_info.accel_y_Ki_limit,
+    };
+
     *pid = (PID){
         .pitch_pid = pitch_controller,
         .roll_pid = roll_controller,
         .yaw_pid = yaw_controller,
+        .accel_x_pid = accel_x_controller,
+        .accel_y_pid = accel_y_controller,
+        .accel_correction_enabled = false,
     };
 }
 
@@ -68,6 +91,14 @@ void pid_reset(PID *pid) {
     PIDController *yaw = &pid->yaw_pid;
     yaw->integral = 0.0;
     yaw->previous_error = 0.0;
+
+    // Reset acceleration correction PIDs
+    PIDController *accel_x = &pid->accel_x_pid;
+    accel_x->integral = 0.0;
+    accel_x->previous_error = 0.0;
+    PIDController *accel_y = &pid->accel_y_pid;
+    accel_y->integral = 0.0;
+    accel_y->previous_error = 0.0;
 }
 
 // get output from error
@@ -99,6 +130,40 @@ float get_pid_output(PIDController *pid, float setpoint, float measurement,
     pid->previous_error = error;
 
     return output;
+}
+
+// Acceleration correction to prevent horizontal drift
+void pid_accel_correction(PID *pid, IMU *imu, float dt) {
+    if (!pid->accel_correction_enabled) {
+        // If disabled, just copy base setpoints to active setpoints
+        pid->setpoints = pid->base_setpoints;
+        return;
+    }
+
+    // Target acceleration is 0 for position hold (no horizontal drift)
+    float target_accel_x = 0.0f;
+    float target_accel_y = 0.0f;
+
+    // Remove gravity component from Z axis to get actual horizontal acceleration
+    // For small angles, we can use the raw ax and ay as horizontal accelerations
+    float accel_x = imu->acceleration.ax;
+    float accel_y = imu->acceleration.ay;
+
+    // Calculate angle corrections needed to counteract acceleration
+    // Using a simple PID with setpoint=0, measurement=acceleration
+    // Output is the angle adjustment needed
+    // Note: angular_velocity is not directly available for acceleration,
+    // so we use derivative of error from the PID controller
+    float pitch_correction = get_pid_output(&pid->accel_x_pid, target_accel_x,
+                                             accel_x, 0.0f, dt);
+    float roll_correction = get_pid_output(&pid->accel_y_pid, target_accel_y,
+                                            accel_y, 0.0f, dt);
+
+    // Apply corrections to setpoints
+    // Negative sign: if accelerating forward (ax>0), need to tilt backward (pitch>0)
+    pid->setpoints.pitch = pid->base_setpoints.pitch - pitch_correction;
+    pid->setpoints.roll = pid->base_setpoints.roll - roll_correction;
+    pid->setpoints.yaw = pid->base_setpoints.yaw; // Yaw not affected by horizontal accel
 }
 
 // update all 3 pid axis

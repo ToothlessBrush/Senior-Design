@@ -44,6 +44,13 @@ typedef struct {
     PIDController roll_pid;  // Roll axis controller
     PIDController yaw_pid;   // Yaw axis controller
 
+    // Acceleration correction PIDs (for position hold)
+    PIDController accel_x_pid; // Forward/backward acceleration correction
+    PIDController accel_y_pid; // Left/right acceleration correction
+
+    Attitude base_setpoints;  // Base setpoints (before acceleration correction)
+    bool accel_correction_enabled; // Enable/disable acceleration correction
+
 } PID;
 
 typedef struct {
@@ -65,6 +72,19 @@ typedef struct {
     float yaw_Ki_limit;
     float yaw_limit;
 
+    // Acceleration correction PID parameters
+    float accel_x_Kp;
+    float accel_x_Ki;
+    float accel_x_Kd;
+    float accel_x_Ki_limit;
+    float accel_x_limit;
+
+    float accel_y_Kp;
+    float accel_y_Ki;
+    float accel_y_Kd;
+    float accel_y_Ki_limit;
+    float accel_y_limit;
+
 } PIDCreateInfo;
 
 /**
@@ -85,6 +105,16 @@ void pid_init(PID *pid, PIDCreateInfo create_info);
  * @param dt Time delta since last update (seconds)
  */
 void pid_update(PID *pid, IMU *imu, float dt);
+
+/**
+ * Update acceleration correction PIDs to adjust setpoints
+ * Prevents horizontal drift by correcting for measured acceleration
+ *
+ * @param pid Pointer to PID context
+ * @param imu Pointer to IMU context (provides acceleration data)
+ * @param dt Time delta since last update (seconds)
+ */
+void pid_accel_correction(PID *pid, IMU *imu, float dt);
 
 void pid_reset(PID *pid);
 

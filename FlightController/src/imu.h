@@ -8,10 +8,10 @@
  * Biquad low-pass filter for noise reduction
  */
 typedef struct {
-    float b0, b1, b2;  // Numerator coefficients
-    float a1, a2;      // Denominator coefficients (a0 normalized to 1)
-    float x1, x2;      // Input history
-    float y1, y2;      // Output history
+    float b0, b1, b2; // Numerator coefficients
+    float a1, a2;     // Denominator coefficients (a0 normalized to 1)
+    float x1, x2;     // Input history
+    float y1, y2;     // Output history
 } Biquad_t;
 
 /**
@@ -23,14 +23,20 @@ typedef struct {
     float yaw;
 } Attitude;
 
+typedef struct {
+    float ax;
+    float ay;
+    float az;
+} Acceleration;
+
 /**
  * Calibration data for sensors
  */
 typedef struct {
-    float gyro_bias[3];      // Gyroscope bias (rad/s)
-    float accel_bias[3];     // Accelerometer bias (g)
-    float mag_offset[3];     // Magnetometer hard iron offset (gauss)
-    float mag_scale[3];      // Magnetometer soft iron scale factors
+    float gyro_bias[3];  // Gyroscope bias (rad/s)
+    float accel_bias[3]; // Accelerometer bias (g)
+    float mag_offset[3]; // Magnetometer hard iron offset (gauss)
+    float mag_scale[3];  // Magnetometer soft iron scale factors
 } IMU_Calibration;
 
 /**
@@ -43,11 +49,12 @@ typedef struct {
     int mag_raw[3];
     float gyro[3];
     float acc[3];
-    float mag[3];              // Magnetometer (gauss)
+    float mag[3]; // Magnetometer (gauss)
     Attitude attitude;
-    IMU_Calibration cal;       // Calibration data
-    Biquad_t gyro_filter[3];   // Low-pass filters for gyro (X, Y, Z)
-    Biquad_t acc_filter[3];    // Low-pass filters for accel (X, Y, Z)
+    Acceleration acceleration;
+    IMU_Calibration cal;     // Calibration data
+    Biquad_t gyro_filter[3]; // Low-pass filters for gyro (X, Y, Z)
+    Biquad_t acc_filter[3];  // Low-pass filters for accel (X, Y, Z)
 } IMU;
 
 /**

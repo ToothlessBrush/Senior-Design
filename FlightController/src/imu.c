@@ -185,6 +185,10 @@ void IMU_update(IMU *imu, float dt) {
     gyroToRadPS(imu->gyro_raw, imu->gyro);
     accToG(imu->acc_raw, imu->acc);
 
+    imu->acceleration.ax = imu->acc[0];
+    imu->acceleration.ay = imu->acc[1];
+    imu->acceleration.az = imu->acc[2];
+
     // Apply calibration (if not calibrated, bias is 0)
     imu->gyro[0] -= imu->cal.gyro_bias[0];
     imu->gyro[1] -= imu->cal.gyro_bias[1];
@@ -202,6 +206,11 @@ void IMU_update(IMU *imu, float dt) {
     imu->acc[0] = biquad_apply(&imu->acc_filter[0], imu->acc[0]);
     imu->acc[1] = biquad_apply(&imu->acc_filter[1], imu->acc[1]);
     imu->acc[2] = biquad_apply(&imu->acc_filter[2], imu->acc[2]);
+
+    // readable values
+    imu->acceleration.ax = imu->acc[0];
+    imu->acceleration.ay = imu->acc[1];
+    imu->acceleration.az = imu->acc[2];
 
     updateOrientation(&imu->attitude, imu->acc, imu->gyro, dt);
 }

@@ -22,6 +22,7 @@
 #define MIN_THROTTLE 0.05f
 #define MAX_THROTTLE 1.0f
 #define HEARTBEAT_TIMEOUT_MS 2000
+#define LED_FLASH_DURATION_MS 50
 
 typedef enum {
     STATE_INIT,           // initial state
@@ -45,10 +46,13 @@ typedef struct {
 void drive_motors(float base_throttle, PID *pid, MotorBias *bias);
 
 static State handle_manual_command(ParsedCommand cmd, MotorBias *bias,
-                                   uint32_t *last_heartbeat_time) {
+                                   uint32_t *last_heartbeat_time,
+                                   uint32_t *led_flash_until) {
     *last_heartbeat_time = millis();
     switch (cmd.type) {
     case CMD_HEART_BEAT:
+        led_on();
+        *led_flash_until = millis() + LED_FLASH_DURATION_MS;
         return STATE_MANUAL;
 
     case CMD_SET_MOTOR_BIAS:
@@ -102,6 +106,12 @@ static State handle_disarmed_command(ParsedCommand cmd, PID *pid,
             break;
         case 2: // yaw
             active_pid = &pid->yaw_pid;
+            break;
+        case 3: // accel_x (forward/backward)
+            active_pid = &pid->accel_x_pid;
+            break;
+        case 4: // accel_y (left/right)
+            active_pid = &pid->accel_y_pid;
             break;
         default:
             lora_send_string(1, "LOG:INVALID PID AXIS");
@@ -163,8 +173,10 @@ static State handle_disarmed_command(ParsedCommand cmd, PID *pid,
 
 static State handle_flying_command(ParsedCommand cmd, MotorBias *bias,
                                    float *base_throttle, PID *pid,
-                                   uint32_t *last_heartbeat_time) {
+                                   uint32_t *last_heartbeat_time,
+                                   uint32_t *led_flash_until) {
     *last_heartbeat_time = millis();
+    *led_flash_until = millis() + LED_FLASH_DURATION_MS;
     switch (cmd.type) {
     case CMD_STOP:
         lora_send_string_nb(1, "LOG:CMD_STOP");
@@ -178,9 +190,10 @@ static State handle_flying_command(ParsedCommand cmd, MotorBias *bias,
 
     case CMD_SET_POINT:
         lora_send_string_nb(1, "LOG:SET_POINT_SET");
-        pid->setpoints.pitch = cmd.payload.setpoint.pitch;
-        pid->setpoints.roll = cmd.payload.setpoint.roll;
-        pid->setpoints.yaw = cmd.payload.setpoint.yaw;
+        pid->base_setpoints.pitch = cmd.payload.setpoint.pitch;
+        pid->base_setpoints.roll = cmd.payload.setpoint.roll;
+        pid->base_setpoints.yaw = cmd.payload.setpoint.yaw;
+        pid->setpoints = pid->base_setpoints;
         return STATE_FLYING;
     case CMD_SET_MOTOR_BIAS:
         // Values are already normalized (0.0-1.0)
@@ -199,9 +212,10 @@ static State handle_flying_command(ParsedCommand cmd, MotorBias *bias,
     case CMD_HEART_BEAT:
         *base_throttle = cmd.payload.heartbeat.base_throttle;
 
-        pid->setpoints.pitch = cmd.payload.heartbeat.pitch;
-        pid->setpoints.roll = cmd.payload.heartbeat.roll;
-        pid->setpoints.yaw = cmd.payload.heartbeat.yaw;
+        pid->base_setpoints.pitch = cmd.payload.heartbeat.pitch;
+        pid->base_setpoints.roll = cmd.payload.heartbeat.roll;
+        pid->base_setpoints.yaw = cmd.payload.heartbeat.yaw;
+        pid->setpoints = pid->base_setpoints;
 
         return STATE_FLYING;
 
@@ -217,6 +231,12 @@ static State handle_flying_command(ParsedCommand cmd, MotorBias *bias,
             break;
         case 2: // yaw
             active_pid = &pid->yaw_pid;
+            break;
+        case 3: // accel_x (forward/backward)
+            active_pid = &pid->accel_x_pid;
+            break;
+        case 4: // accel_y (left/right)
+            active_pid = &pid->accel_y_pid;
             break;
         default:
             lora_send_string_nb(1, "LOG:INVALID PID AXIS");
@@ -251,6 +271,8 @@ int main(void) {
     MotorBias bias = {0};
     float base_throttle = 0.10f; // Base throttle (0.0 to 1.0)
     uint32_t last_heartbeat_time = 0;
+    uint32_t last_command_time = 0; // Track any command received
+    uint32_t led_flash_until = 0;   // Track LED flash duration
 
     PIDCreateInfo pid_info = (PIDCreateInfo){
         .roll_Kp = 0.0f,
@@ -270,6 +292,19 @@ int main(void) {
         .yaw_Kd = 0.0f,
         .yaw_Ki_limit = 0.0f,
         .yaw_limit = 0.0f, // 10% throttle
+
+        // Acceleration correction PID (start with conservative values)
+        .accel_x_Kp = 0.1f,
+        .accel_x_Ki = 0.01f,
+        .accel_x_Kd = 0.0f,
+        .accel_x_Ki_limit = 0.1f, // Limit integral to 0.1 rad (~5.7 degrees)
+        .accel_x_limit = 0.2f, // Max angle correction: 0.2 rad (~11.5 degrees)
+
+        .accel_y_Kp = 0.1f,
+        .accel_y_Ki = 0.01f,
+        .accel_y_Kd = 0.0f,
+        .accel_y_Ki_limit = 0.1f,
+        .accel_y_limit = 0.2f,
 
     };
 
@@ -302,23 +337,32 @@ int main(void) {
             pid.setpoints.roll = 0.0f;
             pid.setpoints.pitch = 0.0f;
             pid.setpoints.yaw = 0.0f;
-
-            // turn on led to signal init success
+            pid.base_setpoints = pid.setpoints;
+            pid.accel_correction_enabled = true;
 
             lora_send_string(1, "CMD:GET_CONFIG");
             delay_ms(300);
 
             led_init();
+            led_off(); // Start with LED off until connected
             state = STATE_DISARMED;
             break;
 
         case STATE_DISARMED:
             lora_service();
 
+            // LED ON if connected (received command recently), OFF otherwise
+            if (millis() - last_command_time < HEARTBEAT_TIMEOUT_MS) {
+                led_on();
+            } else {
+                led_off();
+            }
+
             if (lora_data_available()) {
                 lora_message_t *message = lora_get_received_data();
                 ParsedCommand cmd =
                     parse_command(message->data, message->length);
+                last_command_time = millis(); // Update connection time
                 state = handle_disarmed_command(cmd, &pid, &bias);
                 lora_clear_received_flag();
             }
@@ -376,6 +420,13 @@ int main(void) {
             break;
 
         case STATE_FLYING:
+            // Update LED based on heartbeat flash
+            if (millis() < led_flash_until) {
+                led_on();
+            } else {
+                led_off();
+            }
+
             // Check for heartbeat timeout
             if (millis() - last_heartbeat_time > HEARTBEAT_TIMEOUT_MS) {
                 lora_send_string_nb(1, "LOG:HEARTBEAT_TIMEOUT");
@@ -393,7 +444,8 @@ int main(void) {
                     ParsedCommand cmd =
                         parse_command(message->data, message->length);
                     state = handle_flying_command(cmd, &bias, &base_throttle,
-                                                  &pid, &last_heartbeat_time);
+                                                  &pid, &last_heartbeat_time,
+                                                  &led_flash_until);
                     lora_clear_received_flag();
                 }
 
@@ -412,6 +464,9 @@ int main(void) {
             //     break;
             // }
 
+            // Apply acceleration correction to adjust setpoints (if enabled)
+            pid_accel_correction(&pid, &imu, FIXED_DT);
+
             // Update PID controllers
             pid_update(&pid, &imu, FIXED_DT);
 
@@ -421,6 +476,13 @@ int main(void) {
 
             break;
         case STATE_MANUAL:
+            // Update LED based on heartbeat flash
+            if (millis() < led_flash_until) {
+                led_on();
+            } else {
+                led_off();
+            }
+
             // Check for heartbeat timeout
             if (millis() - last_heartbeat_time > HEARTBEAT_TIMEOUT_MS) {
                 lora_send_string_nb(1, "LOG:HEARTBEAT_TIMEOUT");
@@ -435,7 +497,8 @@ int main(void) {
                 lora_message_t *message = lora_get_received_data();
                 ParsedCommand cmd =
                     parse_command(message->data, message->length);
-                state = handle_manual_command(cmd, &bias, &last_heartbeat_time);
+                state = handle_manual_command(cmd, &bias, &last_heartbeat_time,
+                                              &led_flash_until);
                 lora_clear_received_flag();
             }
 
@@ -449,6 +512,7 @@ int main(void) {
             break;
 
         case STATE_EMERGENCY_STOP:
+            led_off(); // LED OFF in emergency stop
             lora_service();
 
             if (lora_data_available()) {

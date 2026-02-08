@@ -36,6 +36,13 @@ static uint8_t hex_to_bytes(const uint8_t *hex, uint8_t hex_len, uint8_t *out,
 ParsedCommand parse_command(const uint8_t *data, uint8_t length) {
     ParsedCommand cmd = {.type = CMD_NONE};
 
+    // estop
+    if (starts_with(data, length, "ES")) {
+        cmd.type = CMD_EMERGENCY_STOP;
+        return cmd;
+    }
+
+    // Flight Commands
     if (starts_with(data, length, "FC:MANUAL")) {
         cmd.type = CMD_START_MANUAL;
         return cmd;
@@ -48,10 +55,6 @@ ParsedCommand parse_command(const uint8_t *data, uint8_t length) {
         cmd.type = CMD_STOP;
         return cmd;
     }
-    if (starts_with(data, length, "FC:EMERGENCY")) {
-        cmd.type = CMD_EMERGENCY_STOP;
-        return cmd;
-    }
     if (starts_with(data, length, "FC:CALIBRATE")) {
         cmd.type = CMD_CALIBRATE;
         return cmd;
@@ -61,6 +64,7 @@ ParsedCommand parse_command(const uint8_t *data, uint8_t length) {
         return cmd;
     }
 
+    // packet commands
     // ST:<hex> - throttle
     if (starts_with(data, length, "ST:") && length >= 11) { // 3 header + 8 hex
         cmd.type = CMD_SET_THROTTLE;
@@ -79,6 +83,7 @@ ParsedCommand parse_command(const uint8_t *data, uint8_t length) {
         hex_to_bytes(&data[3], 32, (uint8_t *)&cmd.payload.heartbeat, 16);
     }
 
+    // tune pid
     else if (starts_with(data, length, "TP:") &&
              length >= 45) { // 3 header + 42 hex
         cmd.type = CMD_SET_PID,

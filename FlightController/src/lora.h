@@ -49,7 +49,6 @@ int lora_is_ready(void);
 int lora_error_code(void);
 void lora_set_ready(uint8_t ready);
 void lora_service(void);
-void lora_update_led(void);
 
 // Blocking send - waits for +OK response
 int lora_send_at_command(const char *cmd, char *response, uint16_t max_len,
