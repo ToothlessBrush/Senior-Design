@@ -2,55 +2,55 @@
 
 const float PI = 3.141592;
 
-void pid_init(PID *pid, PIDCreateInfo create_info) {
+void pid_init(PID *pid, const PIDCreateInfo *create_info) {
     PIDController roll_controller = (PIDController){
-        .Kp = create_info.roll_Kp,
-        .Ki = create_info.roll_Ki,
-        .Kd = create_info.roll_Kd,
+        .Kp = create_info->roll_Kp,
+        .Ki = create_info->roll_Ki,
+        .Kd = create_info->roll_Kd,
         .integral = 0,
         .previous_error = 0,
-        .output_limit = create_info.roll_limit,
-        .integral_limit = create_info.roll_Ki_limit,
+        .output_limit = create_info->roll_limit,
+        .integral_limit = create_info->roll_Ki_limit,
     };
 
     PIDController pitch_controller = (PIDController){
-        .Kp = create_info.pitch_Kp,
-        .Ki = create_info.pitch_Ki,
-        .Kd = create_info.pitch_Kd,
+        .Kp = create_info->pitch_Kp,
+        .Ki = create_info->pitch_Ki,
+        .Kd = create_info->pitch_Kd,
         .integral = 0,
         .previous_error = 0,
-        .output_limit = create_info.pitch_limit,
-        .integral_limit = create_info.pitch_Ki_limit,
+        .output_limit = create_info->pitch_limit,
+        .integral_limit = create_info->pitch_Ki_limit,
     };
 
     PIDController yaw_controller = (PIDController){
-        .Kp = create_info.yaw_Kp,
-        .Ki = create_info.yaw_Ki,
-        .Kd = create_info.yaw_Kd,
+        .Kp = create_info->yaw_Kp,
+        .Ki = create_info->yaw_Ki,
+        .Kd = create_info->yaw_Kd,
         .integral = 0,
         .previous_error = 0,
-        .output_limit = create_info.yaw_limit,
-        .integral_limit = create_info.yaw_Ki_limit,
+        .output_limit = create_info->yaw_limit,
+        .integral_limit = create_info->yaw_Ki_limit,
     };
 
     PIDController velocity_x_controller = (PIDController){
-        .Kp = create_info.velocity_x_Kp,
-        .Ki = create_info.velocity_x_Ki,
-        .Kd = create_info.velocity_x_Kd,
+        .Kp = create_info->velocity_x_Kp,
+        .Ki = create_info->velocity_x_Ki,
+        .Kd = create_info->velocity_x_Kd,
         .integral = 0,
         .previous_error = 0,
-        .output_limit = create_info.velocity_x_limit,
-        .integral_limit = create_info.velocity_x_Ki_limit,
+        .output_limit = create_info->velocity_x_limit,
+        .integral_limit = create_info->velocity_x_Ki_limit,
     };
 
     PIDController velocity_y_controller = (PIDController){
-        .Kp = create_info.velocity_y_Kp,
-        .Ki = create_info.velocity_y_Ki,
-        .Kd = create_info.velocity_y_Kd,
+        .Kp = create_info->velocity_y_Kp,
+        .Ki = create_info->velocity_y_Ki,
+        .Kd = create_info->velocity_y_Kd,
         .integral = 0,
         .previous_error = 0,
-        .output_limit = create_info.velocity_y_limit,
-        .integral_limit = create_info.velocity_y_Ki_limit,
+        .output_limit = create_info->velocity_y_limit,
+        .integral_limit = create_info->velocity_y_Ki_limit,
     };
 
     *pid = (PID){
@@ -134,7 +134,7 @@ float get_pid_output(PIDController *pid, float setpoint, float measurement,
 }
 
 // Acceleration correction to prevent horizontal drift
-void pid_velocity_correction(PID *pid, IMU *imu, float dt) {
+void pid_velocity_correction(PID *pid, const IMU *imu, float dt) {
     if (!pid->velocity_correction_enabled) {
         // If disabled, just copy base setpoints to active setpoints
         pid->setpoints = pid->base_setpoints;
@@ -142,26 +142,25 @@ void pid_velocity_correction(PID *pid, IMU *imu, float dt) {
     }
 
     float pitch_correction =
-        get_pid_output(&pid->velocity_x_pid, 0.0f, imu->velocity[0],
-                       imu->accel_hp[0] * 9.81f, dt);
+        get_pid_output(&pid->velocity_x_pid, 0.0f, imu->velocity.x,
+                       imu->accel_hp.y * 9.81f, dt);
 
     float roll_correction =
-        get_pid_output(&pid->velocity_y_pid, 0.0f, imu->velocity[1],
-                       imu->accel_hp[1] * 9.81f, dt);
+        get_pid_output(&pid->velocity_y_pid, 0.0f, imu->velocity.y,
+                       imu->accel_hp.x * 9.81f, dt);
 
     pid->setpoints.pitch = pid->base_setpoints.pitch - pitch_correction;
     pid->setpoints.roll = pid->base_setpoints.roll - roll_correction;
 }
 
 // update all 3 pid axis
-void pid_update(PID *pid, IMU *imu, float dt) {
+void pid_update(PID *pid, const IMU *imu, float dt) {
     pid->measurement = imu->attitude;
 
-    pid->output.pitch =
-        get_pid_output(&pid->pitch_pid, pid->setpoints.pitch,
-                       pid->measurement.pitch, imu->gyro[1], dt);
+    pid->output.pitch = get_pid_output(&pid->pitch_pid, pid->setpoints.pitch,
+                                       pid->measurement.pitch, imu->gyro.y, dt);
     pid->output.roll = get_pid_output(&pid->roll_pid, pid->setpoints.roll,
-                                      pid->measurement.roll, imu->gyro[0], dt);
+                                      pid->measurement.roll, imu->gyro.x, dt);
     pid->output.yaw = get_pid_output(&pid->yaw_pid, pid->setpoints.yaw,
-                                     pid->measurement.yaw, imu->gyro[2], dt);
+                                     pid->measurement.yaw, imu->gyro.z, dt);
 }

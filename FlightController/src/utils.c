@@ -1,7 +1,6 @@
 #include "utils.h"
 #include "lora.h"
 #include "protocol.h"
-#include "system.h"
 #include "systick.h"
 #include <stdio.h>
 
@@ -39,7 +38,7 @@ static inline void byte_to_hex(uint8_t byte, char *out) {
     out[1] = hex[byte & 0x0F];
 }
 
-void send_telem(IMU *imu, PID *pid) {
+void send_telem(const IMU *imu, const PID *pid) {
     static char hex_buffer[200]; // Buffer for hex-encoded data
 
     uint32_t now = millis();

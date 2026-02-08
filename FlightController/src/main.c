@@ -331,7 +331,7 @@ int main(void) {
                     ;
             }
 
-            pid_init(&pid, pid_info);
+            pid_init(&pid, &pid_info);
             // InitMotors();
 
             // Set initial target attitude

@@ -23,6 +23,32 @@ typedef struct {
     float yaw;
 } Attitude;
 
+typedef union {
+    struct {
+        float x;
+        float y;
+        float z;
+    };
+    float v[3];
+} Vec3;
+
+typedef union {
+    struct {
+        int x;
+        int y;
+        int z;
+    };
+    int v[3];
+} IVec3;
+
+typedef union {
+    struct {
+        float x;
+        float y;
+    };
+    float v[2];
+} Vec2;
+
 typedef struct {
     float ax;
     float ay;
@@ -33,10 +59,10 @@ typedef struct {
  * Calibration data for sensors
  */
 typedef struct {
-    float gyro_bias[3];  // Gyroscope bias (rad/s)
-    float accel_bias[3]; // Accelerometer bias (g)
-    float mag_offset[3]; // Magnetometer hard iron offset (gauss)
-    float mag_scale[3];  // Magnetometer soft iron scale factors
+    Vec3 gyro_bias;  // Gyroscope bias (rad/s)
+    Vec3 accel_bias; // Accelerometer bias (g)
+    Vec3 mag_offset; // Magnetometer hard iron offset (gauss)
+    Vec3 mag_scale;  // Magnetometer soft iron scale factors
 } IMU_Calibration;
 
 /**
@@ -44,21 +70,20 @@ typedef struct {
  * acceleration, magnetometer, and attitude.
  */
 typedef struct {
-    int gyro_raw[3];
-    int acc_raw[3];
-    int mag_raw[3];
-    float gyro[3];
-    float acc[3];
-    float mag[3]; // Magnetometer (gauss)
+    IVec3 gyro_raw;
+    IVec3 acc_raw;
+    IVec3 mag_raw;
+    Vec3 gyro;
+    Vec3 acc;
+    Vec3 mag; // Magnetometer (gauss)
     Attitude attitude;
-    Acceleration acceleration;
     IMU_Calibration cal;     // Calibration data
     Biquad_t gyro_filter[3]; // Low-pass filters for gyro (X, Y, Z)
     Biquad_t acc_filter[3];  // Low-pass filters for accel (X, Y, Z)
 
-    float velocity[2];
-    float accel_hp[2];
-    float accel_prev[2];
+    Vec2 velocity;
+    Vec2 accel_hp;
+    Vec2 accel_prev;
 } IMU;
 
 /**
@@ -71,14 +96,14 @@ bool verifyIMU(void);
  *
  * @param a[] 3-axis acceleration data
  */
-void readAccRaw(int a[]);
-void readGyroRaw(int g[]);
-void readMagRaw(int m[]);
-void gyroToRadPS(int gyro_raw[], float gyro_dps[]);
-void accToG(int acc_raw[], float acc_g[]);
-void magToGauss(int mag_raw[], float mag_gauss[]);
-void updateOrientation(Attitude *attitude, float acc_g[], float gyro_rad_s[],
-                       float dt);
+void readAccRaw(IVec3 *a);
+void readGyroRaw(IVec3 *g);
+void readMagRaw(IVec3 *m);
+void gyroToRadPS(const IVec3 *gyro_raw, Vec3 *gyro_dps);
+void accToG(const IVec3 *acc_raw, Vec3 *acc_g);
+void magToGauss(const IVec3 *mag_raw, Vec3 *mag_gauss);
+void updateOrientation(Attitude *attitude, const Vec3 *acc_g,
+                       const Vec3 *gyro_rad_s, float dt);
 
 bool imu_init(IMU *imu);
 void IMU_update(IMU *imu, float dt);

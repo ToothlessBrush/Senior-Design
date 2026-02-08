@@ -94,7 +94,7 @@ typedef struct {
  * @param pid Pointer to PID context to initialize
  * @param create_info info for creating pid such as gains and limits
  */
-void pid_init(PID *pid, PIDCreateInfo create_info);
+void pid_init(PID *pid, const PIDCreateInfo *create_info);
 
 /**
  * Update all PID controllers with current IMU measurements
@@ -104,7 +104,7 @@ void pid_init(PID *pid, PIDCreateInfo create_info);
  * @param imu Pointer to IMU context (provides current attitude)
  * @param dt Time delta since last update (seconds)
  */
-void pid_update(PID *pid, IMU *imu, float dt);
+void pid_update(PID *pid, const IMU *imu, float dt);
 
 /**
  * Update acceleration correction PIDs to adjust setpoints
@@ -114,7 +114,7 @@ void pid_update(PID *pid, IMU *imu, float dt);
  * @param imu Pointer to IMU context (provides acceleration data)
  * @param dt Time delta since last update (seconds)
  */
-void pid_velocity_correction(PID *pid, IMU *imu, float dt);
+void pid_velocity_correction(PID *pid, const IMU *imu, float dt);
 
 void pid_reset(PID *pid);
 

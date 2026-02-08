@@ -3,7 +3,6 @@
 
 #include "imu.h"
 #include "pid.h"
-#include "protocol.h"
 #include <stdint.h>
 
 typedef struct {
@@ -19,6 +18,6 @@ void split_float(float value, int decimal_places, float_parts_t *result);
 // Format: "H:<hex_data>" where hex_data is TelemetryPacket encoded as hex
 // string ~10x faster than floating-point sprintf - critical for real-time
 // control loop
-void send_telem(IMU *imu, PID *pid);
+void send_telem(const IMU *imu, const PID *pid);
 
 #endif // UTILS_H
