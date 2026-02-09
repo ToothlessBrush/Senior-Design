@@ -21,7 +21,19 @@ int lora_error_code(void) { return last_error_code; }
 // Set module ready state (used internally)
 void lora_set_ready(uint8_t ready) { module_ready = ready; }
 
-// Send AT command and wait for response (blocking)
+/**
+ * @brief Send AT command and wait for response (blocking)
+ *
+ * Flushes UART, sends command with \r\n termination, and waits for module
+ * response. Parses +OK and +ERR responses. Times out if no valid response
+ * received within timeout period.
+ *
+ * @param cmd AT command string (without \r\n)
+ * @param response Buffer to store full response (can be NULL)
+ * @param max_len Size of response buffer
+ * @param timeout_ms Timeout in milliseconds
+ * @return LORA_OK if +OK received, LORA_ERROR if +ERR, LORA_TIMEOUT on timeout
+ */
 int lora_send_at_command(const char *cmd, char *response, uint16_t max_len,
                          uint32_t timeout_ms) {
     uint32_t elapsed = 0;
@@ -89,7 +101,15 @@ int lora_send_at_command(const char *cmd, char *response, uint16_t max_len,
     return LORA_TIMEOUT;
 }
 
-// Initialize LoRa module
+/**
+ * @brief Initialize LoRa module with configured parameters
+ *
+ * Sends configuration commands for address, network ID, frequency band,
+ * and LoRa parameters. Each command waits for +OK response. Fails if any
+ * command returns error or times out.
+ *
+ * @return LORA_OK if all configuration succeeded, LORA_ERROR otherwise
+ */
 int lora_init(void) {
     char response[128];
     char cmd[64];

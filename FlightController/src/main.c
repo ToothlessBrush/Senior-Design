@@ -1,3 +1,33 @@
+/**
+ * @file main.c
+ * @brief Main flight controller application for STM32F411-based quadcopter
+ *
+ * This module implements the main control loop and state machine for a quadcopter
+ * flight controller. It coordinates IMU sensor readings, PID control loops,
+ * motor control, and LoRa wireless communication.
+ *
+ * The controller operates at 6660 Hz IMU update rate and implements:
+ * - Multi-state flight control (disarmed, arming, flying, manual, emergency stop)
+ * - Attitude stabilization using PID control on pitch, roll, and yaw
+ * - Velocity-based position corrections
+ * - Heartbeat-based safety monitoring with automatic emergency stop
+ * - LoRa-based command and telemetry communication
+ * - Manual motor control mode for testing and calibration
+ *
+ * Motor Layout (X configuration):
+ *        Front
+ *     4       2
+ *       \ + /
+ *        \|/
+ *        /|\
+ *       / - \
+ *     1       3
+ *        Rear
+ *
+ * Motors 1,4: CW rotation (create CCW torque)
+ * Motors 2,3: CCW rotation (create CW torque)
+ */
+
 #include "LSM6DSL.h"
 #include "imu.h"
 #include "lora.h"
@@ -24,27 +54,64 @@
 #define HEARTBEAT_TIMEOUT_MS 2000
 #define LED_FLASH_DURATION_MS 50
 
+/**
+ * @brief Flight controller state machine states
+ *
+ * The controller transitions through these states based on commands received
+ * via LoRa communication and internal safety checks.
+ */
 typedef enum {
-    STATE_INIT,           // initial state
-    STATE_DISARMED,       // initialized but not running
-    STATE_ARMING,         // transitioning to flying
-    STATE_ARMING_MANUAL,  // transitioning to manual mode
-    STATE_DISARMING,      // transition to disarmed
-    STATE_FLYING,         // currently flying
-    STATE_EMERGENCY_STOP, // stop everthing
-    STATE_CALIBRATE,
-    STATE_MANUAL,
+    STATE_INIT,           /**< Initial state: system initialization and peripheral setup */
+    STATE_DISARMED,       /**< Disarmed: motors stopped, accepting configuration commands */
+    STATE_ARMING,         /**< Arming: transitioning to autonomous flight mode */
+    STATE_ARMING_MANUAL,  /**< Arming: transitioning to manual motor control mode */
+    STATE_DISARMING,      /**< Disarming: transitioning back to disarmed state */
+    STATE_FLYING,         /**< Flying: autonomous flight with PID stabilization active */
+    STATE_EMERGENCY_STOP, /**< Emergency stop: all systems halted, motors stopped */
+    STATE_CALIBRATE,      /**< Calibration: performing IMU gyro/accel bias calibration */
+    STATE_MANUAL,         /**< Manual: direct motor control without PID (testing mode) */
 } State;
 
+/**
+ * @brief Per-motor throttle bias adjustments
+ *
+ * Allows individual motor trim to compensate for manufacturing variations,
+ * weight distribution, or damaged propellers. Values are normalized (0.0-1.0)
+ * and added to the base throttle + PID corrections.
+ */
 typedef struct {
-    float motor1;
-    float motor2;
-    float motor3;
-    float motor4;
+    float motor1; /**< Motor 1 bias (rear left, CW) */
+    float motor2; /**< Motor 2 bias (front right, CCW) */
+    float motor3; /**< Motor 3 bias (rear right, CCW) */
+    float motor4; /**< Motor 4 bias (front left, CW) */
 } MotorBias;
 
+/**
+ * @brief Compute motor speeds and send throttle commands to motors
+ *
+ * Implements the motor mixing algorithm to combine base throttle, PID corrections,
+ * and per-motor biases into individual motor throttle values. The mixing accounts
+ * for the quadcopter X configuration and motor rotation directions.
+ *
+ * @param base_throttle Base throttle level (0.0-1.0) before corrections
+ * @param pid Pointer to PID structure containing pitch/roll/yaw corrections
+ * @param bias Pointer to MotorBias structure with per-motor trim values
+ */
 void drive_motors(float base_throttle, PID *pid, MotorBias *bias);
 
+/**
+ * @brief Handle commands received while in manual control mode
+ *
+ * Processes commands in STATE_MANUAL where motors are directly controlled via
+ * bias values without PID stabilization. Supports heartbeat monitoring, motor
+ * bias updates, and stop/emergency stop commands.
+ *
+ * @param cmd Pointer to parsed command structure
+ * @param bias Pointer to motor bias values to update
+ * @param last_heartbeat_time Pointer to heartbeat timestamp for timeout monitoring
+ * @param led_flash_until Pointer to LED flash end time for visual feedback
+ * @return New state after processing command
+ */
 static State handle_manual_command(const ParsedCommand *cmd, MotorBias *bias,
                                    uint32_t *last_heartbeat_time,
                                    uint32_t *led_flash_until) {
@@ -79,6 +146,18 @@ static State handle_manual_command(const ParsedCommand *cmd, MotorBias *bias,
     }
 }
 
+/**
+ * @brief Handle commands received while in disarmed state
+ *
+ * Processes configuration and control commands when motors are stopped. Allows
+ * setting PID parameters, motor biases, initiating calibration, and transitioning
+ * to armed states (flying or manual mode). This is the safe state for configuration.
+ *
+ * @param cmd Pointer to parsed command structure
+ * @param pid Pointer to PID structure for parameter updates
+ * @param bias Pointer to motor bias values to update
+ * @return New state after processing command
+ */
 static State handle_disarmed_command(const ParsedCommand *cmd, PID *pid,
                                      MotorBias *bias) {
     switch (cmd->type) {
@@ -187,6 +266,22 @@ static State handle_disarmed_command(const ParsedCommand *cmd, PID *pid,
     }
 }
 
+/**
+ * @brief Handle commands received during autonomous flight
+ *
+ * Processes real-time flight control commands while motors are running with PID
+ * stabilization. Handles heartbeat messages (with setpoint/throttle updates),
+ * setpoint changes, throttle adjustments, motor bias updates, PID tuning, and
+ * emergency/normal stop commands. Updates heartbeat timestamp on every command.
+ *
+ * @param cmd Pointer to parsed command structure
+ * @param bias Pointer to motor bias values to update
+ * @param base_throttle Pointer to base throttle level for updates
+ * @param pid Pointer to PID structure for setpoint and parameter updates
+ * @param last_heartbeat_time Pointer to heartbeat timestamp for timeout monitoring
+ * @param led_flash_until Pointer to LED flash end time for visual feedback
+ * @return New state after processing command
+ */
 static State handle_flying_command(const ParsedCommand *cmd, MotorBias *bias,
                                    float *base_throttle, PID *pid,
                                    uint32_t *last_heartbeat_time,
@@ -272,6 +367,15 @@ static State handle_flying_command(const ParsedCommand *cmd, MotorBias *bias,
     }
 }
 
+/**
+ * @brief Handle commands received during emergency stop state
+ *
+ * Only processes RESET commands to transition back to disarmed state.
+ * All other commands are ignored to maintain safety until explicit reset.
+ *
+ * @param cmd Parsed command structure
+ * @return STATE_DISARMED if reset command received, STATE_EMERGENCY_STOP otherwise
+ */
 static State handle_emergency_stop_command(ParsedCommand cmd) {
     if (cmd.type == CMD_RESET) {
         lora_send_string(1, "LOG:RESET_FROM_EMERGENCY");
@@ -280,6 +384,29 @@ static State handle_emergency_stop_command(ParsedCommand cmd) {
     return STATE_EMERGENCY_STOP;
 }
 
+/**
+ * @brief Main entry point and control loop for flight controller
+ *
+ * Initializes all subsystems and runs the main state machine loop. The state
+ * machine coordinates system initialization, IMU updates, PID control, motor
+ * control, and wireless communication.
+ *
+ * State Flow:
+ * - INIT: Configure clocks, peripherals, sensors, and communication
+ * - DISARMED: Wait for commands, allow configuration changes
+ * - CALIBRATE: Perform IMU gyro/accel bias calibration
+ * - ARMING/ARMING_MANUAL: Initialize motors and transition to active mode
+ * - FLYING: Run high-speed control loop with IMU (6660 Hz) and PID updates
+ * - MANUAL: Direct motor control mode for testing
+ * - EMERGENCY_STOP: Safety state requiring manual reset
+ *
+ * Safety Features:
+ * - Heartbeat timeout monitoring (2 second timeout triggers emergency stop)
+ * - Max angle protection (commented out, configurable)
+ * - Automatic motor shutdown on communication loss
+ *
+ * @return Never returns (infinite loop)
+ */
 int main(void) {
     State state = STATE_INIT;
     IMU imu = {0};
@@ -552,6 +679,30 @@ int main(void) {
     return 0;
 }
 
+/**
+ * @brief Compute motor speeds and send throttle commands to motors
+ *
+ * Implements motor mixing for X-configuration quadcopter. Combines base throttle,
+ * PID corrections (pitch, roll, yaw), and individual motor biases to compute
+ * final throttle values for each motor.
+ *
+ * Motor Mixing Algorithm (X configuration):
+ * - Motor 1 (rear left, CW):  throttle - pitch + yaw + bias1
+ * - Motor 2 (front right, CCW): throttle + roll - yaw + bias2
+ * - Motor 3 (rear right, CCW):  throttle - roll - yaw + bias3
+ * - Motor 4 (front left, CW):   throttle + pitch + yaw + bias4
+ *
+ * Pitch correction: Motor 4 (front) increases, Motor 1 (rear) decreases
+ * Roll correction: Motor 2 (right) increases, Motor 3 (left) decreases
+ * Yaw correction: CW motors (1,4) increase, CCW motors (2,3) decrease
+ *
+ * Final throttle values are clamped to MIN_THROTTLE-MAX_THROTTLE range and
+ * converted to DSHOT protocol values (1-1001 range).
+ *
+ * @param base_throttle Base throttle level (0.0-1.0) before corrections
+ * @param pid Pointer to PID structure containing pitch/roll/yaw output corrections
+ * @param bias Pointer to MotorBias structure with per-motor trim values (0.0-1.0)
+ */
 void drive_motors(float base_throttle, PID *pid, MotorBias *bias) {
 
     // Motor mixing: pitch, roll, and yaw corrections
