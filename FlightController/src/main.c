@@ -387,8 +387,7 @@ int main(void) {
 
         case STATE_CALIBRATE:
             toggle_led();
-            IMU_calibrate_accel(&imu, 1000);
-            IMU_calibrate_gyro(&imu, 1000);
+            IMU_calibrate(&imu, 6660);
             toggle_led();
             state = STATE_DISARMED;
             break;

@@ -110,8 +110,7 @@ void IMU_update(IMU *imu, float dt);
 bool imu_data_ready();
 
 // Calibration functions
-void IMU_calibrate_gyro(IMU *imu, uint16_t samples);
-void IMU_calibrate_accel(IMU *imu, uint16_t samples);
+void IMU_calibrate(IMU *imu, uint16_t samples);
 void IMU_calibrate_mag(IMU *imu, uint16_t samples);
 
 // Filter functions

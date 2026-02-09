@@ -243,74 +243,42 @@ bool imu_data_ready() {
     return false;
 }
 
-void IMU_calibrate_gyro(IMU *imu, uint16_t samples) {
-    // Calibrate gyroscope by averaging samples while stationary
-    // This finds the bias (offset) that should be subtracted from readings
+void IMU_calibrate(IMU *imu, uint16_t samples) {
+    Vec3 gyro_sum = {0};
+    Vec3 accel_sum = {0};
 
-    Vec3 gyro_sum;
-
-    // Collect samples
     for (uint16_t i = 0; i < samples; i++) {
-        // Wait for data ready
         while (!imu_data_ready()) {
-            // Wait for next sample
         }
 
-        // Read raw gyro data
+        // Read gyro first — clears the DRDY interrupt
         readGyroRaw(&imu->gyro_raw);
+        readAccRaw(&imu->acc_raw);
 
-        // Convert to rad/s and accumulate
         Vec3 gyro_temp;
         gyroToRadPS(&imu->gyro_raw, &gyro_temp);
-
         gyro_sum.x += gyro_temp.x;
         gyro_sum.y += gyro_temp.y;
         gyro_sum.z += gyro_temp.z;
-    }
 
-    // Calculate average bias
-    imu->cal.gyro_bias.x = gyro_sum.x / samples;
-    imu->cal.gyro_bias.y = gyro_sum.y / samples;
-    imu->cal.gyro_bias.z = gyro_sum.z / samples;
-}
-
-void IMU_calibrate_accel(IMU *imu, uint16_t samples) {
-    // Calibrate accelerometer by averaging samples while stationary
-    // Assumes device is level with Z-axis pointing up (should read [0, 0, 1g])
-
-    Vec3 accel_sum;
-
-    // Collect samples
-    for (uint16_t i = 0; i < samples; i++) {
-        // Wait for data ready
-        while (!imu_data_ready()) {
-            // Wait for next sample
-        }
-
-        // Read gyro data first to clear sensor's internal data ready flag
-        readGyroRaw(&imu->gyro_raw);
-
-        // Read raw accel data
-        readAccRaw(&imu->acc_raw);
-
-        // Convert to g and accumulate
         Vec3 acc_temp;
         accToG(&imu->acc_raw, &acc_temp);
-
         accel_sum.x += acc_temp.x;
         accel_sum.y += acc_temp.y;
         accel_sum.z += acc_temp.z;
     }
 
-    // Calculate average
+    imu->cal.gyro_bias.x = gyro_sum.x / samples;
+    imu->cal.gyro_bias.y = gyro_sum.y / samples;
+    imu->cal.gyro_bias.z = gyro_sum.z / samples;
+
     Vec3 accel_avg;
     accel_avg.x = accel_sum.x / samples;
     accel_avg.y = accel_sum.y / samples;
     accel_avg.z = accel_sum.z / samples;
 
-    // Bias is the difference from expected [0, 0, 1g]
-    imu->cal.accel_bias.x = accel_avg.x - 0.0f;
-    imu->cal.accel_bias.y = accel_avg.y - 0.0f;
+    imu->cal.accel_bias.x = accel_avg.x;
+    imu->cal.accel_bias.y = accel_avg.y;
     imu->cal.accel_bias.z = accel_avg.z - 1.0f;
 }
 
