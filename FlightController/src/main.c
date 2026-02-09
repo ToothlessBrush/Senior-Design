@@ -45,11 +45,11 @@ typedef struct {
 
 void drive_motors(float base_throttle, PID *pid, MotorBias *bias);
 
-static State handle_manual_command(ParsedCommand cmd, MotorBias *bias,
+static State handle_manual_command(const ParsedCommand *cmd, MotorBias *bias,
                                    uint32_t *last_heartbeat_time,
                                    uint32_t *led_flash_until) {
     *last_heartbeat_time = millis();
-    switch (cmd.type) {
+    switch (cmd->type) {
     case CMD_HEART_BEAT:
         led_on();
         *led_flash_until = millis() + LED_FLASH_DURATION_MS;
@@ -57,10 +57,10 @@ static State handle_manual_command(ParsedCommand cmd, MotorBias *bias,
 
     case CMD_SET_MOTOR_BIAS:
         // Values are already normalized (0.0-1.0)
-        bias->motor1 = cmd.payload.bias.motor1;
-        bias->motor2 = cmd.payload.bias.motor2;
-        bias->motor3 = cmd.payload.bias.motor3;
-        bias->motor4 = cmd.payload.bias.motor4;
+        bias->motor1 = cmd->payload.bias.motor1;
+        bias->motor2 = cmd->payload.bias.motor2;
+        bias->motor3 = cmd->payload.bias.motor3;
+        bias->motor4 = cmd->payload.bias.motor4;
         lora_send_string_nb(1, "LOG:MOTOR_BIAS_SET");
         return STATE_MANUAL;
 
@@ -79,9 +79,9 @@ static State handle_manual_command(ParsedCommand cmd, MotorBias *bias,
     }
 }
 
-static State handle_disarmed_command(ParsedCommand cmd, PID *pid,
+static State handle_disarmed_command(const ParsedCommand *cmd, PID *pid,
                                      MotorBias *bias) {
-    switch (cmd.type) {
+    switch (cmd->type) {
     case CMD_START:
         lora_send_string(1, "LOG:CMD_START");
         return STATE_ARMING;
@@ -97,7 +97,7 @@ static State handle_disarmed_command(ParsedCommand cmd, PID *pid,
     case CMD_SET_PID:
         lora_send_string(1, "LOG:CMD_SET_PID");
         PIDController *active_pid;
-        switch (cmd.payload.pid.axis) {
+        switch (cmd->payload.pid.axis) {
         case 0: // pitch
             active_pid = &pid->pitch_pid;
             break;
@@ -117,11 +117,11 @@ static State handle_disarmed_command(ParsedCommand cmd, PID *pid,
             lora_send_string(1, "LOG:INVALID PID AXIS");
             return STATE_DISARMED;
         }
-        active_pid->Kp = cmd.payload.pid.P;
-        active_pid->Ki = cmd.payload.pid.I;
-        active_pid->Kd = cmd.payload.pid.D;
-        active_pid->integral_limit = cmd.payload.pid.I_limit;
-        active_pid->output_limit = cmd.payload.pid.pid_limit;
+        active_pid->Kp = cmd->payload.pid.P;
+        active_pid->Ki = cmd->payload.pid.I;
+        active_pid->Kd = cmd->payload.pid.D;
+        active_pid->integral_limit = cmd->payload.pid.I_limit;
+        active_pid->output_limit = cmd->payload.pid.pid_limit;
 
         lora_send_string(1, "LOG:PID_SET_SUCCESS");
         return STATE_DISARMED;
@@ -129,36 +129,52 @@ static State handle_disarmed_command(ParsedCommand cmd, PID *pid,
     case CMD_CONFIG:
         lora_send_string(1, "LOG:SYNC_CONFIG");
 
-        bias->motor1 = cmd.payload.sync.motor1;
-        bias->motor2 = cmd.payload.sync.motor2;
-        bias->motor3 = cmd.payload.sync.motor3;
-        bias->motor4 = cmd.payload.sync.motor4;
+        bias->motor1 = cmd->payload.sync.motor1;
+        bias->motor2 = cmd->payload.sync.motor2;
+        bias->motor3 = cmd->payload.sync.motor3;
+        bias->motor4 = cmd->payload.sync.motor4;
 
-        pid->pitch_pid.Kp = cmd.payload.sync.pitch_Kp;
-        pid->pitch_pid.Ki = cmd.payload.sync.pitch_Ki;
-        pid->pitch_pid.Kd = cmd.payload.sync.pitch_Kd;
-        pid->pitch_pid.integral_limit = cmd.payload.sync.pitch_i_limit;
-        pid->pitch_pid.output_limit = cmd.payload.sync.pitch_pid_limit;
+        pid->pitch_pid.Kp = cmd->payload.sync.pitch_Kp;
+        pid->pitch_pid.Ki = cmd->payload.sync.pitch_Ki;
+        pid->pitch_pid.Kd = cmd->payload.sync.pitch_Kd;
+        pid->pitch_pid.integral_limit = cmd->payload.sync.pitch_i_limit;
+        pid->pitch_pid.output_limit = cmd->payload.sync.pitch_pid_limit;
 
-        pid->roll_pid.Kp = cmd.payload.sync.roll_Kp;
-        pid->roll_pid.Ki = cmd.payload.sync.roll_Ki;
-        pid->roll_pid.Kd = cmd.payload.sync.roll_Kd;
-        pid->roll_pid.integral_limit = cmd.payload.sync.roll_i_limit;
-        pid->roll_pid.output_limit = cmd.payload.sync.roll_pid_limit;
+        pid->roll_pid.Kp = cmd->payload.sync.roll_Kp;
+        pid->roll_pid.Ki = cmd->payload.sync.roll_Ki;
+        pid->roll_pid.Kd = cmd->payload.sync.roll_Kd;
+        pid->roll_pid.integral_limit = cmd->payload.sync.roll_i_limit;
+        pid->roll_pid.output_limit = cmd->payload.sync.roll_pid_limit;
 
-        pid->yaw_pid.Kp = cmd.payload.sync.yaw_Kp;
-        pid->yaw_pid.Ki = cmd.payload.sync.yaw_Ki;
-        pid->yaw_pid.Kd = cmd.payload.sync.yaw_Kd;
-        pid->yaw_pid.integral_limit = cmd.payload.sync.yaw_i_limit;
-        pid->yaw_pid.output_limit = cmd.payload.sync.yaw_pid_limit;
+        pid->yaw_pid.Kp = cmd->payload.sync.yaw_Kp;
+        pid->yaw_pid.Ki = cmd->payload.sync.yaw_Ki;
+        pid->yaw_pid.Kd = cmd->payload.sync.yaw_Kd;
+        pid->yaw_pid.integral_limit = cmd->payload.sync.yaw_i_limit;
+        pid->yaw_pid.output_limit = cmd->payload.sync.yaw_pid_limit;
+
+        pid->velocity_x_pid.Kp = cmd->payload.sync.velocity_x_Kp;
+        pid->velocity_x_pid.Ki = cmd->payload.sync.velocity_x_Ki;
+        pid->velocity_x_pid.Kd = cmd->payload.sync.velocity_x_Kd;
+        pid->velocity_x_pid.integral_limit =
+            cmd->payload.sync.velocity_x_i_limit;
+        pid->velocity_x_pid.output_limit =
+            cmd->payload.sync.velocity_x_pid_limit;
+
+        pid->velocity_y_pid.Kp = cmd->payload.sync.velocity_y_Kp;
+        pid->velocity_y_pid.Ki = cmd->payload.sync.velocity_y_Ki;
+        pid->velocity_y_pid.Kd = cmd->payload.sync.velocity_y_Kd;
+        pid->velocity_y_pid.integral_limit =
+            cmd->payload.sync.velocity_y_i_limit;
+        pid->velocity_y_pid.output_limit =
+            cmd->payload.sync.velocity_y_pid_limit;
         return STATE_DISARMED;
 
     case CMD_SET_MOTOR_BIAS:
         // Values are already normalized (0.0-1.0)
-        bias->motor1 = cmd.payload.bias.motor1;
-        bias->motor2 = cmd.payload.bias.motor2;
-        bias->motor3 = cmd.payload.bias.motor3;
-        bias->motor4 = cmd.payload.bias.motor4;
+        bias->motor1 = cmd->payload.bias.motor1;
+        bias->motor2 = cmd->payload.bias.motor2;
+        bias->motor3 = cmd->payload.bias.motor3;
+        bias->motor4 = cmd->payload.bias.motor4;
         lora_send_string(1, "LOG:MOTOR_BIAS_SET");
         return STATE_DISARMED;
 
@@ -171,13 +187,13 @@ static State handle_disarmed_command(ParsedCommand cmd, PID *pid,
     }
 }
 
-static State handle_flying_command(ParsedCommand cmd, MotorBias *bias,
+static State handle_flying_command(const ParsedCommand *cmd, MotorBias *bias,
                                    float *base_throttle, PID *pid,
                                    uint32_t *last_heartbeat_time,
                                    uint32_t *led_flash_until) {
     *last_heartbeat_time = millis();
     *led_flash_until = millis() + LED_FLASH_DURATION_MS;
-    switch (cmd.type) {
+    switch (cmd->type) {
     case CMD_STOP:
         lora_send_string_nb(1, "LOG:CMD_STOP");
         StopMotors();
@@ -190,31 +206,31 @@ static State handle_flying_command(ParsedCommand cmd, MotorBias *bias,
 
     case CMD_SET_POINT:
         lora_send_string_nb(1, "LOG:SET_POINT_SET");
-        pid->base_setpoints.pitch = cmd.payload.setpoint.pitch;
-        pid->base_setpoints.roll = cmd.payload.setpoint.roll;
-        pid->base_setpoints.yaw = cmd.payload.setpoint.yaw;
+        pid->base_setpoints.pitch = cmd->payload.setpoint.pitch;
+        pid->base_setpoints.roll = cmd->payload.setpoint.roll;
+        pid->base_setpoints.yaw = cmd->payload.setpoint.yaw;
         pid->setpoints = pid->base_setpoints;
         return STATE_FLYING;
     case CMD_SET_MOTOR_BIAS:
         // Values are already normalized (0.0-1.0)
-        bias->motor1 = cmd.payload.bias.motor1;
-        bias->motor2 = cmd.payload.bias.motor2;
-        bias->motor3 = cmd.payload.bias.motor3;
-        bias->motor4 = cmd.payload.bias.motor4;
+        bias->motor1 = cmd->payload.bias.motor1;
+        bias->motor2 = cmd->payload.bias.motor2;
+        bias->motor3 = cmd->payload.bias.motor3;
+        bias->motor4 = cmd->payload.bias.motor4;
         lora_send_string_nb(1, "LOG:MOTOR_BIAS_SET");
         return STATE_FLYING;
 
     case CMD_SET_THROTTLE:
         lora_send_string_nb(1, "LOG:THROTTLE_SET");
-        *base_throttle = cmd.payload.throttle.value;
+        *base_throttle = cmd->payload.throttle.value;
         return STATE_FLYING;
 
     case CMD_HEART_BEAT:
-        *base_throttle = cmd.payload.heartbeat.base_throttle;
+        *base_throttle = cmd->payload.heartbeat.base_throttle;
 
-        pid->base_setpoints.pitch = cmd.payload.heartbeat.pitch;
-        pid->base_setpoints.roll = cmd.payload.heartbeat.roll;
-        pid->base_setpoints.yaw = cmd.payload.heartbeat.yaw;
+        pid->base_setpoints.pitch = cmd->payload.heartbeat.pitch;
+        pid->base_setpoints.roll = cmd->payload.heartbeat.roll;
+        pid->base_setpoints.yaw = cmd->payload.heartbeat.yaw;
         pid->setpoints = pid->base_setpoints;
 
         return STATE_FLYING;
@@ -222,7 +238,7 @@ static State handle_flying_command(ParsedCommand cmd, MotorBias *bias,
     case CMD_SET_PID:
         lora_send_string_nb(1, "LOG:CMD_SET_PID");
         PIDController *active_pid;
-        switch (cmd.payload.pid.axis) {
+        switch (cmd->payload.pid.axis) {
         case 0: // pitch
             active_pid = &pid->pitch_pid;
             break;
@@ -242,11 +258,11 @@ static State handle_flying_command(ParsedCommand cmd, MotorBias *bias,
             lora_send_string_nb(1, "LOG:INVALID PID AXIS");
             return STATE_FLYING;
         }
-        active_pid->Kp = cmd.payload.pid.P;
-        active_pid->Ki = cmd.payload.pid.I;
-        active_pid->Kd = cmd.payload.pid.D;
-        active_pid->integral_limit = cmd.payload.pid.I_limit;
-        active_pid->output_limit = cmd.payload.pid.pid_limit;
+        active_pid->Kp = cmd->payload.pid.P;
+        active_pid->Ki = cmd->payload.pid.I;
+        active_pid->Kd = cmd->payload.pid.D;
+        active_pid->integral_limit = cmd->payload.pid.I_limit;
+        active_pid->output_limit = cmd->payload.pid.pid_limit;
 
         lora_send_string_nb(1, "LOG:PID_SET_SUCCESS");
         return STATE_FLYING;
@@ -363,7 +379,7 @@ int main(void) {
                 ParsedCommand cmd =
                     parse_command(message->data, message->length);
                 last_command_time = millis(); // Update connection time
-                state = handle_disarmed_command(cmd, &pid, &bias);
+                state = handle_disarmed_command(&cmd, &pid, &bias);
                 lora_clear_received_flag();
             }
 
@@ -447,7 +463,7 @@ int main(void) {
                     lora_message_t *message = lora_get_received_data();
                     ParsedCommand cmd =
                         parse_command(message->data, message->length);
-                    state = handle_flying_command(cmd, &bias, &base_throttle,
+                    state = handle_flying_command(&cmd, &bias, &base_throttle,
                                                   &pid, &last_heartbeat_time,
                                                   &led_flash_until);
                     lora_clear_received_flag();
@@ -502,7 +518,7 @@ int main(void) {
                 lora_message_t *message = lora_get_received_data();
                 ParsedCommand cmd =
                     parse_command(message->data, message->length);
-                state = handle_manual_command(cmd, &bias, &last_heartbeat_time,
+                state = handle_manual_command(&cmd, &bias, &last_heartbeat_time,
                                               &led_flash_until);
                 lora_clear_received_flag();
             }

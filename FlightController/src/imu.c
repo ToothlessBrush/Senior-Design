@@ -120,6 +120,9 @@ bool imu_init(IMU *imu) {
         return false;
     }
 
+    // TODO: replace magic numbers with better header file:
+    // https://github.com/STMicroelectronics/stm32-lsm6dsl/blob/main/lsm6dsl.h
+
     // Software reset
     SPI_WriteByte(LSM6DSL_CTRL3_C, 0x01);
     delay_ms(50); // Wait for reset to complete

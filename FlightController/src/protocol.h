@@ -84,6 +84,20 @@ typedef struct __attribute__((packed)) {
     float yaw_Kd;
     float yaw_i_limit;
     float yaw_pid_limit;
+
+    // PID terms for velocity x
+    float velocity_x_Kp;
+    float velocity_x_Ki;
+    float velocity_x_Kd;
+    float velocity_x_i_limit;
+    float velocity_x_pid_limit;
+
+    // PID terms for velocity y
+    float velocity_y_Kp;
+    float velocity_y_Ki;
+    float velocity_y_Kd;
+    float velocity_y_i_limit;
+    float velocity_y_pid_limit;
 } CommandConfig;
 
 typedef struct __attribute__((packed)) {
