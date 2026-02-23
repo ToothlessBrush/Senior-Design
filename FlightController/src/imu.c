@@ -174,7 +174,7 @@ bool imu_init(IMU *imu) {
     // Accel filters: 50 Hz cutoff (more aggressive filtering for noisier
     // accelerometer)
     for (int i = 0; i < 3; i++) {
-        biquad_lpf_init(&imu->acc_filter[i], 25.0f, sample_rate);
+        biquad_lpf_init(&imu->acc_filter[i], 50.0f, sample_rate);
     }
 
     return true;
@@ -207,31 +207,32 @@ void IMU_update(IMU *imu, float dt) {
 
     updateOrientation(&imu->attitude, &imu->acc, &imu->gyro, dt);
 
-    // Velocity estimation (dont ask me how this works)
-
+    // currently wont work without flow or gps velocity sensor
+    // Velocity estimation with decay to prevent unbounded drift
     float sin_pitch = sinf(imu->attitude.pitch);
     float cos_pitch = cosf(imu->attitude.pitch);
     float sin_roll = sinf(imu->attitude.roll);
-    // float cos_roll = cosf(imu->attitude.roll);
 
-    float grav_x = -sin_pitch;
-    float grav_y = -sin_roll * cos_pitch;
+    // Gravity compensation (project gravity vector into body frame)
+    float grav_x = sin_pitch;
+    float grav_y = sin_roll * cos_pitch;
 
+    // Linear acceleration (gravity removed, already lowpass filtered)
     float lin_ax = imu->acc.x - grav_x;
     float lin_ay = imu->acc.y - grav_y;
 
-    // high pass filter
-    float tau = 0.5f;
-    float alpha_hp = tau / (tau + dt);
+    // Store linear acceleration for telemetry/debugging
+    imu->accel_hp.x = lin_ax;
+    imu->accel_hp.y = lin_ay;
 
-    imu->accel_hp.x = alpha_hp * (imu->accel_hp.x + lin_ax - imu->accel_prev.x);
-    imu->accel_hp.y = alpha_hp * (imu->accel_hp.y + lin_ay - imu->accel_prev.y);
-    imu->accel_prev.x = lin_ax;
-    imu->accel_prev.y = lin_ay;
-
-    // integrate acceleration to get velocity in m/s
-    imu->velocity.x += imu->accel_hp.x * 9.81f * dt;
-    imu->velocity.y += imu->accel_hp.y * 9.81f * dt;
+    // Integrate acceleration to velocity with decay factor to prevent unbounded
+    // drift decay < 1.0 causes velocity to naturally decay toward zero,
+    // preventing integration drift Adjust decay value: closer to 1.0 = less
+    // drift correction, closer to 0.0 = more aggressive decay
+    float decay =
+        0.98f; // velocity decays to ~37% in about 5 seconds at 6660 Hz
+    imu->velocity.x = imu->velocity.x * decay + lin_ax * 9.81f * dt;
+    imu->velocity.y = imu->velocity.y * decay + lin_ay * 9.81f * dt;
 }
 
 bool imu_data_ready() {
@@ -328,6 +329,4 @@ void IMU_reset_velocity(IMU *imu) {
     imu->velocity.y = 0.0f;
     imu->accel_hp.x = 0.0f;
     imu->accel_hp.y = 0.0f;
-    imu->accel_prev.x = 0.0f;
-    imu->accel_prev.y = 0.0f;
 }

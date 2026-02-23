@@ -143,11 +143,11 @@ void pid_velocity_correction(PID *pid, const IMU *imu, float dt) {
 
     float pitch_correction =
         get_pid_output(&pid->velocity_x_pid, 0.0f, imu->velocity.x,
-                       imu->accel_hp.y * 9.81f, dt);
+                       imu->accel_hp.x * 9.81f, dt);
 
     float roll_correction =
         get_pid_output(&pid->velocity_y_pid, 0.0f, imu->velocity.y,
-                       imu->accel_hp.x * 9.81f, dt);
+                       imu->accel_hp.y * 9.81f, dt);
 
     pid->setpoints.pitch = pid->base_setpoints.pitch - pitch_correction;
     pid->setpoints.roll = pid->base_setpoints.roll - roll_correction;
