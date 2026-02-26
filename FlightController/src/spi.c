@@ -115,3 +115,78 @@ void SPI_ReadBlock(uint8_t reg_addr, uint8_t size, uint8_t *data) {
 
     SPI_CS_High();
 }
+
+// ========== SPI2 Motor Controller Functions ==========
+
+bool SPI2_Init(void) {
+    // Enable clocks
+    RCC->AHB1ENR |= RCC_AHB1ENR_GPIOBEN; // GPIO B
+    RCC->APB1ENR |= RCC_APB1ENR_SPI2EN;  // SPI2
+    __DSB(); // Data Synchronization Barrier - ensure clocks are stable
+
+    // Configure pins B13(SCK), B15(MOSI) as alternate function
+    GPIOB->MODER &= ~((3 << (13 * 2)) | (3 << (15 * 2)));
+    GPIOB->MODER |= (2 << (13 * 2)) | (2 << (15 * 2)); // Alternate function
+
+    // Set alternate function to AF5 for SPI2
+    GPIOB->AFR[1] &= ~((0xF << ((13 - 8) * 4)) | (0xF << ((15 - 8) * 4)));
+    GPIOB->AFR[1] |=
+        (5 << ((13 - 8) * 4)) | (5 << ((15 - 8) * 4)); // AF5 for SPI2
+
+    // Set high speed
+    GPIOB->OSPEEDR |= (3 << (13 * 2)) | (3 << (15 * 2)); // High speed
+
+    // Configure B12 as CS (GPIO output)
+    GPIOB->MODER &= ~(3 << (12 * 2));
+    GPIOB->MODER |= (1 << (12 * 2));  // Output
+    GPIOB->PUPDR &= ~(3 << (12 * 2)); // No pull resistor on CS
+    GPIOB->ODR |= (1 << 12);          // CS high (inactive)
+
+    // Configure SPI2
+    SPI2->CR1 = 0;             // Reset
+    SPI2->CR1 |= SPI_CR1_MSTR; // Master mode
+
+    // Baud rate /64 (APB1 is typically 50MHz, so SPI2 will run at ~781kHz)
+    SPI2->CR1 |= SPI_CR1_BR_2 | SPI_CR1_BR_0;
+
+    // CPOL=0, CPHA=0 (SPI Mode 0) - adjust if motor controller needs different
+    // mode SPI2->CR1 |= SPI_CR1_CPOL; // Uncomment for CPOL=1 SPI2->CR1 |=
+    // SPI_CR1_CPHA; // Uncomment for CPHA=1
+
+    SPI2->CR1 |= SPI_CR1_SSM; // Software slave management
+    SPI2->CR1 |= SPI_CR1_SSI; // Internal slave select
+    SPI2->CR1 |= SPI_CR1_SPE; // Enable SPI
+
+    // Verify SPI is actually enabled
+    if (!(SPI2->CR1 & SPI_CR1_SPE)) {
+        return false;
+    }
+    return true;
+}
+
+void SPI2_CS_Low(void) {
+    GPIOB->ODR &= ~(1 << 12); // Pull CS low
+    // Add small delay for setup time
+    for (volatile int i = 0; i < 10; i++)
+        ;
+}
+
+void SPI2_CS_High(void) {
+    GPIOB->ODR |= (1 << 12); // Pull CS high
+    // Add small delay for hold time
+    for (volatile int i = 0; i < 10; i++)
+        ;
+}
+
+void SPI2_Transmit(uint8_t data) {
+    // Clear any pending flags
+    (void)SPI2->DR; // Dummy read to clear RXNE if set
+    (void)SPI2->SR; // Dummy read of status register
+
+    while (!(SPI2->SR & SPI_SR_TXE))
+        ; // Wait for TX empty
+    SPI2->DR = data;
+    while (!(SPI2->SR & SPI_SR_RXNE))
+        ;           // Wait for RX not empty (even though we don't use the data)
+    (void)SPI2->DR; // Read to clear RXNE flag
+}

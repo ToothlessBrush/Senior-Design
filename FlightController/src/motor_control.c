@@ -5,7 +5,8 @@
 
 // NOTE:
 // This implementation has a prototype Bi-Directional DSHOT telemetry decoder
-// To Enable telemetry reading, uncomment the EXTI interrupts in the DMA interrupt handlers
+// To Enable telemetry reading, uncomment the EXTI interrupts in the DMA
+// interrupt handlers
 
 // Provide single definitions for the motor objects and pointers declared extern
 // in the header.
@@ -111,32 +112,32 @@ void StopMotors() {
 void SetMotorThrottle(dshotMotor *motor, uint16_t throttle) {
 
     // Cap throttle to valid range
-    if(throttle > 1024)
+    if (throttle > 1024)
         throttle = 1024;
     ConstructDshotFrame(motor, throttle);
 }
 
 // This function can be used to keep the motors running in the background
 void IdleMotors() {
-    DMA1_Stream4->CR |= (1<<8); // Enable circular mode
+    DMA1_Stream4->CR |= (1 << 8); // Enable circular mode
     NVIC_DisableIRQ(DMA1_Stream4_IRQn);
-    DMA1_Stream5->CR |= (1<<8); // Enable circular mode 
+    DMA1_Stream5->CR |= (1 << 8); // Enable circular mode
     NVIC_DisableIRQ(DMA1_Stream5_IRQn);
-    DMA1_Stream7->CR |= (1<<8); // Enable circular mode 
+    DMA1_Stream7->CR |= (1 << 8); // Enable circular mode
     NVIC_DisableIRQ(DMA1_Stream7_IRQn);
-    DMA1_Stream2->CR |= (1<<8); // Enable circular mode 
+    DMA1_Stream2->CR |= (1 << 8); // Enable circular mode
     NVIC_DisableIRQ(DMA1_Stream2_IRQn);
 }
 
 // This function is used to restart the normal motor control after idling
 void StopIdleMotors() {
-    DMA1_Stream4->CR &= ~(1<<8); // Disable circular mode
+    DMA1_Stream4->CR &= ~(1 << 8); // Disable circular mode
     NVIC_EnableIRQ(DMA1_Stream4_IRQn);
-    DMA1_Stream5->CR &= ~(1<<8); // Disable circular mode 
+    DMA1_Stream5->CR &= ~(1 << 8); // Disable circular mode
     NVIC_EnableIRQ(DMA1_Stream5_IRQn);
-    DMA1_Stream7->CR &= ~(1<<8); // Disable circular mode 
+    DMA1_Stream7->CR &= ~(1 << 8); // Disable circular mode
     NVIC_EnableIRQ(DMA1_Stream7_IRQn);
-    DMA1_Stream2->CR &= ~(1<<8); // Disable circular mode 
+    DMA1_Stream2->CR &= ~(1 << 8); // Disable circular mode
     NVIC_EnableIRQ(DMA1_Stream2_IRQn);
 }
 
@@ -366,4 +367,24 @@ void TIM1_UP_TIM10_IRQHandler() {
             __NVIC_DisableIRQ(TIM1_UP_TIM10_IRQn);
         }
     }
+}
+
+#include "spi.h"
+
+void SetMotorThrottleSPI(MotorID motor, uint16_t throttle) {
+    // Cap throttle to valid range (0-2000)
+    if (throttle > 2000) {
+        throttle = 2000;
+    }
+
+    SPI2_CS_LOW();
+
+    // Send motor ID byte (0x11, 0x22, 0x44, or 0x88)
+    SPI2_Transmit((uint8_t)motor);
+
+    // Send throttle as two bytes (big-endian)
+    SPI2_Transmit((uint8_t)(throttle >> 8));
+    SPI2_Transmit((uint8_t)throttle);
+
+    SPI2_CS_HIGH();
 }

@@ -8,6 +8,7 @@
 // Module ready flag (set when +OK received)
 static volatile uint8_t module_ready = 1;
 static volatile int last_error_code = -1;
+static volatile uint32_t last_send_time = 0;
 
 // Received data tracking
 static volatile uint8_t data_received_flag = 0;
@@ -41,11 +42,11 @@ int lora_send_at_command(const char *cmd, char *response, uint16_t max_len,
     char full_response[256] = {0};
 
     // Clear any pending data
-    uart_flush();
+    uart_flush(UART_INSTANCE_2);
 
     // Send command
-    uart_send_string(cmd);
-    uart_send_string("\r\n");
+    uart_send_string(UART_INSTANCE_2, cmd);
+    uart_send_string(UART_INSTANCE_2, "\r\n");
 
     if (response) {
         response[0] = '\0';
@@ -53,8 +54,8 @@ int lora_send_at_command(const char *cmd, char *response, uint16_t max_len,
 
     // Wait for response
     while (elapsed < timeout_ms) {
-        if (uart_data_available()) {
-            uint8_t c = uart_receive_byte();
+        if (uart_data_available(UART_INSTANCE_2)) {
+            uint8_t c = uart_receive_byte(UART_INSTANCE_2);
 
             if (response && idx < max_len - 1) {
                 response[idx] = c;
@@ -186,10 +187,11 @@ int lora_send_string(uint8_t dest_address, const char *str) {
 int lora_send_data_nb(uint8_t dest_address, const uint8_t *data,
                       uint8_t length) {
 
-    // commented out since if we miss one +OK then LoRa breaks
-    // if (!module_ready) {
-    //     return LORA_BUSY;
-    // }
+    // Check if 300ms has elapsed since last send
+    uint32_t current_time = millis();
+    if (current_time - last_send_time < 300) {
+        return LORA_BUSY;
+    }
 
     if (length > LORA_MAX_PAYLOAD) {
         return LORA_ERROR;
@@ -206,10 +208,11 @@ int lora_send_data_nb(uint8_t dest_address, const uint8_t *data,
     }
 
     // Send command without waiting
-    uart_send_data((uint8_t *)cmd, cmd_len);
-    uart_send_string("\r\n");
+    uart_send_data(UART_INSTANCE_2, (uint8_t *)cmd, cmd_len);
+    uart_send_string(UART_INSTANCE_2, "\r\n");
 
-    module_ready = 0; // Mark as busy until we get +OK
+    module_ready = 0;              // Mark as busy until we get +OK
+    last_send_time = current_time; // Update last send time
 
     return LORA_OK;
 }
@@ -290,8 +293,8 @@ void lora_service(void) {
     static uint16_t response_idx = 0;
 
     // Process any incoming bytes (non-blocking)
-    while (uart_data_available()) {
-        uint8_t c = uart_receive_byte();
+    while (uart_data_available(UART_INSTANCE_2)) {
+        uint8_t c = uart_receive_byte(UART_INSTANCE_2);
 
         if (response_idx < sizeof(response_buffer) - 1) {
             response_buffer[response_idx] = c;

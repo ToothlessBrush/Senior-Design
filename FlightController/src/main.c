@@ -474,7 +474,7 @@ int main(void) {
             systick_init();
             // wait for component power on
             delay_ms(500);
-            uart_init();
+            uart_init(UART_INSTANCE_2);
             // Initialize LoRa module
             if (lora_init() == LORA_OK) {
                 lora_send_string(1, "LOG:INIT_OK");

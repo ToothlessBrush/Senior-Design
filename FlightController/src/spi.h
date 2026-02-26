@@ -85,4 +85,23 @@ void SPI_CS_Low(void);
  */
 void SPI_CS_High(void);
 
+/**
+ * @brief Initialize SPI2 peripheral for motor controller communication
+ *
+ * Configures GPIO pins for SPI2 in transmit-only mode:
+ * - PB12: CS (GPIO output, active low)
+ * - PB13: SCK (AF5)
+ * - PB14: MISO (not used, transmit-only)
+ * - PB15: MOSI (AF5)
+ *
+ * SPI2 configured as master, CPOL=0, CPHA=0, baud rate APB1/64.
+ *
+ * @return true if initialization successful, false if SPI enable failed
+ */
+bool SPI2_Init(void);
+
+void SPI2_CS_HIGH(void);
+void SPI2_CS_LOW(void);
+void SPI2_Transmit(uint8_t data);
+
 #endif
