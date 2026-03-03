@@ -3,14 +3,18 @@
 
 #include <stdint.h>
 
+#define MAG_ADDRESS 0b0011100
+
 // I2C initialization
 void I2C1_Init(void);
 
 // Basic I2C operations
-uint8_t I2C_ReadByte(uint8_t device_addr, uint8_t reg_addr);
-void I2C_WriteByte(uint8_t device_addr, uint8_t reg_addr, uint8_t data);
-void I2C_ReadBlock(uint8_t device_addr, uint8_t reg_addr, uint8_t size,
-                   uint8_t *data);
+
+void I2C1_WriteByte(uint8_t device_addr, uint8_t data);
+void I2C1_WriteByte_NoStop(uint8_t device_addr, uint8_t data);
+void I2C1_BulkWrite(uint8_t address, uint8_t *data, uint16_t length);
+uint8_t I2C1_ReadByte(uint8_t address);
+void I2C1_BulkRead(uint8_t address, uint8_t *data, uint16_t length);
 
 // Error handling
 typedef enum {
