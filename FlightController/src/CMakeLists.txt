@@ -8,6 +8,7 @@ add_library(core STATIC
     system.c
     utils.c
     protocol.c
+    syscalls.c
 )
 target_link_libraries(core PUBLIC stm32f411)
 

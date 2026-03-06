@@ -45,10 +45,10 @@ target_link_options(stm32f411 INTERFACE
     -mfpu=fpv4-sp-d16
     -mfloat-abi=hard
     -specs=nano.specs
+    -specs=nosys.specs
     -Wl,--start-group
     -lm
     -lc
-    -lnosys
     -Wl,--end-group
     -Wl,--gc-sections
     -Wl,--print-memory-usage
