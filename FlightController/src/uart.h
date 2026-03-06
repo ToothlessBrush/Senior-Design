@@ -1,11 +1,18 @@
 /**
  * @file uart.h
- * @brief Multi-instance UART driver for LoRa and optical flow communication
+ * @brief Multi-instance UART driver for serial communication
  *
- * Provides interrupt-driven RX with circular buffer and DMA-based TX for
- * efficient serial communication. Supports multiple UART instances.
+ * Provides interrupt-driven or DMA-driven RX with circular buffer and
+ * DMA-based TX for efficient serial communication.
  *
  * Hardware Configuration:
+ * UART1 (High-speed 500kbaud device):
+ * - USART1 on APB2 (100 MHz clock), BRR=200 for exact 500kbaud
+ * - PA9:  TX (AF7)
+ * - PA10: RX (AF7) with pull-up
+ * - RX: DMA2 Stream 2, Channel 4 (circular, idle-line triggered)
+ * - TX: DMA2 Stream 7, Channel 4
+ *
  * UART2 (LoRa Module):
  * - USART2 on APB1 (50 MHz clock)
  * - PA2: TX (AF7)
@@ -19,10 +26,10 @@
  * - TX: DMA2 Stream 6, Channel 5
  *
  * Features:
- * - 115200 baud rate for both instances
- * - Interrupt-driven RX with overflow protection
- * - DMA-based TX for non-blocking transmission
- * - Circular RX buffer (power-of-2 size for fast masking)
+ * - UART1: 500000 baud, DMA circular RX + idle-line detection (no per-byte ISR)
+ * - UART2/6: 115200 baud, interrupt-driven RX
+ * - DMA-based TX for all instances (non-blocking)
+ * - Circular RX buffers (power-of-2 for fast masking)
  */
 
 #ifndef UART_H
@@ -30,14 +37,16 @@
 
 #include <stdint.h>
 
-#define UART_RX_BUFFER_SIZE 256  /**< RX buffer size (must be power of 2) */
+#define UART_RX_BUFFER_SIZE  256   /**< RX buffer size for UART2/6 (power of 2) */
+#define UART1_RX_BUFFER_SIZE 1024  /**< RX buffer size for UART1 (power of 2) */
 
 /**
  * @brief UART instance enumeration
  */
 typedef enum {
-    UART_INSTANCE_2 = 0,  /**< UART2 - LoRa module (PA2/PA3) */
-    UART_INSTANCE_6 = 1,  /**< UART6 - Optical flow sensor (PA11/PA12) */
+    UART_INSTANCE_2 = 0,  /**< UART2 - LoRa module (PA2/PA3, 115200) */
+    UART_INSTANCE_6 = 1,  /**< UART6 - Optical flow sensor (PA11/PA12, 115200) */
+    UART_INSTANCE_1 = 2,  /**< UART1 - High-speed device (PA9/PA10, 500kbaud, DMA RX) */
     UART_INSTANCE_COUNT   /**< Total number of UART instances */
 } uart_instance_t;
 
