@@ -80,7 +80,8 @@ typedef struct {
 } __attribute__((__packed__)) crsfPayloadRcChannelsPacked_t;
 
 void crsf_init(void);
-void crsf_process(void); // Call from main loop — drains UART RX buffer
+void crsf_feed_byte(uint8_t byte);  // Feed one byte into the frame assembler (testable entry point)
+void crsf_process(void);            // Call from main loop — drains UART RX buffer
 float crsf_get_channel(uint8_t ch); // Returns PWM µs value (988–2012)
 
 #endif // CRSF_H

@@ -27,7 +27,17 @@ function(add_fw_test TEST_NAME)
     )
 endfunction()
 
-# ── Tests ────────────────────────────────────────────────────────────────────
+# ── Unit tests (host-native, separate toolchain) ─────────────────────────────
+add_custom_target(unit_tests
+    COMMAND ${CMAKE_COMMAND} -S ${CMAKE_CURRENT_SOURCE_DIR}/unit
+                             -B ${CMAKE_CURRENT_BINARY_DIR}/unit
+    COMMAND ${CMAKE_COMMAND} --build ${CMAKE_CURRENT_BINARY_DIR}/unit
+    COMMAND ctest --test-dir ${CMAKE_CURRENT_BINARY_DIR}/unit --output-on-failure
+    COMMENT "Building and running host unit tests"
+    USES_TERMINAL
+)
+
+# ── Firmware tests ────────────────────────────────────────────────────────────
 set(SRC ${CMAKE_SOURCE_DIR}/src)
 
 add_fw_test(test_optical_flow
