@@ -1,0 +1,29 @@
+\doxysection{i2c.\+h}
+\hypertarget{i2c_8h_source}{}\label{i2c_8h_source}\index{src/i2c.h@{src/i2c.h}}
+\doxymbox{\hyperlink{i2c_8h}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ \textcolor{preprocessor}{\#ifndef\ I2C\_H}}
+\DoxyCodeLine{00002\ \textcolor{preprocessor}{\#define\ I2C\_H}}
+\DoxyCodeLine{00003\ }
+\DoxyCodeLine{00004\ \textcolor{preprocessor}{\#include\ <stdint.h>}}
+\DoxyCodeLine{00005\ }
+\DoxyCodeLine{00006\ \textcolor{comment}{//\ I2C\ initialization}}
+\DoxyCodeLine{00007\ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{i2c_8h_a430209a4fbf1bf97ef338b1c82ec83d4}{I2C1\_Init}}(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00008\ }
+\DoxyCodeLine{00009\ \textcolor{comment}{//\ Basic\ I2C\ operations}}
+\DoxyCodeLine{00010\ uint8\_t\ \doxymbox{\hyperlink{i2c_8h_a9919b6b43644162e8730e72d412e4829}{I2C\_ReadByte}}(uint8\_t\ device\_addr,\ uint8\_t\ reg\_addr);}
+\DoxyCodeLine{00011\ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{i2c_8h_a2ef818a1ccb32ee01afe2082176685c8}{I2C\_WriteByte}}(uint8\_t\ device\_addr,\ uint8\_t\ reg\_addr,\ uint8\_t\ data);}
+\DoxyCodeLine{00012\ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{i2c_8h_ad176d5ce234f7e3d4a4ba29c57061b5e}{I2C\_ReadBlock}}(uint8\_t\ device\_addr,\ uint8\_t\ reg\_addr,\ uint8\_t\ size,}
+\DoxyCodeLine{00013\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint8\_t\ *data);}
+\DoxyCodeLine{00014\ }
+\DoxyCodeLine{00015\ \textcolor{comment}{//\ Error\ handling}}
+\DoxyCodeLine{00016\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{enum}\ \{}
+\DoxyCodeLine{00017\ \ \ \ \ \doxymbox{\hyperlink{i2c_8h_a9ccae234f8c59fe5db2d49b03ab20c1eaeceba296bdda2b90e8835c431fe7a72a}{I2C\_OK}}\ =\ 0,}
+\DoxyCodeLine{00018\ \ \ \ \ \doxymbox{\hyperlink{i2c_8h_a9ccae234f8c59fe5db2d49b03ab20c1ea7a8a638a6deda6c6943409e9e4cae099}{I2C\_ERROR\_TIMEOUT}},}
+\DoxyCodeLine{00019\ \ \ \ \ \doxymbox{\hyperlink{i2c_8h_a9ccae234f8c59fe5db2d49b03ab20c1eadf06402ed34f3957258116a9ec97e4a3}{I2C\_ERROR\_NACK}},}
+\DoxyCodeLine{00020\ \ \ \ \ \doxymbox{\hyperlink{i2c_8h_a9ccae234f8c59fe5db2d49b03ab20c1eaaa04dc8c79e3a0fac375e2f9447d55ee}{I2C\_ERROR\_BUS\_BUSY}}}
+\DoxyCodeLine{00021\ \}\ \doxymbox{\hyperlink{i2c_8h_a9ccae234f8c59fe5db2d49b03ab20c1e}{I2C\_Status\_t}};}
+\DoxyCodeLine{00022\ }
+\DoxyCodeLine{00023\ \textcolor{preprocessor}{\#endif}}
+
+\end{DoxyCode}

@@ -1,0 +1,249 @@
+\doxysection{src/\+pid.h File Reference}
+\hypertarget{pid_8h}{}\label{pid_8h}\index{src/pid.h@{src/pid.h}}
+
+
+\doxylink{structPID}{PID} controller for quadcopter attitude and velocity control.  
+
+
+{\ttfamily \+\#include "{}imu.\+h"{}}\newline
+Include dependency graph for pid.\+h:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=212pt]{pid_8h__incl}
+\end{center}
+\end{figure}
+This graph shows which files directly or indirectly include this file:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=253pt]{pid_8h__dep__incl}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Data Structures}
+\begin{DoxyCompactItemize}
+\item 
+struct \doxymbox{\hyperlink{structPIDController}{PIDController}}
+\begin{DoxyCompactList}\small\item\em Single-\/axis \doxylink{structPID}{PID} controller with anti-\/windup. \end{DoxyCompactList}\item 
+struct \doxymbox{\hyperlink{structPID}{PID}}
+\begin{DoxyCompactList}\small\item\em Multi-\/axis \doxylink{structPID}{PID} context for cascaded attitude and velocity control. \end{DoxyCompactList}\item 
+struct \doxymbox{\hyperlink{structPIDCreateInfo}{PIDCreate\+Info}}
+\begin{DoxyCompactList}\small\item\em \doxylink{structPID}{PID} initialization parameters for all five controllers. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \doxymbox{\hyperlink{pid_8h_a8c4e75c5f4ece3bcde24926503084c9c}{pid\+\_\+init}} (\doxymbox{\hyperlink{structPID}{PID}} \texorpdfstring{$\ast$}{*}pid, const \doxymbox{\hyperlink{structPIDCreateInfo}{PIDCreate\+Info}} \texorpdfstring{$\ast$}{*}create\+\_\+info)
+\begin{DoxyCompactList}\small\item\em Initialize \doxylink{structPID}{PID} system with gains and limits. \end{DoxyCompactList}\item 
+void \doxymbox{\hyperlink{pid_8h_a8d01657a359adeca98d06b804d3f48b5}{pid\+\_\+update}} (\doxymbox{\hyperlink{structPID}{PID}} \texorpdfstring{$\ast$}{*}pid, const \doxymbox{\hyperlink{structIMU}{IMU}} \texorpdfstring{$\ast$}{*}imu, float dt)
+\begin{DoxyCompactList}\small\item\em Update attitude \doxylink{structPID}{PID} controllers with current \doxylink{structIMU}{IMU} measurements. \end{DoxyCompactList}\item 
+void \doxymbox{\hyperlink{pid_8h_a93ddb786194d7f54db8df7c1af6ea248}{pid\+\_\+velocity\+\_\+correction}} (\doxymbox{\hyperlink{structPID}{PID}} \texorpdfstring{$\ast$}{*}pid, const \doxymbox{\hyperlink{structIMU}{IMU}} \texorpdfstring{$\ast$}{*}imu, float dt)
+\begin{DoxyCompactList}\small\item\em Update velocity correction PIDs to adjust attitude setpoints. \end{DoxyCompactList}\item 
+void \doxymbox{\hyperlink{pid_8h_a1dc69e16f6a58f7fc37ad1280ee790c0}{pid\+\_\+reset}} (\doxymbox{\hyperlink{structPID}{PID}} \texorpdfstring{$\ast$}{*}pid)
+\begin{DoxyCompactList}\small\item\em Reset all \doxylink{structPID}{PID} controller states. \end{DoxyCompactList}\item 
+float \doxymbox{\hyperlink{pid_8h_a5817bd86f1119f93c336ff03a899ad04}{get\+\_\+pid\+\_\+output}} (\doxymbox{\hyperlink{structPIDController}{PIDController}} \texorpdfstring{$\ast$}{*}pid, float setpoint, float measurement, float angular\+\_\+velocity, float dt)
+\begin{DoxyCompactList}\small\item\em Calculate \doxylink{structPID}{PID} output for a single axis using rate feedback. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\doxylink{structPID}{PID} controller for quadcopter attitude and velocity control. 
+
+Implements cascaded \doxylink{structPID}{PID} control system:\+
+\begin{DoxyItemize}
+\item Inner loop:\+ \doxylink{structAttitude}{Attitude} control (pitch, roll, yaw) using gyroscope feedback
+\item Outer loop:\+ Velocity correction (position hold) adjusting attitude setpoints
+\end{DoxyItemize}
+
+The \doxylink{structPID}{PID} uses direct gyroscope rate feedback for the derivative term instead of differentiating error, providing cleaner derivative action and better noise immunity.
+
+Features:\+
+\begin{DoxyItemize}
+\item Independent \doxylink{structPID}{PID} controllers for each axis
+\item Integral windup protection with configurable limits
+\item Output limiting for safety
+\item Velocity-\/based position correction (prevents drift)
+\item Telemetry tracking of individual P, I, D terms
+\item Angle normalization for correct wraparound handling 
+\end{DoxyItemize}
+
+\label{doc-func-members}
+\Hypertarget{pid_8h_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{pid_8h_a5817bd86f1119f93c336ff03a899ad04}\index{pid.h@{pid.h}!get\_pid\_output@{get\_pid\_output}}
+\index{get\_pid\_output@{get\_pid\_output}!pid.h@{pid.h}}
+\doxysubsubsection{\texorpdfstring{get\_pid\_output()}{get\_pid\_output()}}
+{\footnotesize\ttfamily \label{pid_8h_a5817bd86f1119f93c336ff03a899ad04} 
+float get\+\_\+pid\+\_\+output (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{structPIDController}{PIDController}} \texorpdfstring{$\ast$}{*}}]{pid}{, }\item[{float}]{setpoint}{, }\item[{float}]{measurement}{, }\item[{float}]{angular\+\_\+velocity}{, }\item[{float}]{dt}{}\end{DoxyParamCaption})}
+
+
+
+Calculate \doxylink{structPID}{PID} output for a single axis using rate feedback. 
+
+Implements \doxylink{structPID}{PID} control with direct rate feedback for derivative term:\+
+\begin{DoxyItemize}
+\item P term:\+ proportional to angle error (setpoint -\/ measurement)
+\item I term:\+ integral of angle error with anti-\/windup clamping
+\item D term:\+ proportional to negative angular velocity (damping)
+\end{DoxyItemize}
+
+Angle error is normalized to ±π for correct wraparound handling. Final output is clamped to ±output\+\_\+limit. Individual terms are stored in \doxylink{structPIDController}{PIDController} for telemetry.
+
+
+\begin{DoxyParams}{Parameters}
+{\em pid} & Pointer to single-\/axis \doxylink{structPID}{PID} controller \\
+\hline
+{\em setpoint} & Desired angle (radians) \\
+\hline
+{\em measurement} & Current measured angle (radians) \\
+\hline
+{\em angular\+\_\+velocity} & Current angular velocity (rad/\+s, from gyroscope) \\
+\hline
+{\em dt} & Time delta since last update (seconds) \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Clamped \doxylink{structPID}{PID} output (throttle correction) 
+\end{DoxyReturn}
+Here is the caller graph for this function:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{pid_8h_a5817bd86f1119f93c336ff03a899ad04_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{pid_8h_a8c4e75c5f4ece3bcde24926503084c9c}\index{pid.h@{pid.h}!pid\_init@{pid\_init}}
+\index{pid\_init@{pid\_init}!pid.h@{pid.h}}
+\doxysubsubsection{\texorpdfstring{pid\_init()}{pid\_init()}}
+{\footnotesize\ttfamily \label{pid_8h_a8c4e75c5f4ece3bcde24926503084c9c} 
+void pid\+\_\+init (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{structPID}{PID}} \texorpdfstring{$\ast$}{*}}]{pid}{, }\item[{const \doxymbox{\hyperlink{structPIDCreateInfo}{PIDCreate\+Info}} \texorpdfstring{$\ast$}{*}}]{create\+\_\+info}{}\end{DoxyParamCaption})}
+
+
+
+Initialize \doxylink{structPID}{PID} system with gains and limits. 
+
+Configures all five \doxylink{structPID}{PID} controllers (pitch, roll, yaw, velocity\+\_\+x, velocity\+\_\+y) with specified gains and limits. Zeros out all internal state (integrals, errors). Enables velocity correction by default.
+
+
+\begin{DoxyParams}{Parameters}
+{\em pid} & Pointer to \doxylink{structPID}{PID} structure to initialize \\
+\hline
+{\em create\+\_\+info} & Pointer to configuration structure with gains and limits \\
+\hline
+\end{DoxyParams}
+Here is the caller graph for this function:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=209pt]{pid_8h_a8c4e75c5f4ece3bcde24926503084c9c_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{pid_8h_a1dc69e16f6a58f7fc37ad1280ee790c0}\index{pid.h@{pid.h}!pid\_reset@{pid\_reset}}
+\index{pid\_reset@{pid\_reset}!pid.h@{pid.h}}
+\doxysubsubsection{\texorpdfstring{pid\_reset()}{pid\_reset()}}
+{\footnotesize\ttfamily \label{pid_8h_a1dc69e16f6a58f7fc37ad1280ee790c0} 
+void pid\+\_\+reset (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{structPID}{PID}} \texorpdfstring{$\ast$}{*}}]{pid}{}\end{DoxyParamCaption})}
+
+
+
+Reset all \doxylink{structPID}{PID} controller states. 
+
+Zeros integral accumulators and previous errors for all five \doxylink{structPID}{PID} controllers. Call when transitioning to armed state or after emergency stop to prevent integral windup from carrying over. Here is the caller graph for this function:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=218pt]{pid_8h_a1dc69e16f6a58f7fc37ad1280ee790c0_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{pid_8h_a8d01657a359adeca98d06b804d3f48b5}\index{pid.h@{pid.h}!pid\_update@{pid\_update}}
+\index{pid\_update@{pid\_update}!pid.h@{pid.h}}
+\doxysubsubsection{\texorpdfstring{pid\_update()}{pid\_update()}}
+{\footnotesize\ttfamily \label{pid_8h_a8d01657a359adeca98d06b804d3f48b5} 
+void pid\+\_\+update (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{structPID}{PID}} \texorpdfstring{$\ast$}{*}}]{pid}{, }\item[{const \doxymbox{\hyperlink{structIMU}{IMU}} \texorpdfstring{$\ast$}{*}}]{imu}{, }\item[{float}]{dt}{}\end{DoxyParamCaption})}
+
+
+
+Update attitude \doxylink{structPID}{PID} controllers with current \doxylink{structIMU}{IMU} measurements. 
+
+Reads current attitude from \doxylink{structIMU}{IMU} and calculates control outputs for pitch, roll, and yaw axes. Uses gyroscope rates for derivative term. Should be called at fixed rate (6660 Hz) after \doxylink{imu_8c_adc03ca49fd244054f4f7b7ca0afb3558}{IMU\+\_\+update()}.
+
+Output is throttle correction in range ±output\+\_\+limit for each axis:\+
+\begin{DoxyItemize}
+\item Positive pitch output:\+ increase rear motors, decrease front motors (nose up)
+\item Positive roll output:\+ increase right motors, decrease left motors (roll right)
+\item Positive yaw output:\+ increase CW motors, decrease CCW motors (yaw right)
+\end{DoxyItemize}
+
+
+\begin{DoxyParams}{Parameters}
+{\em pid} & Pointer to \doxylink{structPID}{PID} context \\
+\hline
+{\em imu} & Pointer to \doxylink{structIMU}{IMU} context with current attitude and gyro data \\
+\hline
+{\em dt} & Time delta since last update (seconds, typically \texorpdfstring{$\sim$}{\string~}0.00015) \\
+\hline
+\end{DoxyParams}
+Here is the call graph for this function:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=275pt]{pid_8h_a8d01657a359adeca98d06b804d3f48b5_cgraph}
+\end{center}
+\end{figure}
+Here is the caller graph for this function:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=227pt]{pid_8h_a8d01657a359adeca98d06b804d3f48b5_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{pid_8h_a93ddb786194d7f54db8df7c1af6ea248}\index{pid.h@{pid.h}!pid\_velocity\_correction@{pid\_velocity\_correction}}
+\index{pid\_velocity\_correction@{pid\_velocity\_correction}!pid.h@{pid.h}}
+\doxysubsubsection{\texorpdfstring{pid\_velocity\_correction()}{pid\_velocity\_correction()}}
+{\footnotesize\ttfamily \label{pid_8h_a93ddb786194d7f54db8df7c1af6ea248} 
+void pid\+\_\+velocity\+\_\+correction (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{structPID}{PID}} \texorpdfstring{$\ast$}{*}}]{pid}{, }\item[{const \doxymbox{\hyperlink{structIMU}{IMU}} \texorpdfstring{$\ast$}{*}}]{imu}{, }\item[{float}]{dt}{}\end{DoxyParamCaption})}
+
+
+
+Update velocity correction PIDs to adjust attitude setpoints. 
+
+Outer loop controller that adjusts pitch and roll setpoints based on measured horizontal velocity to prevent drift. Uses high-\/pass filtered acceleration and integrated velocity from \doxylink{structIMU}{IMU}.
+
+
+\begin{DoxyItemize}
+\item Velocity X correction adjusts pitch setpoint (forward/\+back position hold)
+\item Velocity Y correction adjusts roll setpoint (left/\+right position hold)
+\end{DoxyItemize}
+
+If velocity\+\_\+correction\+\_\+enabled is false, simply copies base\+\_\+setpoints to setpoints. Should be called before \doxylink{pid_8h_a8d01657a359adeca98d06b804d3f48b5}{pid\+\_\+update()} in the control loop.
+
+
+\begin{DoxyParams}{Parameters}
+{\em pid} & Pointer to \doxylink{structPID}{PID} context \\
+\hline
+{\em imu} & Pointer to \doxylink{structIMU}{IMU} context with velocity and acceleration data \\
+\hline
+{\em dt} & Time delta since last update (seconds) \\
+\hline
+\end{DoxyParams}
+Here is the call graph for this function:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=334pt]{pid_8h_a93ddb786194d7f54db8df7c1af6ea248_cgraph}
+\end{center}
+\end{figure}
+Here is the caller graph for this function:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=286pt]{pid_8h_a93ddb786194d7f54db8df7c1af6ea248_icgraph}
+\end{center}
+\end{figure}

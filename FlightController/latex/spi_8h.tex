@@ -1,0 +1,232 @@
+\doxysection{src/\+spi.h File Reference}
+\hypertarget{spi_8h}{}\label{spi_8h}\index{src/spi.h@{src/spi.h}}
+
+
+SPI1 driver for LSM6\+DSL \doxylink{structIMU}{IMU} communication.  
+
+
+{\ttfamily \+\#include $<$stdbool.\+h$>$}\newline
+{\ttfamily \+\#include $<$stdint.\+h$>$}\newline
+Include dependency graph for spi.\+h:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=212pt]{spi_8h__incl}
+\end{center}
+\end{figure}
+This graph shows which files directly or indirectly include this file:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=214pt]{spi_8h__dep__incl}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+bool \doxymbox{\hyperlink{spi_8h_a7dd245b75e9806ac680f3eb13d2d52c6}{SPI1\+\_\+\+Init}} (void)
+\begin{DoxyCompactList}\small\item\em Initialize SPI1 peripheral for LSM6\+DSL communication. \end{DoxyCompactList}\item 
+uint8\+\_\+t \doxymbox{\hyperlink{spi_8h_ac0d29cc542e57a0d6d2f300a64e002e8}{SPI\+\_\+\+Read\+Byte}} (uint8\+\_\+t reg\+\_\+addr)
+\begin{DoxyCompactList}\small\item\em Read single byte from SPI device register. \end{DoxyCompactList}\item 
+void \doxymbox{\hyperlink{spi_8h_ae77ebc4f5c68f5a9e74b0aa58cb676bf}{SPI\+\_\+\+Write\+Byte}} (uint8\+\_\+t reg\+\_\+addr, uint8\+\_\+t data)
+\begin{DoxyCompactList}\small\item\em Write single byte to SPI device register. \end{DoxyCompactList}\item 
+void \doxymbox{\hyperlink{spi_8h_ad1bfee7ff37fd04db4d0ffbab55ea9ea}{SPI\+\_\+\+Read\+Block}} (uint8\+\_\+t reg\+\_\+addr, uint8\+\_\+t size, uint8\+\_\+t \texorpdfstring{$\ast$}{*}data)
+\begin{DoxyCompactList}\small\item\em Read multiple consecutive bytes from SPI device. \end{DoxyCompactList}\item 
+void \doxymbox{\hyperlink{spi_8h_a8f89a666ac2aa7fbc3d4d51026b7b349}{SPI\+\_\+\+CS\+\_\+\+Low}} (void)
+\begin{DoxyCompactList}\small\item\em Assert chip select (pull CS pin low). \end{DoxyCompactList}\item 
+void \doxymbox{\hyperlink{spi_8h_a03a9df0558b126d637b2fd792b7dbe65}{SPI\+\_\+\+CS\+\_\+\+High}} (void)
+\begin{DoxyCompactList}\small\item\em Deassert chip select (pull CS pin high). \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+SPI1 driver for LSM6\+DSL \doxylink{structIMU}{IMU} communication. 
+
+Provides SPI master interface for communicating with LSM6\+DSL accelerometer/\+ gyroscope sensor. Configured for SPI Mode 3 (CPOL=1, CPHA=1) at APB2/\+64 clock rate.
+
+Hardware Configuration:\+
+\begin{DoxyItemize}
+\item SPI1 on APB2 (100 MHz clock, divided by 64 = \texorpdfstring{$\sim$}{\string~}1.56 MHz)
+\item PA4:\+ CS (GPIO output, active low)
+\item PA5:\+ SCK (AF5)
+\item PA6:\+ MISO (AF5) with pull-\/up
+\item PA7:\+ MOSI (AF5)
+\end{DoxyItemize}
+
+LSM6\+DSL Protocol:\+
+\begin{DoxyItemize}
+\item Bit 7 of address byte:\+ 1=read, 0=write
+\item Multi-\/byte reads use auto-\/increment (consecutive registers) 
+\end{DoxyItemize}
+
+\label{doc-func-members}
+\Hypertarget{spi_8h_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{spi_8h_a7dd245b75e9806ac680f3eb13d2d52c6}\index{spi.h@{spi.h}!SPI1\_Init@{SPI1\_Init}}
+\index{SPI1\_Init@{SPI1\_Init}!spi.h@{spi.h}}
+\doxysubsubsection{\texorpdfstring{SPI1\_Init()}{SPI1\_Init()}}
+{\footnotesize\ttfamily \label{spi_8h_a7dd245b75e9806ac680f3eb13d2d52c6} 
+bool SPI1\+\_\+\+Init (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+
+
+Initialize SPI1 peripheral for LSM6\+DSL communication. 
+
+Configures GPIO pins, SPI1 peripheral in master mode with CPOL=1, CPHA=1, and baud rate of APB2/\+64. Sets CS pin (PA4) to output high (inactive).
+
+\begin{DoxyReturn}{Returns}
+true if initialization successful, false if SPI enable failed 
+\end{DoxyReturn}
+Here is the caller graph for this function:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=307pt]{spi_8h_a7dd245b75e9806ac680f3eb13d2d52c6_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{spi_8h_a03a9df0558b126d637b2fd792b7dbe65}\index{spi.h@{spi.h}!SPI\_CS\_High@{SPI\_CS\_High}}
+\index{SPI\_CS\_High@{SPI\_CS\_High}!spi.h@{spi.h}}
+\doxysubsubsection{\texorpdfstring{SPI\_CS\_High()}{SPI\_CS\_High()}}
+{\footnotesize\ttfamily \label{spi_8h_a03a9df0558b126d637b2fd792b7dbe65} 
+void SPI\+\_\+\+CS\+\_\+\+High (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+
+
+Deassert chip select (pull CS pin high). 
+
+Deactivates SPI device by pulling CS (PA4) high. Includes small delay for hold time requirements. Here is the caller graph for this function:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{spi_8h_a03a9df0558b126d637b2fd792b7dbe65_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{spi_8h_a8f89a666ac2aa7fbc3d4d51026b7b349}\index{spi.h@{spi.h}!SPI\_CS\_Low@{SPI\_CS\_Low}}
+\index{SPI\_CS\_Low@{SPI\_CS\_Low}!spi.h@{spi.h}}
+\doxysubsubsection{\texorpdfstring{SPI\_CS\_Low()}{SPI\_CS\_Low()}}
+{\footnotesize\ttfamily \label{spi_8h_a8f89a666ac2aa7fbc3d4d51026b7b349} 
+void SPI\+\_\+\+CS\+\_\+\+Low (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+
+
+Assert chip select (pull CS pin low). 
+
+Activates SPI device by pulling CS (PA4) low. Includes small delay for setup time requirements. Here is the caller graph for this function:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{spi_8h_a8f89a666ac2aa7fbc3d4d51026b7b349_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{spi_8h_ad1bfee7ff37fd04db4d0ffbab55ea9ea}\index{spi.h@{spi.h}!SPI\_ReadBlock@{SPI\_ReadBlock}}
+\index{SPI\_ReadBlock@{SPI\_ReadBlock}!spi.h@{spi.h}}
+\doxysubsubsection{\texorpdfstring{SPI\_ReadBlock()}{SPI\_ReadBlock()}}
+{\footnotesize\ttfamily \label{spi_8h_ad1bfee7ff37fd04db4d0ffbab55ea9ea} 
+void SPI\+\_\+\+Read\+Block (\begin{DoxyParamCaption}\item[{uint8\+\_\+t}]{reg\+\_\+addr}{, }\item[{uint8\+\_\+t}]{size}{, }\item[{uint8\+\_\+t \texorpdfstring{$\ast$}{*}}]{data}{}\end{DoxyParamCaption})}
+
+
+
+Read multiple consecutive bytes from SPI device. 
+
+Reads a block of consecutive registers using LSM6\+DSL auto-\/increment feature. Sends address with read bit, then reads specified number of bytes. CS is asserted for entire transaction.
+
+
+\begin{DoxyParams}{Parameters}
+{\em reg\+\_\+addr} & Starting register address (bit 7 will be set for read) \\
+\hline
+{\em size} & Number of bytes to read \\
+\hline
+{\em data} & Buffer to store read data (must be at least \textquotesingle{}size\textquotesingle{} bytes) \\
+\hline
+\end{DoxyParams}
+Here is the call graph for this function:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=281pt]{spi_8h_ad1bfee7ff37fd04db4d0ffbab55ea9ea_cgraph}
+\end{center}
+\end{figure}
+Here is the caller graph for this function:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{spi_8h_ad1bfee7ff37fd04db4d0ffbab55ea9ea_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{spi_8h_ac0d29cc542e57a0d6d2f300a64e002e8}\index{spi.h@{spi.h}!SPI\_ReadByte@{SPI\_ReadByte}}
+\index{SPI\_ReadByte@{SPI\_ReadByte}!spi.h@{spi.h}}
+\doxysubsubsection{\texorpdfstring{SPI\_ReadByte()}{SPI\_ReadByte()}}
+{\footnotesize\ttfamily \label{spi_8h_ac0d29cc542e57a0d6d2f300a64e002e8} 
+uint8\+\_\+t SPI\+\_\+\+Read\+Byte (\begin{DoxyParamCaption}\item[{uint8\+\_\+t}]{reg\+\_\+addr}{}\end{DoxyParamCaption})}
+
+
+
+Read single byte from SPI device register. 
+
+Sends register address with read bit set (bit 7 = 1), then reads response. CS is asserted for the duration of the transaction.
+
+
+\begin{DoxyParams}{Parameters}
+{\em reg\+\_\+addr} & Register address (0-\/127, bit 7 will be set for read) \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Byte read from register 
+\end{DoxyReturn}
+Here is the call graph for this function:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=276pt]{spi_8h_ac0d29cc542e57a0d6d2f300a64e002e8_cgraph}
+\end{center}
+\end{figure}
+Here is the caller graph for this function:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{spi_8h_ac0d29cc542e57a0d6d2f300a64e002e8_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{spi_8h_ae77ebc4f5c68f5a9e74b0aa58cb676bf}\index{spi.h@{spi.h}!SPI\_WriteByte@{SPI\_WriteByte}}
+\index{SPI\_WriteByte@{SPI\_WriteByte}!spi.h@{spi.h}}
+\doxysubsubsection{\texorpdfstring{SPI\_WriteByte()}{SPI\_WriteByte()}}
+{\footnotesize\ttfamily \label{spi_8h_ae77ebc4f5c68f5a9e74b0aa58cb676bf} 
+void SPI\+\_\+\+Write\+Byte (\begin{DoxyParamCaption}\item[{uint8\+\_\+t}]{reg\+\_\+addr}{, }\item[{uint8\+\_\+t}]{data}{}\end{DoxyParamCaption})}
+
+
+
+Write single byte to SPI device register. 
+
+Sends register address with write bit cleared (bit 7 = 0), then writes data. CS is asserted for the duration of the transaction.
+
+
+\begin{DoxyParams}{Parameters}
+{\em reg\+\_\+addr} & Register address (0-\/127, bit 7 will be cleared for write) \\
+\hline
+{\em data} & Byte to write to register \\
+\hline
+\end{DoxyParams}
+Here is the call graph for this function:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=278pt]{spi_8h_ae77ebc4f5c68f5a9e74b0aa58cb676bf_cgraph}
+\end{center}
+\end{figure}
+Here is the caller graph for this function:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=334pt]{spi_8h_ae77ebc4f5c68f5a9e74b0aa58cb676bf_icgraph}
+\end{center}
+\end{figure}

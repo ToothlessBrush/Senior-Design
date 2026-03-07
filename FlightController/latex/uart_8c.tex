@@ -1,0 +1,256 @@
+\doxysection{src/\+uart.c File Reference}
+\hypertarget{uart_8c}{}\label{uart_8c}\index{src/uart.c@{src/uart.c}}
+{\ttfamily \+\#include "{}uart.\+h"{}}\newline
+{\ttfamily \+\#include "{}stm32f411xe.\+h"{}}\newline
+{\ttfamily \+\#include "{}stm32f4xx.\+h"{}}\newline
+Include dependency graph for uart.\+c:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{uart_8c__incl}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\+\#define \doxymbox{\hyperlink{uart_8c_a877c0f8446522dd18d2299ec3753d067}{LORA\+\_\+\+BAUD\+\_\+\+RATE}}~115200
+\item 
+\+\#define \doxymbox{\hyperlink{uart_8c_a05f5d709605c6317c97e4974bec3402a}{UART\+\_\+\+TX\+\_\+\+BUFFER\+\_\+\+SIZE}}~256
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \doxymbox{\hyperlink{uart_8c_a0c0ca72359ddf28dcd15900dfba19343}{uart\+\_\+init}} (void)
+\begin{DoxyCompactList}\small\item\em Initialize UART2 peripheral for Lo\+Ra communication. \end{DoxyCompactList}\item 
+void \doxymbox{\hyperlink{uart_8c_a8c06afe2f1e393776650ebe7f0b336f2}{uart\+\_\+send\+\_\+byte}} (uint8\+\_\+t data)
+\begin{DoxyCompactList}\small\item\em Send single byte (blocking, non-\/\+DMA). \end{DoxyCompactList}\item 
+void \doxymbox{\hyperlink{uart_8c_adc5ab09aa19841e18a039de4b3250da4}{uart\+\_\+send\+\_\+string}} (const char \texorpdfstring{$\ast$}{*}str)
+\begin{DoxyCompactList}\small\item\em Send null-\/terminated string via DMA. \end{DoxyCompactList}\item 
+void \doxymbox{\hyperlink{uart_8c_a1b8a4c4d49c67e880616f4c57f3adf94}{uart\+\_\+send\+\_\+data}} (const uint8\+\_\+t \texorpdfstring{$\ast$}{*}data, uint16\+\_\+t len)
+\begin{DoxyCompactList}\small\item\em Send raw data buffer via DMA. \end{DoxyCompactList}\item 
+uint8\+\_\+t \doxymbox{\hyperlink{uart_8c_ae373bf303a694f2ce38c1f27ec41642a}{uart\+\_\+receive\+\_\+byte}} (void)
+\begin{DoxyCompactList}\small\item\em Receive single byte from circular buffer (blocking). \end{DoxyCompactList}\item 
+int \doxymbox{\hyperlink{uart_8c_a412e2a9d9d471236aa92508d3023a71f}{uart\+\_\+data\+\_\+available}} (void)
+\begin{DoxyCompactList}\small\item\em Check if RX data available. \end{DoxyCompactList}\item 
+void \doxymbox{\hyperlink{uart_8c_a7266e29e25a18254075f5d56f29f49b0}{uart\+\_\+flush}} (void)
+\begin{DoxyCompactList}\small\item\em Flush RX buffer (discard all received data). \end{DoxyCompactList}\item 
+uint16\+\_\+t \doxymbox{\hyperlink{uart_8c_a5317c459d18ba501401b60628188cfff}{uart\+\_\+bytes\+\_\+available}} (void)
+\begin{DoxyCompactList}\small\item\em Get number of bytes available in RX buffer. \end{DoxyCompactList}\item 
+int \doxymbox{\hyperlink{uart_8c_a94c6373da9edd7665f479b7c59b719c1}{uart\+\_\+tx\+\_\+busy}} (void)
+\begin{DoxyCompactList}\small\item\em Check if TX DMA transfer in progress. \end{DoxyCompactList}\item 
+void \doxymbox{\hyperlink{uart_8c_a0ca6fd0e6f77921dd1123539857ba0a8}{USART2\+\_\+\+IRQHandler}} (void)
+\item 
+void \doxymbox{\hyperlink{uart_8c_aa28fd448462a6347589129f63bb0a388}{DMA1\+\_\+\+Stream6\+\_\+\+IRQHandler}} (void)
+\end{DoxyCompactItemize}
+
+
+\label{doc-define-members}
+\Hypertarget{uart_8c_doc-define-members}
+\doxysubsection{Macro Definition Documentation}
+\Hypertarget{uart_8c_a877c0f8446522dd18d2299ec3753d067}\index{uart.c@{uart.c}!LORA\_BAUD\_RATE@{LORA\_BAUD\_RATE}}
+\index{LORA\_BAUD\_RATE@{LORA\_BAUD\_RATE}!uart.c@{uart.c}}
+\doxysubsubsection{\texorpdfstring{LORA\_BAUD\_RATE}{LORA\_BAUD\_RATE}}
+{\footnotesize\ttfamily \label{uart_8c_a877c0f8446522dd18d2299ec3753d067} 
+\+\#define LORA\+\_\+\+BAUD\+\_\+\+RATE~115200}
+
+\Hypertarget{uart_8c_a05f5d709605c6317c97e4974bec3402a}\index{uart.c@{uart.c}!UART\_TX\_BUFFER\_SIZE@{UART\_TX\_BUFFER\_SIZE}}
+\index{UART\_TX\_BUFFER\_SIZE@{UART\_TX\_BUFFER\_SIZE}!uart.c@{uart.c}}
+\doxysubsubsection{\texorpdfstring{UART\_TX\_BUFFER\_SIZE}{UART\_TX\_BUFFER\_SIZE}}
+{\footnotesize\ttfamily \label{uart_8c_a05f5d709605c6317c97e4974bec3402a} 
+\+\#define UART\+\_\+\+TX\+\_\+\+BUFFER\+\_\+\+SIZE~256}
+
+
+
+\label{doc-func-members}
+\Hypertarget{uart_8c_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{uart_8c_aa28fd448462a6347589129f63bb0a388}\index{uart.c@{uart.c}!DMA1\_Stream6\_IRQHandler@{DMA1\_Stream6\_IRQHandler}}
+\index{DMA1\_Stream6\_IRQHandler@{DMA1\_Stream6\_IRQHandler}!uart.c@{uart.c}}
+\doxysubsubsection{\texorpdfstring{DMA1\_Stream6\_IRQHandler()}{DMA1\_Stream6\_IRQHandler()}}
+{\footnotesize\ttfamily \label{uart_8c_aa28fd448462a6347589129f63bb0a388} 
+void DMA1\+\_\+\+Stream6\+\_\+\+IRQHandler (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+\Hypertarget{uart_8c_a5317c459d18ba501401b60628188cfff}\index{uart.c@{uart.c}!uart\_bytes\_available@{uart\_bytes\_available}}
+\index{uart\_bytes\_available@{uart\_bytes\_available}!uart.c@{uart.c}}
+\doxysubsubsection{\texorpdfstring{uart\_bytes\_available()}{uart\_bytes\_available()}}
+{\footnotesize\ttfamily \label{uart_8c_a5317c459d18ba501401b60628188cfff} 
+uint16\+\_\+t uart\+\_\+bytes\+\_\+available (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+
+
+Get number of bytes available in RX buffer. 
+
+Calculates unread byte count in circular buffer, handling wraparound.
+
+\begin{DoxyReturn}{Returns}
+Number of bytes available to read (0-\/255) 
+\end{DoxyReturn}
+\Hypertarget{uart_8c_a412e2a9d9d471236aa92508d3023a71f}\index{uart.c@{uart.c}!uart\_data\_available@{uart\_data\_available}}
+\index{uart\_data\_available@{uart\_data\_available}!uart.c@{uart.c}}
+\doxysubsubsection{\texorpdfstring{uart\_data\_available()}{uart\_data\_available()}}
+{\footnotesize\ttfamily \label{uart_8c_a412e2a9d9d471236aa92508d3023a71f} 
+int uart\+\_\+data\+\_\+available (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+
+
+Check if RX data available. 
+
+\begin{DoxyReturn}{Returns}
+1 if at least one byte available in RX buffer, 0 otherwise 
+\end{DoxyReturn}
+Here is the caller graph for this function:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{uart_8c_a412e2a9d9d471236aa92508d3023a71f_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{uart_8c_a7266e29e25a18254075f5d56f29f49b0}\index{uart.c@{uart.c}!uart\_flush@{uart\_flush}}
+\index{uart\_flush@{uart\_flush}!uart.c@{uart.c}}
+\doxysubsubsection{\texorpdfstring{uart\_flush()}{uart\_flush()}}
+{\footnotesize\ttfamily \label{uart_8c_a7266e29e25a18254075f5d56f29f49b0} 
+void uart\+\_\+flush (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+
+
+Flush RX buffer (discard all received data). 
+
+Resets read pointer to match write pointer, effectively clearing all buffered data. Does not affect data currently being received. Here is the caller graph for this function:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{uart_8c_a7266e29e25a18254075f5d56f29f49b0_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{uart_8c_a0c0ca72359ddf28dcd15900dfba19343}\index{uart.c@{uart.c}!uart\_init@{uart\_init}}
+\index{uart\_init@{uart\_init}!uart.c@{uart.c}}
+\doxysubsubsection{\texorpdfstring{uart\_init()}{uart\_init()}}
+{\footnotesize\ttfamily \label{uart_8c_a0c0ca72359ddf28dcd15900dfba19343} 
+void uart\+\_\+init (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+
+
+Initialize UART2 peripheral for Lo\+Ra communication. 
+
+Configures GPIO pins (PA2/\+\+PA3), USART2 peripheral, RX interrupt, and TX DMA. Enables 115200 baud 8N1 communication. Must be called before any other UART functions. Here is the caller graph for this function:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=213pt]{uart_8c_a0c0ca72359ddf28dcd15900dfba19343_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{uart_8c_ae373bf303a694f2ce38c1f27ec41642a}\index{uart.c@{uart.c}!uart\_receive\_byte@{uart\_receive\_byte}}
+\index{uart\_receive\_byte@{uart\_receive\_byte}!uart.c@{uart.c}}
+\doxysubsubsection{\texorpdfstring{uart\_receive\_byte()}{uart\_receive\_byte()}}
+{\footnotesize\ttfamily \label{uart_8c_ae373bf303a694f2ce38c1f27ec41642a} 
+uint8\+\_\+t uart\+\_\+receive\+\_\+byte (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+
+
+Receive single byte from circular buffer (blocking). 
+
+Waits until data available in RX buffer, then returns oldest byte. Advances read pointer in circular buffer. Blocks indefinitely if no data received.
+
+\begin{DoxyReturn}{Returns}
+Received byte 
+\end{DoxyReturn}
+Here is the caller graph for this function:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{uart_8c_ae373bf303a694f2ce38c1f27ec41642a_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{uart_8c_a8c06afe2f1e393776650ebe7f0b336f2}\index{uart.c@{uart.c}!uart\_send\_byte@{uart\_send\_byte}}
+\index{uart\_send\_byte@{uart\_send\_byte}!uart.c@{uart.c}}
+\doxysubsubsection{\texorpdfstring{uart\_send\_byte()}{uart\_send\_byte()}}
+{\footnotesize\ttfamily \label{uart_8c_a8c06afe2f1e393776650ebe7f0b336f2} 
+void uart\+\_\+send\+\_\+byte (\begin{DoxyParamCaption}\item[{uint8\+\_\+t}]{data}{}\end{DoxyParamCaption})}
+
+
+
+Send single byte (blocking, non-\/\+DMA). 
+
+Waits for previous byte transmission to complete, then sends byte via USART data register. Use for simple single-\/byte transmissions.
+
+
+\begin{DoxyParams}{Parameters}
+{\em data} & Byte to transmit \\
+\hline
+\end{DoxyParams}
+\Hypertarget{uart_8c_a1b8a4c4d49c67e880616f4c57f3adf94}\index{uart.c@{uart.c}!uart\_send\_data@{uart\_send\_data}}
+\index{uart\_send\_data@{uart\_send\_data}!uart.c@{uart.c}}
+\doxysubsubsection{\texorpdfstring{uart\_send\_data()}{uart\_send\_data()}}
+{\footnotesize\ttfamily \label{uart_8c_a1b8a4c4d49c67e880616f4c57f3adf94} 
+void uart\+\_\+send\+\_\+data (\begin{DoxyParamCaption}\item[{const uint8\+\_\+t \texorpdfstring{$\ast$}{*}}]{data}{, }\item[{uint16\+\_\+t}]{len}{}\end{DoxyParamCaption})}
+
+
+
+Send raw data buffer via DMA. 
+
+Copies data to internal TX buffer and initiates DMA transfer. Waits if previous DMA transfer still in progress. Non-\/blocking after DMA start. Data exceeding 256 bytes is truncated.
+
+
+\begin{DoxyParams}{Parameters}
+{\em data} & Pointer to data buffer \\
+\hline
+{\em len} & Number of bytes to send (max 256) \\
+\hline
+\end{DoxyParams}
+Here is the caller graph for this function:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{uart_8c_a1b8a4c4d49c67e880616f4c57f3adf94_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{uart_8c_adc5ab09aa19841e18a039de4b3250da4}\index{uart.c@{uart.c}!uart\_send\_string@{uart\_send\_string}}
+\index{uart\_send\_string@{uart\_send\_string}!uart.c@{uart.c}}
+\doxysubsubsection{\texorpdfstring{uart\_send\_string()}{uart\_send\_string()}}
+{\footnotesize\ttfamily \label{uart_8c_adc5ab09aa19841e18a039de4b3250da4} 
+void uart\+\_\+send\+\_\+string (\begin{DoxyParamCaption}\item[{const char \texorpdfstring{$\ast$}{*}}]{str}{}\end{DoxyParamCaption})}
+
+
+
+Send null-\/terminated string via DMA. 
+
+Copies string to internal TX buffer and initiates DMA transfer. Waits if previous DMA transfer still in progress. Non-\/blocking after DMA start. Strings longer than 256 bytes are truncated.
+
+
+\begin{DoxyParams}{Parameters}
+{\em str} & Null-\/terminated string to send \\
+\hline
+\end{DoxyParams}
+Here is the caller graph for this function:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{uart_8c_adc5ab09aa19841e18a039de4b3250da4_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{uart_8c_a94c6373da9edd7665f479b7c59b719c1}\index{uart.c@{uart.c}!uart\_tx\_busy@{uart\_tx\_busy}}
+\index{uart\_tx\_busy@{uart\_tx\_busy}!uart.c@{uart.c}}
+\doxysubsubsection{\texorpdfstring{uart\_tx\_busy()}{uart\_tx\_busy()}}
+{\footnotesize\ttfamily \label{uart_8c_a94c6373da9edd7665f479b7c59b719c1} 
+int uart\+\_\+tx\+\_\+busy (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+
+
+Check if TX DMA transfer in progress. 
+
+\begin{DoxyReturn}{Returns}
+1 if DMA transmission active, 0 if idle 
+\end{DoxyReturn}
+\Hypertarget{uart_8c_a0ca6fd0e6f77921dd1123539857ba0a8}\index{uart.c@{uart.c}!USART2\_IRQHandler@{USART2\_IRQHandler}}
+\index{USART2\_IRQHandler@{USART2\_IRQHandler}!uart.c@{uart.c}}
+\doxysubsubsection{\texorpdfstring{USART2\_IRQHandler()}{USART2\_IRQHandler()}}
+{\footnotesize\ttfamily \label{uart_8c_a0ca6fd0e6f77921dd1123539857ba0a8} 
+void USART2\+\_\+\+IRQHandler (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+

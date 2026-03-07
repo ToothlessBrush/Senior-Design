@@ -1,0 +1,55 @@
+\doxysection{src/\+utils.c File Reference}
+\hypertarget{utils_8c}{}\label{utils_8c}\index{src/utils.c@{src/utils.c}}
+{\ttfamily \+\#include "{}utils.\+h"{}}\newline
+{\ttfamily \+\#include "{}lora.\+h"{}}\newline
+{\ttfamily \+\#include "{}protocol.\+h"{}}\newline
+{\ttfamily \+\#include "{}systick.\+h"{}}\newline
+{\ttfamily \+\#include $<$stdio.\+h$>$}\newline
+Include dependency graph for utils.\+c:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{utils_8c__incl}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \doxymbox{\hyperlink{utils_8c_a77851e4eec42ba0c9354dbedff1e16d8}{split\+\_\+float}} (float value, int decimal\+\_\+places, \doxymbox{\hyperlink{structfloat__parts__t}{float\+\_\+parts\+\_\+t}} \texorpdfstring{$\ast$}{*}result)
+\item 
+void \doxymbox{\hyperlink{utils_8c_a6dfea3a09b62656b1273ef1be08d19a7}{send\+\_\+telem}} (const \doxymbox{\hyperlink{structIMU}{IMU}} \texorpdfstring{$\ast$}{*}imu, const \doxymbox{\hyperlink{structPID}{PID}} \texorpdfstring{$\ast$}{*}pid)
+\end{DoxyCompactItemize}
+
+
+\label{doc-func-members}
+\Hypertarget{utils_8c_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{utils_8c_a6dfea3a09b62656b1273ef1be08d19a7}\index{utils.c@{utils.c}!send\_telem@{send\_telem}}
+\index{send\_telem@{send\_telem}!utils.c@{utils.c}}
+\doxysubsubsection{\texorpdfstring{send\_telem()}{send\_telem()}}
+{\footnotesize\ttfamily \label{utils_8c_a6dfea3a09b62656b1273ef1be08d19a7} 
+void send\+\_\+telem (\begin{DoxyParamCaption}\item[{const \doxymbox{\hyperlink{structIMU}{IMU}} \texorpdfstring{$\ast$}{*}}]{imu}{, }\item[{const \doxymbox{\hyperlink{structPID}{PID}} \texorpdfstring{$\ast$}{*}}]{pid}{}\end{DoxyParamCaption})}
+
+Here is the call graph for this function:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{utils_8c_a6dfea3a09b62656b1273ef1be08d19a7_cgraph}
+\end{center}
+\end{figure}
+Here is the caller graph for this function:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=230pt]{utils_8c_a6dfea3a09b62656b1273ef1be08d19a7_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{utils_8c_a77851e4eec42ba0c9354dbedff1e16d8}\index{utils.c@{utils.c}!split\_float@{split\_float}}
+\index{split\_float@{split\_float}!utils.c@{utils.c}}
+\doxysubsubsection{\texorpdfstring{split\_float()}{split\_float()}}
+{\footnotesize\ttfamily \label{utils_8c_a77851e4eec42ba0c9354dbedff1e16d8} 
+void split\+\_\+float (\begin{DoxyParamCaption}\item[{float}]{value}{, }\item[{int}]{decimal\+\_\+places}{, }\item[{\doxymbox{\hyperlink{structfloat__parts__t}{float\+\_\+parts\+\_\+t}} \texorpdfstring{$\ast$}{*}}]{result}{}\end{DoxyParamCaption})}
+

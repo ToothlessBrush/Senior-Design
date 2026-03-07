@@ -1,0 +1,84 @@
+\doxysection{src/\+i2c.c File Reference}
+\hypertarget{i2c_8c}{}\label{i2c_8c}\index{src/i2c.c@{src/i2c.c}}
+{\ttfamily \+\#include "{}i2c.\+h"{}}\newline
+{\ttfamily \+\#include "{}stm32f411xe.\+h"{}}\newline
+Include dependency graph for i2c.\+c:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{i2c_8c__incl}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\+\#define \doxymbox{\hyperlink{i2c_8c_afa3215f0aa766367f5d34bee80929152}{I2\+C\+\_\+\+TIMEOUT}}~10000
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \doxymbox{\hyperlink{i2c_8c_a430209a4fbf1bf97ef338b1c82ec83d4}{I2\+C1\+\_\+\+Init}} (void)
+\item 
+uint8\+\_\+t \doxymbox{\hyperlink{i2c_8c_a9919b6b43644162e8730e72d412e4829}{I2\+C\+\_\+\+Read\+Byte}} (uint8\+\_\+t device\+\_\+addr, uint8\+\_\+t reg\+\_\+addr)
+\item 
+void \doxymbox{\hyperlink{i2c_8c_a2ef818a1ccb32ee01afe2082176685c8}{I2\+C\+\_\+\+Write\+Byte}} (uint8\+\_\+t device\+\_\+addr, uint8\+\_\+t reg\+\_\+addr, uint8\+\_\+t data)
+\item 
+void \doxymbox{\hyperlink{i2c_8c_ad176d5ce234f7e3d4a4ba29c57061b5e}{I2\+C\+\_\+\+Read\+Block}} (uint8\+\_\+t device\+\_\+addr, uint8\+\_\+t reg\+\_\+addr, uint8\+\_\+t size, uint8\+\_\+t \texorpdfstring{$\ast$}{*}data)
+\end{DoxyCompactItemize}
+
+
+\label{doc-define-members}
+\Hypertarget{i2c_8c_doc-define-members}
+\doxysubsection{Macro Definition Documentation}
+\Hypertarget{i2c_8c_afa3215f0aa766367f5d34bee80929152}\index{i2c.c@{i2c.c}!I2C\_TIMEOUT@{I2C\_TIMEOUT}}
+\index{I2C\_TIMEOUT@{I2C\_TIMEOUT}!i2c.c@{i2c.c}}
+\doxysubsubsection{\texorpdfstring{I2C\_TIMEOUT}{I2C\_TIMEOUT}}
+{\footnotesize\ttfamily \label{i2c_8c_afa3215f0aa766367f5d34bee80929152} 
+\+\#define I2\+C\+\_\+\+TIMEOUT~10000}
+
+
+
+\label{doc-func-members}
+\Hypertarget{i2c_8c_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{i2c_8c_a430209a4fbf1bf97ef338b1c82ec83d4}\index{i2c.c@{i2c.c}!I2C1\_Init@{I2C1\_Init}}
+\index{I2C1\_Init@{I2C1\_Init}!i2c.c@{i2c.c}}
+\doxysubsubsection{\texorpdfstring{I2C1\_Init()}{I2C1\_Init()}}
+{\footnotesize\ttfamily \label{i2c_8c_a430209a4fbf1bf97ef338b1c82ec83d4} 
+void I2\+C1\+\_\+\+Init (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+\Hypertarget{i2c_8c_ad176d5ce234f7e3d4a4ba29c57061b5e}\index{i2c.c@{i2c.c}!I2C\_ReadBlock@{I2C\_ReadBlock}}
+\index{I2C\_ReadBlock@{I2C\_ReadBlock}!i2c.c@{i2c.c}}
+\doxysubsubsection{\texorpdfstring{I2C\_ReadBlock()}{I2C\_ReadBlock()}}
+{\footnotesize\ttfamily \label{i2c_8c_ad176d5ce234f7e3d4a4ba29c57061b5e} 
+void I2\+C\+\_\+\+Read\+Block (\begin{DoxyParamCaption}\item[{uint8\+\_\+t}]{device\+\_\+addr}{, }\item[{uint8\+\_\+t}]{reg\+\_\+addr}{, }\item[{uint8\+\_\+t}]{size}{, }\item[{uint8\+\_\+t \texorpdfstring{$\ast$}{*}}]{data}{}\end{DoxyParamCaption})}
+
+Here is the call graph for this function:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=289pt]{i2c_8c_ad176d5ce234f7e3d4a4ba29c57061b5e_cgraph}
+\end{center}
+\end{figure}
+\Hypertarget{i2c_8c_a9919b6b43644162e8730e72d412e4829}\index{i2c.c@{i2c.c}!I2C\_ReadByte@{I2C\_ReadByte}}
+\index{I2C\_ReadByte@{I2C\_ReadByte}!i2c.c@{i2c.c}}
+\doxysubsubsection{\texorpdfstring{I2C\_ReadByte()}{I2C\_ReadByte()}}
+{\footnotesize\ttfamily \label{i2c_8c_a9919b6b43644162e8730e72d412e4829} 
+uint8\+\_\+t I2\+C\+\_\+\+Read\+Byte (\begin{DoxyParamCaption}\item[{uint8\+\_\+t}]{device\+\_\+addr}{, }\item[{uint8\+\_\+t}]{reg\+\_\+addr}{}\end{DoxyParamCaption})}
+
+Here is the caller graph for this function:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=289pt]{i2c_8c_a9919b6b43644162e8730e72d412e4829_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{i2c_8c_a2ef818a1ccb32ee01afe2082176685c8}\index{i2c.c@{i2c.c}!I2C\_WriteByte@{I2C\_WriteByte}}
+\index{I2C\_WriteByte@{I2C\_WriteByte}!i2c.c@{i2c.c}}
+\doxysubsubsection{\texorpdfstring{I2C\_WriteByte()}{I2C\_WriteByte()}}
+{\footnotesize\ttfamily \label{i2c_8c_a2ef818a1ccb32ee01afe2082176685c8} 
+void I2\+C\+\_\+\+Write\+Byte (\begin{DoxyParamCaption}\item[{uint8\+\_\+t}]{device\+\_\+addr}{, }\item[{uint8\+\_\+t}]{reg\+\_\+addr}{, }\item[{uint8\+\_\+t}]{data}{}\end{DoxyParamCaption})}
+

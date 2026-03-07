@@ -1,0 +1,87 @@
+\doxysubsubsubsubsubsubsubsubsubsubsubsubsection{Core register bit field macros }
+\hypertarget{group__CMSIS__core__bitfield}{}\label{group__CMSIS__core__bitfield}\index{Core register bit field macros@{Core register bit field macros}}
+
+
+Macros for use with bit field definitions (xxx\+\_\+\+Pos, xxx\+\_\+\+Msk).  
+
+
+Collaboration diagram for Core register bit field macros:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{group__CMSIS__core__bitfield}
+\end{center}
+\end{figure}
+\doxysubsubsubsubsubsubsubsubsubsubsubsubsubsubsection*{Topics}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{group__CMSIS__core__base}{Core Definitions}}
+\begin{DoxyCompactList}\small\item\em Definitions for base addresses, unions, and structures. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\begin{DoxyCompactItemize}
+\item 
+\+\#define \doxymbox{\hyperlink{group__CMSIS__core__bitfield_ga286e3b913dbd236c7f48ea70c8821f4e}{\+\_\+\+VAL2\+FLD}}(field,  value)
+\begin{DoxyCompactList}\small\item\em Mask and shift a bit field value for use in a register bit range. \end{DoxyCompactList}\item 
+\+\#define \doxymbox{\hyperlink{group__CMSIS__core__bitfield_ga139b6e261c981f014f386927ca4a8444}{\+\_\+\+FLD2\+VAL}}(field,  value)
+\begin{DoxyCompactList}\small\item\em Mask and shift a register value to extract a bit filed value. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsubsubsubsubsubsubsubsubsubsubsubsubsection{Detailed Description}
+Macros for use with bit field definitions (xxx\+\_\+\+Pos, xxx\+\_\+\+Msk). 
+
+
+
+\label{doc-define-members}
+\Hypertarget{group__CMSIS__core__bitfield_doc-define-members}
+\doxysubsubsubsubsubsubsubsubsubsubsubsubsubsection{Macro Definition Documentation}
+\Hypertarget{group__CMSIS__core__bitfield_ga139b6e261c981f014f386927ca4a8444}\index{Core register bit field macros@{Core register bit field macros}!\_FLD2VAL@{\_FLD2VAL}}
+\index{\_FLD2VAL@{\_FLD2VAL}!Core register bit field macros@{Core register bit field macros}}
+\doxysubsubsubsubsubsubsubsubsubsubsubsubsubsubsection{\texorpdfstring{\_FLD2VAL}{\_FLD2VAL}}
+{\footnotesize\ttfamily \label{group__CMSIS__core__bitfield_ga139b6e261c981f014f386927ca4a8444} 
+\+\#define \+\_\+\+FLD2\+VAL(\begin{DoxyParamCaption}\item[{}]{field}{, }\item[{}]{value}{}\end{DoxyParamCaption})}
+
+{\bfseries Value:\+}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{(((uint32\_t)(value)\ \&\ field\ \#\#\ \_Msk)\ >>\ field\ \#\#\ \_Pos)}
+
+\end{DoxyCode}
+
+
+Mask and shift a register value to extract a bit filed value. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\doxymbox{\texttt{in}}  & {\em field} & Name of the register bit field. \\
+\hline
+\doxymbox{\texttt{in}}  & {\em value} & Value of register. This parameter is interpreted as an uint32\+\_\+t type. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Masked and shifted bit field value. 
+\end{DoxyReturn}
+\Hypertarget{group__CMSIS__core__bitfield_ga286e3b913dbd236c7f48ea70c8821f4e}\index{Core register bit field macros@{Core register bit field macros}!\_VAL2FLD@{\_VAL2FLD}}
+\index{\_VAL2FLD@{\_VAL2FLD}!Core register bit field macros@{Core register bit field macros}}
+\doxysubsubsubsubsubsubsubsubsubsubsubsubsubsubsection{\texorpdfstring{\_VAL2FLD}{\_VAL2FLD}}
+{\footnotesize\ttfamily \label{group__CMSIS__core__bitfield_ga286e3b913dbd236c7f48ea70c8821f4e} 
+\+\#define \+\_\+\+VAL2\+FLD(\begin{DoxyParamCaption}\item[{}]{field}{, }\item[{}]{value}{}\end{DoxyParamCaption})}
+
+{\bfseries Value:\+}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{(((uint32\_t)(value)\ <<\ field\ \#\#\ \_Pos)\ \&\ field\ \#\#\ \_Msk)}
+
+\end{DoxyCode}
+
+
+Mask and shift a bit field value for use in a register bit range. 
+
+
+\begin{DoxyParams}[1]{Parameters}
+\doxymbox{\texttt{in}}  & {\em field} & Name of the register bit field. \\
+\hline
+\doxymbox{\texttt{in}}  & {\em value} & Value of the bit field. This parameter is interpreted as an uint32\+\_\+t type. \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Masked and shifted value. 
+\end{DoxyReturn}
+\input{group__CMSIS__core__base}

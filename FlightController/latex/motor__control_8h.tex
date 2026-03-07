@@ -1,0 +1,235 @@
+\doxysection{src/\+motor\+\_\+control.h File Reference}
+\hypertarget{motor__control_8h}{}\label{motor__control_8h}\index{src/motor\_control.h@{src/motor\_control.h}}
+{\ttfamily \+\#include "{}dshot.\+h"{}}\newline
+Include dependency graph for motor\+\_\+control.\+h:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=191pt]{motor__control_8h__incl}
+\end{center}
+\end{figure}
+This graph shows which files directly or indirectly include this file:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=274pt]{motor__control_8h__dep__incl}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Macros}
+\begin{DoxyCompactItemize}
+\item 
+\+\#define \doxymbox{\hyperlink{motor__control_8h_a76e25387ffb60310c6f3691a1c3294e9}{throttle\+Min}}~47
+\item 
+\+\#define \doxymbox{\hyperlink{motor__control_8h_a40bc5097391f4e592e1fa3a375def04b}{throttle\+Max}}~1023
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+void \doxymbox{\hyperlink{motor__control_8h_a9c5c9c695e110ab1886c8d928dc5245a}{Init\+Motors}} ()
+\item 
+void \doxymbox{\hyperlink{motor__control_8h_adfe0bc42e04c281d32ccfc8be207ca9b}{Start\+Motors}} ()
+\item 
+void \doxymbox{\hyperlink{motor__control_8h_a1571c804e10ba0f64ac01359189a3b82}{Stop\+Motors}} ()
+\item 
+void \doxymbox{\hyperlink{motor__control_8h_aa3c1512ebc8bfe89551bf7a25ac7eaa5}{Set\+Motor\+Throttle}} (\doxymbox{\hyperlink{structdshotMotor}{dshot\+Motor}} \texorpdfstring{$\ast$}{*}motor, uint16\+\_\+t throttle)
+\item 
+void \doxymbox{\hyperlink{motor__control_8h_abac1279b2a9af8d324adb3fcaae4fc27}{Idle\+Motors}} ()
+\item 
+void \doxymbox{\hyperlink{motor__control_8h_a2ed6f4bee9797a46177dc32605e8dcc3}{Stop\+Idle\+Motors}} ()
+\item 
+void \doxymbox{\hyperlink{motor__control_8h_a82f11714f533288f2506af661c34012e}{DMA1\+\_\+\+Stream4\+\_\+\+IRQHandler}} ()
+\item 
+void \doxymbox{\hyperlink{motor__control_8h_a8be8040f989a8425a9af419d97b33a17}{DMA1\+\_\+\+Stream5\+\_\+\+IRQHandler}} ()
+\item 
+void \doxymbox{\hyperlink{motor__control_8h_a0939c0eb155ffae6d61453a81463f295}{DMA1\+\_\+\+Stream7\+\_\+\+IRQHandler}} ()
+\item 
+void \doxymbox{\hyperlink{motor__control_8h_a58eaee751d48fcc0ce95e4c5475c2bff}{DMA1\+\_\+\+Stream2\+\_\+\+IRQHandler}} ()
+\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+\doxymbox{\hyperlink{structdshotMotor}{dshot\+Motor}} \texorpdfstring{$\ast$}{*} \doxymbox{\hyperlink{motor__control_8h_afa4908103fea2c36eb7a9b8073a03fd5}{motor1}}
+\item 
+\doxymbox{\hyperlink{structdshotMotor}{dshot\+Motor}} \texorpdfstring{$\ast$}{*} \doxymbox{\hyperlink{motor__control_8h_a47ad3ef5f90d2a9a04c80a0a653acb6c}{motor2}}
+\item 
+\doxymbox{\hyperlink{structdshotMotor}{dshot\+Motor}} \texorpdfstring{$\ast$}{*} \doxymbox{\hyperlink{motor__control_8h_a21f60bc495b57c18159bb12ef6155f0f}{motor3}}
+\item 
+\doxymbox{\hyperlink{structdshotMotor}{dshot\+Motor}} \texorpdfstring{$\ast$}{*} \doxymbox{\hyperlink{motor__control_8h_a5a16384c869732ed3e0803b8224367ba}{motor4}}
+\end{DoxyCompactItemize}
+
+
+\label{doc-define-members}
+\Hypertarget{motor__control_8h_doc-define-members}
+\doxysubsection{Macro Definition Documentation}
+\Hypertarget{motor__control_8h_a40bc5097391f4e592e1fa3a375def04b}\index{motor\_control.h@{motor\_control.h}!throttleMax@{throttleMax}}
+\index{throttleMax@{throttleMax}!motor\_control.h@{motor\_control.h}}
+\doxysubsubsection{\texorpdfstring{throttleMax}{throttleMax}}
+{\footnotesize\ttfamily \label{motor__control_8h_a40bc5097391f4e592e1fa3a375def04b} 
+\+\#define throttle\+Max~1023}
+
+\Hypertarget{motor__control_8h_a76e25387ffb60310c6f3691a1c3294e9}\index{motor\_control.h@{motor\_control.h}!throttleMin@{throttleMin}}
+\index{throttleMin@{throttleMin}!motor\_control.h@{motor\_control.h}}
+\doxysubsubsection{\texorpdfstring{throttleMin}{throttleMin}}
+{\footnotesize\ttfamily \label{motor__control_8h_a76e25387ffb60310c6f3691a1c3294e9} 
+\+\#define throttle\+Min~47}
+
+
+
+\label{doc-func-members}
+\Hypertarget{motor__control_8h_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{motor__control_8h_a58eaee751d48fcc0ce95e4c5475c2bff}\index{motor\_control.h@{motor\_control.h}!DMA1\_Stream2\_IRQHandler@{DMA1\_Stream2\_IRQHandler}}
+\index{DMA1\_Stream2\_IRQHandler@{DMA1\_Stream2\_IRQHandler}!motor\_control.h@{motor\_control.h}}
+\doxysubsubsection{\texorpdfstring{DMA1\_Stream2\_IRQHandler()}{DMA1\_Stream2\_IRQHandler()}}
+{\footnotesize\ttfamily \label{motor__control_8h_a58eaee751d48fcc0ce95e4c5475c2bff} 
+void DMA1\+\_\+\+Stream2\+\_\+\+IRQHandler (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+\Hypertarget{motor__control_8h_a82f11714f533288f2506af661c34012e}\index{motor\_control.h@{motor\_control.h}!DMA1\_Stream4\_IRQHandler@{DMA1\_Stream4\_IRQHandler}}
+\index{DMA1\_Stream4\_IRQHandler@{DMA1\_Stream4\_IRQHandler}!motor\_control.h@{motor\_control.h}}
+\doxysubsubsection{\texorpdfstring{DMA1\_Stream4\_IRQHandler()}{DMA1\_Stream4\_IRQHandler()}}
+{\footnotesize\ttfamily \label{motor__control_8h_a82f11714f533288f2506af661c34012e} 
+void DMA1\+\_\+\+Stream4\+\_\+\+IRQHandler (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+\Hypertarget{motor__control_8h_a8be8040f989a8425a9af419d97b33a17}\index{motor\_control.h@{motor\_control.h}!DMA1\_Stream5\_IRQHandler@{DMA1\_Stream5\_IRQHandler}}
+\index{DMA1\_Stream5\_IRQHandler@{DMA1\_Stream5\_IRQHandler}!motor\_control.h@{motor\_control.h}}
+\doxysubsubsection{\texorpdfstring{DMA1\_Stream5\_IRQHandler()}{DMA1\_Stream5\_IRQHandler()}}
+{\footnotesize\ttfamily \label{motor__control_8h_a8be8040f989a8425a9af419d97b33a17} 
+void DMA1\+\_\+\+Stream5\+\_\+\+IRQHandler (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+\Hypertarget{motor__control_8h_a0939c0eb155ffae6d61453a81463f295}\index{motor\_control.h@{motor\_control.h}!DMA1\_Stream7\_IRQHandler@{DMA1\_Stream7\_IRQHandler}}
+\index{DMA1\_Stream7\_IRQHandler@{DMA1\_Stream7\_IRQHandler}!motor\_control.h@{motor\_control.h}}
+\doxysubsubsection{\texorpdfstring{DMA1\_Stream7\_IRQHandler()}{DMA1\_Stream7\_IRQHandler()}}
+{\footnotesize\ttfamily \label{motor__control_8h_a0939c0eb155ffae6d61453a81463f295} 
+void DMA1\+\_\+\+Stream7\+\_\+\+IRQHandler (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+\Hypertarget{motor__control_8h_abac1279b2a9af8d324adb3fcaae4fc27}\index{motor\_control.h@{motor\_control.h}!IdleMotors@{IdleMotors}}
+\index{IdleMotors@{IdleMotors}!motor\_control.h@{motor\_control.h}}
+\doxysubsubsection{\texorpdfstring{IdleMotors()}{IdleMotors()}}
+{\footnotesize\ttfamily \label{motor__control_8h_abac1279b2a9af8d324adb3fcaae4fc27} 
+void Idle\+Motors (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+\Hypertarget{motor__control_8h_a9c5c9c695e110ab1886c8d928dc5245a}\index{motor\_control.h@{motor\_control.h}!InitMotors@{InitMotors}}
+\index{InitMotors@{InitMotors}!motor\_control.h@{motor\_control.h}}
+\doxysubsubsection{\texorpdfstring{InitMotors()}{InitMotors()}}
+{\footnotesize\ttfamily \label{motor__control_8h_a9c5c9c695e110ab1886c8d928dc5245a} 
+void Init\+Motors (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+Here is the call graph for this function:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{motor__control_8h_a9c5c9c695e110ab1886c8d928dc5245a_cgraph}
+\end{center}
+\end{figure}
+Here is the caller graph for this function:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=222pt]{motor__control_8h_a9c5c9c695e110ab1886c8d928dc5245a_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{motor__control_8h_aa3c1512ebc8bfe89551bf7a25ac7eaa5}\index{motor\_control.h@{motor\_control.h}!SetMotorThrottle@{SetMotorThrottle}}
+\index{SetMotorThrottle@{SetMotorThrottle}!motor\_control.h@{motor\_control.h}}
+\doxysubsubsection{\texorpdfstring{SetMotorThrottle()}{SetMotorThrottle()}}
+{\footnotesize\ttfamily \label{motor__control_8h_aa3c1512ebc8bfe89551bf7a25ac7eaa5} 
+void Set\+Motor\+Throttle (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{structdshotMotor}{dshot\+Motor}} \texorpdfstring{$\ast$}{*}}]{motor}{, }\item[{uint16\+\_\+t}]{throttle}{}\end{DoxyParamCaption})}
+
+Here is the call graph for this function:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=336pt]{motor__control_8h_aa3c1512ebc8bfe89551bf7a25ac7eaa5_cgraph}
+\end{center}
+\end{figure}
+Here is the caller graph for this function:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{motor__control_8h_aa3c1512ebc8bfe89551bf7a25ac7eaa5_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{motor__control_8h_adfe0bc42e04c281d32ccfc8be207ca9b}\index{motor\_control.h@{motor\_control.h}!StartMotors@{StartMotors}}
+\index{StartMotors@{StartMotors}!motor\_control.h@{motor\_control.h}}
+\doxysubsubsection{\texorpdfstring{StartMotors()}{StartMotors()}}
+{\footnotesize\ttfamily \label{motor__control_8h_adfe0bc42e04c281d32ccfc8be207ca9b} 
+void Start\+Motors (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+Here is the call graph for this function:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=295pt]{motor__control_8h_adfe0bc42e04c281d32ccfc8be207ca9b_cgraph}
+\end{center}
+\end{figure}
+Here is the caller graph for this function:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=230pt]{motor__control_8h_adfe0bc42e04c281d32ccfc8be207ca9b_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{motor__control_8h_a2ed6f4bee9797a46177dc32605e8dcc3}\index{motor\_control.h@{motor\_control.h}!StopIdleMotors@{StopIdleMotors}}
+\index{StopIdleMotors@{StopIdleMotors}!motor\_control.h@{motor\_control.h}}
+\doxysubsubsection{\texorpdfstring{StopIdleMotors()}{StopIdleMotors()}}
+{\footnotesize\ttfamily \label{motor__control_8h_a2ed6f4bee9797a46177dc32605e8dcc3} 
+void Stop\+Idle\+Motors (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+\Hypertarget{motor__control_8h_a1571c804e10ba0f64ac01359189a3b82}\index{motor\_control.h@{motor\_control.h}!StopMotors@{StopMotors}}
+\index{StopMotors@{StopMotors}!motor\_control.h@{motor\_control.h}}
+\doxysubsubsection{\texorpdfstring{StopMotors()}{StopMotors()}}
+{\footnotesize\ttfamily \label{motor__control_8h_a1571c804e10ba0f64ac01359189a3b82} 
+void Stop\+Motors (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+Here is the call graph for this function:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=297pt]{motor__control_8h_a1571c804e10ba0f64ac01359189a3b82_cgraph}
+\end{center}
+\end{figure}
+Here is the caller graph for this function:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=228pt]{motor__control_8h_a1571c804e10ba0f64ac01359189a3b82_icgraph}
+\end{center}
+\end{figure}
+
+
+\label{doc-var-members}
+\Hypertarget{motor__control_8h_doc-var-members}
+\doxysubsection{Variable Documentation}
+\Hypertarget{motor__control_8h_afa4908103fea2c36eb7a9b8073a03fd5}\index{motor\_control.h@{motor\_control.h}!motor1@{motor1}}
+\index{motor1@{motor1}!motor\_control.h@{motor\_control.h}}
+\doxysubsubsection{\texorpdfstring{motor1}{motor1}}
+{\footnotesize\ttfamily \label{motor__control_8h_afa4908103fea2c36eb7a9b8073a03fd5} 
+\doxymbox{\hyperlink{structdshotMotor}{dshot\+Motor}}\texorpdfstring{$\ast$}{*} motor1\hspace{0.3cm}{\ttfamily [extern]}}
+
+\Hypertarget{motor__control_8h_a47ad3ef5f90d2a9a04c80a0a653acb6c}\index{motor\_control.h@{motor\_control.h}!motor2@{motor2}}
+\index{motor2@{motor2}!motor\_control.h@{motor\_control.h}}
+\doxysubsubsection{\texorpdfstring{motor2}{motor2}}
+{\footnotesize\ttfamily \label{motor__control_8h_a47ad3ef5f90d2a9a04c80a0a653acb6c} 
+\doxymbox{\hyperlink{structdshotMotor}{dshot\+Motor}}\texorpdfstring{$\ast$}{*} motor2\hspace{0.3cm}{\ttfamily [extern]}}
+
+\Hypertarget{motor__control_8h_a21f60bc495b57c18159bb12ef6155f0f}\index{motor\_control.h@{motor\_control.h}!motor3@{motor3}}
+\index{motor3@{motor3}!motor\_control.h@{motor\_control.h}}
+\doxysubsubsection{\texorpdfstring{motor3}{motor3}}
+{\footnotesize\ttfamily \label{motor__control_8h_a21f60bc495b57c18159bb12ef6155f0f} 
+\doxymbox{\hyperlink{structdshotMotor}{dshot\+Motor}}\texorpdfstring{$\ast$}{*} motor3\hspace{0.3cm}{\ttfamily [extern]}}
+
+\Hypertarget{motor__control_8h_a5a16384c869732ed3e0803b8224367ba}\index{motor\_control.h@{motor\_control.h}!motor4@{motor4}}
+\index{motor4@{motor4}!motor\_control.h@{motor\_control.h}}
+\doxysubsubsection{\texorpdfstring{motor4}{motor4}}
+{\footnotesize\ttfamily \label{motor__control_8h_a5a16384c869732ed3e0803b8224367ba} 
+\doxymbox{\hyperlink{structdshotMotor}{dshot\+Motor}}\texorpdfstring{$\ast$}{*} motor4\hspace{0.3cm}{\ttfamily [extern]}}
+

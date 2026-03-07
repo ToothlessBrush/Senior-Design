@@ -1,0 +1,80 @@
+\doxysection{lora.\+h}
+\hypertarget{lora_8h_source}{}\label{lora_8h_source}\index{src/lora.h@{src/lora.h}}
+\doxymbox{\hyperlink{lora_8h}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ }
+\DoxyCodeLine{00019\ }
+\DoxyCodeLine{00020\ \textcolor{preprocessor}{\#ifndef\ LORA\_H}}
+\DoxyCodeLine{00021\ \textcolor{preprocessor}{\#define\ LORA\_H}}
+\DoxyCodeLine{00022\ }
+\DoxyCodeLine{00023\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{uart_8h}{uart.h}}"{}}}
+\DoxyCodeLine{00024\ \textcolor{preprocessor}{\#include\ <stdint.h>}}
+\DoxyCodeLine{00025\ }
+\DoxyCodeLine{00026\ \textcolor{comment}{//\ LoRa\ configuration\ -\/\ CHANGE\ THESE\ FOR\ YOUR\ SETUP}}
+\DoxyCodeLine{00027\ \textcolor{preprocessor}{\#define\ LORA\_ADDRESS\ 2\ \ \ \ \ \ \ }\textcolor{comment}{//\ This\ module's\ address\ (Pi\ is\ 1)}}
+\DoxyCodeLine{00028\ \textcolor{preprocessor}{\#define\ LORA\_NETWORK\_ID\ 6\ \ \ \ }\textcolor{comment}{//\ Network\ ID\ (3-\/15,\ must\ match\ other\ modules)}}
+\DoxyCodeLine{00029\ \textcolor{preprocessor}{\#define\ LORA\_BAND\ 915000000\ \ }\textcolor{comment}{//\ 915MHz\ for\ US,\ 868MHz\ for\ EU}}
+\DoxyCodeLine{00030\ \textcolor{preprocessor}{\#define\ LORA\_MAX\_PAYLOAD\ 240\ }\textcolor{comment}{//\ Maximum\ data\ length\ per\ packet}}
+\DoxyCodeLine{00031\ }
+\DoxyCodeLine{00032\ \textcolor{preprocessor}{\#define\ MIN\_SEND\_INTERVAL\ 300\ }\textcolor{comment}{//\ 150\ minimum\ 250\ more\ stable}}
+\DoxyCodeLine{00033\ }
+\DoxyCodeLine{00034\ \textcolor{comment}{//\ LoRa\ parameters:\ Spreading\ Factor,\ Bandwidth,\ Coding\ Rate,\ Preamble}}
+\DoxyCodeLine{00035\ \textcolor{comment}{//\ SF:\ 7-\/12\ (7=fastest/shortest\ range,\ 12=slowest/longest\ range)}}
+\DoxyCodeLine{00036\ \textcolor{comment}{//\ BW:\ 7=125kHz,\ 8=250kHz,\ 9=500kHz}}
+\DoxyCodeLine{00037\ \textcolor{comment}{//\ CR:\ 1=4/5,\ 2=4/6,\ 3=4/7,\ 4=4/8}}
+\DoxyCodeLine{00038\ \textcolor{comment}{//\ Preamble:\ 4-\/7}}
+\DoxyCodeLine{00039\ \textcolor{preprocessor}{\#define\ LORA\_SF\ 7\ \ \ \ \ \ \ \ }\textcolor{comment}{//\ Spreading\ Factor\ (9\ =\ good\ balance)}}
+\DoxyCodeLine{00040\ \textcolor{preprocessor}{\#define\ LORA\_BW\ 9\ \ \ \ \ \ \ \ }\textcolor{comment}{//\ Bandwidth\ (125kHz)}}
+\DoxyCodeLine{00041\ \textcolor{preprocessor}{\#define\ LORA\_CR\ 1\ \ \ \ \ \ \ \ }\textcolor{comment}{//\ Coding\ Rate\ (4/5)}}
+\DoxyCodeLine{00042\ \textcolor{preprocessor}{\#define\ LORA\_PREAMBLE\ 12\ }\textcolor{comment}{//\ Preamble\ length}}
+\DoxyCodeLine{00043\ }
+\DoxyCodeLine{00044\ \textcolor{comment}{//\ Response\ timeout\ in\ milliseconds}}
+\DoxyCodeLine{00045\ \textcolor{preprocessor}{\#define\ LORA\_TIMEOUT\_MS\ 1000}}
+\DoxyCodeLine{00046\ \textcolor{preprocessor}{\#define\ LORA\_RX\_LINE\_SIZE\ 300}}
+\DoxyCodeLine{00047\ }
+\DoxyCodeLine{00051\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{enum}\ \{}
+\DoxyCodeLine{00052\ \ \ \ \ \doxymbox{\hyperlink{lora_8h_afc41365d419b5e4b35b71cdcefb963fea4b55d0da89bdc2f9bd3dfb86854f055a}{LORA\_OK}}\ =\ 0,\ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00053\ \ \ \ \ \doxymbox{\hyperlink{lora_8h_afc41365d419b5e4b35b71cdcefb963feabd3ec2bc73477fca9756cd710bae6f8a}{LORA\_ERROR}}\ =\ -\/1,\ \ \ \ }
+\DoxyCodeLine{00054\ \ \ \ \ \doxymbox{\hyperlink{lora_8h_afc41365d419b5e4b35b71cdcefb963fea0f53976e5b53767e918abcdb89aae5e1}{LORA\_TIMEOUT}}\ =\ -\/2,\ \ }
+\DoxyCodeLine{00055\ \ \ \ \ \doxymbox{\hyperlink{lora_8h_afc41365d419b5e4b35b71cdcefb963feae5e383057daf991d3c0122af5b382b1d}{LORA\_BUSY}}\ =\ -\/3\ \ \ \ \ \ }
+\DoxyCodeLine{00056\ \}\ \doxymbox{\hyperlink{lora_8h_afc41365d419b5e4b35b71cdcefb963fe}{lora\_status\_t}};}
+\DoxyCodeLine{00057\ }
+\DoxyCodeLine{00064\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\{}
+\DoxyCodeLine{00065\ \ \ \ \ uint8\_t\ \doxymbox{\hyperlink{structlora__message__t_a7dd349af7e66038dc3de5f78c74f0d52}{sender\_address}};\ \ \ \ \ \ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00066\ \ \ \ \ uint8\_t\ \doxymbox{\hyperlink{structlora__message__t_ad06dd3963ad7630c480e2bba58fe4423}{length}};\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00067\ \ \ \ \ uint8\_t\ \doxymbox{\hyperlink{structlora__message__t_a8567acf5cb4d2d8ca0646920b39e925f}{data}}[\doxymbox{\hyperlink{lora_8h_a8b037bb6668373af85761296adff4fb2}{LORA\_MAX\_PAYLOAD}}\ +\ 1];\ }
+\DoxyCodeLine{00068\ \ \ \ \ int16\_t\ \doxymbox{\hyperlink{structlora__message__t_a5aff4f26d83126471d5be8587ce60ff6}{rssi}};\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00069\ \ \ \ \ int8\_t\ \doxymbox{\hyperlink{structlora__message__t_abfbce7770689c5423bba605fb999e299}{snr}};\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00070\ \}\ \doxymbox{\hyperlink{structlora__message__t}{lora\_message\_t}};}
+\DoxyCodeLine{00071\ }
+\DoxyCodeLine{00081\ \textcolor{keywordtype}{int}\ \doxymbox{\hyperlink{lora_8h_a379f3ab9c38a33c107d3c24f8e123d83}{lora\_init}}(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00082\ }
+\DoxyCodeLine{00091\ \textcolor{keywordtype}{int}\ \doxymbox{\hyperlink{lora_8h_af2b8722f99d7da26a01aecfb26f4a4f5}{lora\_is\_ready}}(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00092\ }
+\DoxyCodeLine{00101\ \textcolor{keywordtype}{int}\ \doxymbox{\hyperlink{lora_8h_a41282486e891eb22c9f93f9d4b7a9c25}{lora\_error\_code}}(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00102\ }
+\DoxyCodeLine{00108\ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{lora_8h_a878fee5b2f0a62676d29396a9d1b0fe3}{lora\_set\_ready}}(uint8\_t\ ready);}
+\DoxyCodeLine{00109\ }
+\DoxyCodeLine{00117\ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{lora_8h_aacc88f32c7baeb924e13546e7147ba27}{lora\_service}}(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00118\ }
+\DoxyCodeLine{00132\ \textcolor{keywordtype}{int}\ \doxymbox{\hyperlink{lora_8h_acfa7b15b20584566d90c47f27a53bfae}{lora\_send\_at\_command}}(\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *cmd,\ \textcolor{keywordtype}{char}\ *response,\ uint16\_t\ max\_len,}
+\DoxyCodeLine{00133\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint32\_t\ timeout\_ms);}
+\DoxyCodeLine{00134\ }
+\DoxyCodeLine{00146\ \textcolor{keywordtype}{int}\ \doxymbox{\hyperlink{lora_8h_aafd60f9d1b8f9a77b56b75c85a001f7a}{lora\_send\_data}}(uint8\_t\ dest\_address,\ \textcolor{keyword}{const}\ uint8\_t\ *data,\ uint8\_t\ length);}
+\DoxyCodeLine{00147\ }
+\DoxyCodeLine{00158\ \textcolor{keywordtype}{int}\ \doxymbox{\hyperlink{lora_8h_a8f742f0d10d4426bf4c1917e2ba18f08}{lora\_send\_string}}(uint8\_t\ dest\_address,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *str);}
+\DoxyCodeLine{00159\ }
+\DoxyCodeLine{00172\ \textcolor{keywordtype}{int}\ \doxymbox{\hyperlink{lora_8h_a287e00c322cdc81d36b05a4ecf2c315f}{lora\_send\_data\_nb}}(uint8\_t\ dest\_address,\ \textcolor{keyword}{const}\ uint8\_t\ *data,}
+\DoxyCodeLine{00173\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ uint8\_t\ length);}
+\DoxyCodeLine{00174\ }
+\DoxyCodeLine{00185\ \textcolor{keywordtype}{int}\ \doxymbox{\hyperlink{lora_8h_a5b48a412a271c571523b60b6fd626814}{lora\_send\_string\_nb}}(uint8\_t\ dest\_address,\ \textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *str);}
+\DoxyCodeLine{00186\ }
+\DoxyCodeLine{00192\ \textcolor{keywordtype}{int}\ \doxymbox{\hyperlink{lora_8h_a8380b0ba75b8b603cb6ec0533399f43c}{lora\_data\_available}}(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00193\ }
+\DoxyCodeLine{00202\ \doxymbox{\hyperlink{structlora__message__t}{lora\_message\_t}}\ *\doxymbox{\hyperlink{lora_8h_a9261a11971cd94b0af847275df9fbb01}{lora\_get\_received\_data}}(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00203\ }
+\DoxyCodeLine{00210\ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{lora_8h_a186420e215c462e53b94c8ec0f0fab7e}{lora\_clear\_received\_flag}}(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00211\ }
+\DoxyCodeLine{00212\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\ LORA\_H}}
+
+\end{DoxyCode}

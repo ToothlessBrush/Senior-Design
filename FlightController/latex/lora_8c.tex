@@ -1,0 +1,414 @@
+\doxysection{src/\+lora.c File Reference}
+\hypertarget{lora_8c}{}\label{lora_8c}\index{src/lora.c@{src/lora.c}}
+{\ttfamily \+\#include "{}lora.\+h"{}}\newline
+{\ttfamily \+\#include "{}systick.\+h"{}}\newline
+{\ttfamily \+\#include "{}uart.\+h"{}}\newline
+{\ttfamily \+\#include $<$stdio.\+h$>$}\newline
+{\ttfamily \+\#include $<$stdlib.\+h$>$}\newline
+{\ttfamily \+\#include $<$string.\+h$>$}\newline
+Include dependency graph for lora.\+c:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{lora_8c__incl}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+int \doxymbox{\hyperlink{lora_8c_af2b8722f99d7da26a01aecfb26f4a4f5}{lora\+\_\+is\+\_\+ready}} (void)
+\begin{DoxyCompactList}\small\item\em Check if Lo\+Ra module is ready to send. \end{DoxyCompactList}\item 
+int \doxymbox{\hyperlink{lora_8c_a41282486e891eb22c9f93f9d4b7a9c25}{lora\+\_\+error\+\_\+code}} (void)
+\begin{DoxyCompactList}\small\item\em Get last error code from Lo\+Ra module. \end{DoxyCompactList}\item 
+void \doxymbox{\hyperlink{lora_8c_a878fee5b2f0a62676d29396a9d1b0fe3}{lora\+\_\+set\+\_\+ready}} (uint8\+\_\+t ready)
+\begin{DoxyCompactList}\small\item\em Manually set module ready state (internal use). \end{DoxyCompactList}\item 
+int \doxymbox{\hyperlink{lora_8c_acfa7b15b20584566d90c47f27a53bfae}{lora\+\_\+send\+\_\+at\+\_\+command}} (const char \texorpdfstring{$\ast$}{*}cmd, char \texorpdfstring{$\ast$}{*}response, uint16\+\_\+t max\+\_\+len, uint32\+\_\+t timeout\+\_\+ms)
+\begin{DoxyCompactList}\small\item\em Send AT command and wait for response (blocking). \end{DoxyCompactList}\item 
+int \doxymbox{\hyperlink{lora_8c_a379f3ab9c38a33c107d3c24f8e123d83}{lora\+\_\+init}} (void)
+\begin{DoxyCompactList}\small\item\em Initialize Lo\+Ra module with configured parameters. \end{DoxyCompactList}\item 
+int \doxymbox{\hyperlink{lora_8c_aafd60f9d1b8f9a77b56b75c85a001f7a}{lora\+\_\+send\+\_\+data}} (uint8\+\_\+t dest\+\_\+address, const uint8\+\_\+t \texorpdfstring{$\ast$}{*}data, uint8\+\_\+t length)
+\begin{DoxyCompactList}\small\item\em Send binary data to a destination address (blocking). \end{DoxyCompactList}\item 
+int \doxymbox{\hyperlink{lora_8c_a8f742f0d10d4426bf4c1917e2ba18f08}{lora\+\_\+send\+\_\+string}} (uint8\+\_\+t dest\+\_\+address, const char \texorpdfstring{$\ast$}{*}str)
+\begin{DoxyCompactList}\small\item\em Send null-\/terminated string to a destination address (blocking). \end{DoxyCompactList}\item 
+int \doxymbox{\hyperlink{lora_8c_a287e00c322cdc81d36b05a4ecf2c315f}{lora\+\_\+send\+\_\+data\+\_\+nb}} (uint8\+\_\+t dest\+\_\+address, const uint8\+\_\+t \texorpdfstring{$\ast$}{*}data, uint8\+\_\+t length)
+\begin{DoxyCompactList}\small\item\em Send binary data to a destination address (non-\/blocking). \end{DoxyCompactList}\item 
+int \doxymbox{\hyperlink{lora_8c_a5b48a412a271c571523b60b6fd626814}{lora\+\_\+send\+\_\+string\+\_\+nb}} (uint8\+\_\+t dest\+\_\+address, const char \texorpdfstring{$\ast$}{*}str)
+\begin{DoxyCompactList}\small\item\em Send null-\/terminated string to a destination address (non-\/blocking). \end{DoxyCompactList}\item 
+int \doxymbox{\hyperlink{lora_8c_a8380b0ba75b8b603cb6ec0533399f43c}{lora\+\_\+data\+\_\+available}} (void)
+\begin{DoxyCompactList}\small\item\em Check if a Lo\+Ra message has been received. \end{DoxyCompactList}\item 
+\doxymbox{\hyperlink{structlora__message__t}{lora\+\_\+message\+\_\+t}} \texorpdfstring{$\ast$}{*} \doxymbox{\hyperlink{lora_8c_a9261a11971cd94b0af847275df9fbb01}{lora\+\_\+get\+\_\+received\+\_\+data}} (void)
+\begin{DoxyCompactList}\small\item\em Get pointer to most recently received message. \end{DoxyCompactList}\item 
+void \doxymbox{\hyperlink{lora_8c_a186420e215c462e53b94c8ec0f0fab7e}{lora\+\_\+clear\+\_\+received\+\_\+flag}} (void)
+\begin{DoxyCompactList}\small\item\em Clear the received data flag. \end{DoxyCompactList}\item 
+void \doxymbox{\hyperlink{lora_8c_aacc88f32c7baeb924e13546e7147ba27}{lora\+\_\+service}} (void)
+\begin{DoxyCompactList}\small\item\em Process incoming UART data and parse Lo\+Ra responses. \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\label{doc-func-members}
+\Hypertarget{lora_8c_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{lora_8c_a186420e215c462e53b94c8ec0f0fab7e}\index{lora.c@{lora.c}!lora\_clear\_received\_flag@{lora\_clear\_received\_flag}}
+\index{lora\_clear\_received\_flag@{lora\_clear\_received\_flag}!lora.c@{lora.c}}
+\doxysubsubsection{\texorpdfstring{lora\_clear\_received\_flag()}{lora\_clear\_received\_flag()}}
+{\footnotesize\ttfamily \label{lora_8c_a186420e215c462e53b94c8ec0f0fab7e} 
+void lora\+\_\+clear\+\_\+received\+\_\+flag (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+
+
+Clear the received data flag. 
+
+Marks the current message as read. Must be called after processing a received message to allow detection of new messages. Here is the caller graph for this function:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=292pt]{lora_8c_a186420e215c462e53b94c8ec0f0fab7e_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{lora_8c_a8380b0ba75b8b603cb6ec0533399f43c}\index{lora.c@{lora.c}!lora\_data\_available@{lora\_data\_available}}
+\index{lora\_data\_available@{lora\_data\_available}!lora.c@{lora.c}}
+\doxysubsubsection{\texorpdfstring{lora\_data\_available()}{lora\_data\_available()}}
+{\footnotesize\ttfamily \label{lora_8c_a8380b0ba75b8b603cb6ec0533399f43c} 
+int lora\+\_\+data\+\_\+available (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+
+
+Check if a Lo\+Ra message has been received. 
+
+\begin{DoxyReturn}{Returns}
+1 if unread message available, 0 otherwise 
+\end{DoxyReturn}
+Here is the caller graph for this function:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=269pt]{lora_8c_a8380b0ba75b8b603cb6ec0533399f43c_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{lora_8c_a41282486e891eb22c9f93f9d4b7a9c25}\index{lora.c@{lora.c}!lora\_error\_code@{lora\_error\_code}}
+\index{lora\_error\_code@{lora\_error\_code}!lora.c@{lora.c}}
+\doxysubsubsection{\texorpdfstring{lora\_error\_code()}{lora\_error\_code()}}
+{\footnotesize\ttfamily \label{lora_8c_a41282486e891eb22c9f93f9d4b7a9c25} 
+int lora\+\_\+error\+\_\+code (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+
+
+Get last error code from Lo\+Ra module. 
+
+Returns the error code from the most recent +ERR response. Error codes are module-\/specific (see REYAX RYLR998 documentation).
+
+\begin{DoxyReturn}{Returns}
+Error code from last +ERR response, -\/1 if no error occurred 
+\end{DoxyReturn}
+\Hypertarget{lora_8c_a9261a11971cd94b0af847275df9fbb01}\index{lora.c@{lora.c}!lora\_get\_received\_data@{lora\_get\_received\_data}}
+\index{lora\_get\_received\_data@{lora\_get\_received\_data}!lora.c@{lora.c}}
+\doxysubsubsection{\texorpdfstring{lora\_get\_received\_data()}{lora\_get\_received\_data()}}
+{\footnotesize\ttfamily \label{lora_8c_a9261a11971cd94b0af847275df9fbb01} 
+\doxymbox{\hyperlink{structlora__message__t}{lora\+\_\+message\+\_\+t}} \texorpdfstring{$\ast$}{*} lora\+\_\+get\+\_\+received\+\_\+data (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+
+
+Get pointer to most recently received message. 
+
+Returns pointer to internal message buffer containing the last received message. Data remains valid until next message received or flag cleared.
+
+\begin{DoxyReturn}{Returns}
+Pointer to \doxylink{structlora__message__t}{lora\+\_\+message\+\_\+t} structure with received data 
+\end{DoxyReturn}
+Here is the caller graph for this function:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=287pt]{lora_8c_a9261a11971cd94b0af847275df9fbb01_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{lora_8c_a379f3ab9c38a33c107d3c24f8e123d83}\index{lora.c@{lora.c}!lora\_init@{lora\_init}}
+\index{lora\_init@{lora\_init}!lora.c@{lora.c}}
+\doxysubsubsection{\texorpdfstring{lora\_init()}{lora\_init()}}
+{\footnotesize\ttfamily \label{lora_8c_a379f3ab9c38a33c107d3c24f8e123d83} 
+int lora\+\_\+init (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+
+
+Initialize Lo\+Ra module with configured parameters. 
+
+Sends configuration commands for address, network ID, frequency band, and Lo\+Ra parameters. Each command waits for +OK response. Fails if any command returns error or times out.
+
+\begin{DoxyReturn}{Returns}
+LORA\+\_\+\+OK if all configuration succeeded, LORA\+\_\+\+ERROR otherwise 
+\end{DoxyReturn}
+Here is the call graph for this function:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{lora_8c_a379f3ab9c38a33c107d3c24f8e123d83_cgraph}
+\end{center}
+\end{figure}
+Here is the caller graph for this function:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=213pt]{lora_8c_a379f3ab9c38a33c107d3c24f8e123d83_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{lora_8c_af2b8722f99d7da26a01aecfb26f4a4f5}\index{lora.c@{lora.c}!lora\_is\_ready@{lora\_is\_ready}}
+\index{lora\_is\_ready@{lora\_is\_ready}!lora.c@{lora.c}}
+\doxysubsubsection{\texorpdfstring{lora\_is\_ready()}{lora\_is\_ready()}}
+{\footnotesize\ttfamily \label{lora_8c_af2b8722f99d7da26a01aecfb26f4a4f5} 
+int lora\+\_\+is\+\_\+ready (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+
+
+Check if Lo\+Ra module is ready to send. 
+
+Returns 1 if module has completed previous operation (+OK received or idle), 0 if module is still processing a command.
+
+\begin{DoxyReturn}{Returns}
+1 if ready, 0 if busy 
+\end{DoxyReturn}
+\Hypertarget{lora_8c_acfa7b15b20584566d90c47f27a53bfae}\index{lora.c@{lora.c}!lora\_send\_at\_command@{lora\_send\_at\_command}}
+\index{lora\_send\_at\_command@{lora\_send\_at\_command}!lora.c@{lora.c}}
+\doxysubsubsection{\texorpdfstring{lora\_send\_at\_command()}{lora\_send\_at\_command()}}
+{\footnotesize\ttfamily \label{lora_8c_acfa7b15b20584566d90c47f27a53bfae} 
+int lora\+\_\+send\+\_\+at\+\_\+command (\begin{DoxyParamCaption}\item[{const char \texorpdfstring{$\ast$}{*}}]{cmd}{, }\item[{char \texorpdfstring{$\ast$}{*}}]{response}{, }\item[{uint16\+\_\+t}]{max\+\_\+len}{, }\item[{uint32\+\_\+t}]{timeout\+\_\+ms}{}\end{DoxyParamCaption})}
+
+
+
+Send AT command and wait for response (blocking). 
+
+Flushes UART, sends command with \textbackslash{}r~\newline
+ termination, and waits for module response. Parses +OK and +ERR responses. Times out if no valid response received within timeout period.
+
+
+\begin{DoxyParams}{Parameters}
+{\em cmd} & AT command string (without \textbackslash{}r~\newline
+) \\
+\hline
+{\em response} & Buffer to store full response (can be NULL) \\
+\hline
+{\em max\+\_\+len} & Size of response buffer \\
+\hline
+{\em timeout\+\_\+ms} & Timeout in milliseconds \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+LORA\+\_\+\+OK if +OK received, LORA\+\_\+\+ERROR if +ERR, LORA\+\_\+\+TIMEOUT on timeout 
+\end{DoxyReturn}
+Here is the call graph for this function:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{lora_8c_acfa7b15b20584566d90c47f27a53bfae_cgraph}
+\end{center}
+\end{figure}
+Here is the caller graph for this function:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{lora_8c_acfa7b15b20584566d90c47f27a53bfae_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{lora_8c_aafd60f9d1b8f9a77b56b75c85a001f7a}\index{lora.c@{lora.c}!lora\_send\_data@{lora\_send\_data}}
+\index{lora\_send\_data@{lora\_send\_data}!lora.c@{lora.c}}
+\doxysubsubsection{\texorpdfstring{lora\_send\_data()}{lora\_send\_data()}}
+{\footnotesize\ttfamily \label{lora_8c_aafd60f9d1b8f9a77b56b75c85a001f7a} 
+int lora\+\_\+send\+\_\+data (\begin{DoxyParamCaption}\item[{uint8\+\_\+t}]{dest\+\_\+address}{, }\item[{const uint8\+\_\+t \texorpdfstring{$\ast$}{*}}]{data}{, }\item[{uint8\+\_\+t}]{length}{}\end{DoxyParamCaption})}
+
+
+
+Send binary data to a destination address (blocking). 
+
+Sends data and waits for +OK response. Blocks until transmission confirmed or timeout occurs. Use for reliable transmission when timing is not critical.
+
+
+\begin{DoxyParams}{Parameters}
+{\em dest\+\_\+address} & Destination module address (0-\/65535) \\
+\hline
+{\em data} & Pointer to data buffer \\
+\hline
+{\em length} & Length of data (max LORA\+\_\+\+MAX\+\_\+\+PAYLOAD bytes) \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+LORA\+\_\+\+OK on success, LORA\+\_\+\+ERROR or LORA\+\_\+\+TIMEOUT on failure 
+\end{DoxyReturn}
+Here is the call graph for this function:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{lora_8c_aafd60f9d1b8f9a77b56b75c85a001f7a_cgraph}
+\end{center}
+\end{figure}
+Here is the caller graph for this function:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{lora_8c_aafd60f9d1b8f9a77b56b75c85a001f7a_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{lora_8c_a287e00c322cdc81d36b05a4ecf2c315f}\index{lora.c@{lora.c}!lora\_send\_data\_nb@{lora\_send\_data\_nb}}
+\index{lora\_send\_data\_nb@{lora\_send\_data\_nb}!lora.c@{lora.c}}
+\doxysubsubsection{\texorpdfstring{lora\_send\_data\_nb()}{lora\_send\_data\_nb()}}
+{\footnotesize\ttfamily \label{lora_8c_a287e00c322cdc81d36b05a4ecf2c315f} 
+int lora\+\_\+send\+\_\+data\+\_\+nb (\begin{DoxyParamCaption}\item[{uint8\+\_\+t}]{dest\+\_\+address}{, }\item[{const uint8\+\_\+t \texorpdfstring{$\ast$}{*}}]{data}{, }\item[{uint8\+\_\+t}]{length}{}\end{DoxyParamCaption})}
+
+
+
+Send binary data to a destination address (non-\/blocking). 
+
+Sends data and returns immediately without waiting for +OK. Used in time-\/critical code (e.\+g., control loops). Response is processed by \doxylink{lora_8h_aacc88f32c7baeb924e13546e7147ba27}{lora\+\_\+service()}. Module ready state updated when +OK received.
+
+
+\begin{DoxyParams}{Parameters}
+{\em dest\+\_\+address} & Destination module address (0-\/65535) \\
+\hline
+{\em data} & Pointer to data buffer \\
+\hline
+{\em length} & Length of data (max LORA\+\_\+\+MAX\+\_\+\+PAYLOAD bytes) \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+LORA\+\_\+\+OK if command sent, LORA\+\_\+\+ERROR if length exceeds maximum 
+\end{DoxyReturn}
+Here is the call graph for this function:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=321pt]{lora_8c_a287e00c322cdc81d36b05a4ecf2c315f_cgraph}
+\end{center}
+\end{figure}
+Here is the caller graph for this function:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{lora_8c_a287e00c322cdc81d36b05a4ecf2c315f_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{lora_8c_a8f742f0d10d4426bf4c1917e2ba18f08}\index{lora.c@{lora.c}!lora\_send\_string@{lora\_send\_string}}
+\index{lora\_send\_string@{lora\_send\_string}!lora.c@{lora.c}}
+\doxysubsubsection{\texorpdfstring{lora\_send\_string()}{lora\_send\_string()}}
+{\footnotesize\ttfamily \label{lora_8c_a8f742f0d10d4426bf4c1917e2ba18f08} 
+int lora\+\_\+send\+\_\+string (\begin{DoxyParamCaption}\item[{uint8\+\_\+t}]{dest\+\_\+address}{, }\item[{const char \texorpdfstring{$\ast$}{*}}]{str}{}\end{DoxyParamCaption})}
+
+
+
+Send null-\/terminated string to a destination address (blocking). 
+
+Convenience wrapper around \doxylink{lora_8h_aafd60f9d1b8f9a77b56b75c85a001f7a}{lora\+\_\+send\+\_\+data()} for string transmission. Blocks until +OK received or timeout.
+
+
+\begin{DoxyParams}{Parameters}
+{\em dest\+\_\+address} & Destination module address \\
+\hline
+{\em str} & Null-\/terminated string to send \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+LORA\+\_\+\+OK on success, LORA\+\_\+\+ERROR or LORA\+\_\+\+TIMEOUT on failure 
+\end{DoxyReturn}
+Here is the call graph for this function:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{lora_8c_a8f742f0d10d4426bf4c1917e2ba18f08_cgraph}
+\end{center}
+\end{figure}
+Here is the caller graph for this function:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=253pt]{lora_8c_a8f742f0d10d4426bf4c1917e2ba18f08_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{lora_8c_a5b48a412a271c571523b60b6fd626814}\index{lora.c@{lora.c}!lora\_send\_string\_nb@{lora\_send\_string\_nb}}
+\index{lora\_send\_string\_nb@{lora\_send\_string\_nb}!lora.c@{lora.c}}
+\doxysubsubsection{\texorpdfstring{lora\_send\_string\_nb()}{lora\_send\_string\_nb()}}
+{\footnotesize\ttfamily \label{lora_8c_a5b48a412a271c571523b60b6fd626814} 
+int lora\+\_\+send\+\_\+string\+\_\+nb (\begin{DoxyParamCaption}\item[{uint8\+\_\+t}]{dest\+\_\+address}{, }\item[{const char \texorpdfstring{$\ast$}{*}}]{str}{}\end{DoxyParamCaption})}
+
+
+
+Send null-\/terminated string to a destination address (non-\/blocking). 
+
+Convenience wrapper around \doxylink{lora_8h_a287e00c322cdc81d36b05a4ecf2c315f}{lora\+\_\+send\+\_\+data\+\_\+nb()} for string transmission. Returns immediately without waiting for confirmation.
+
+
+\begin{DoxyParams}{Parameters}
+{\em dest\+\_\+address} & Destination module address \\
+\hline
+{\em str} & Null-\/terminated string to send \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+LORA\+\_\+\+OK if command sent, LORA\+\_\+\+ERROR if string too long 
+\end{DoxyReturn}
+Here is the call graph for this function:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{lora_8c_a5b48a412a271c571523b60b6fd626814_cgraph}
+\end{center}
+\end{figure}
+Here is the caller graph for this function:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{lora_8c_a5b48a412a271c571523b60b6fd626814_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{lora_8c_aacc88f32c7baeb924e13546e7147ba27}\index{lora.c@{lora.c}!lora\_service@{lora\_service}}
+\index{lora\_service@{lora\_service}!lora.c@{lora.c}}
+\doxysubsubsection{\texorpdfstring{lora\_service()}{lora\_service()}}
+{\footnotesize\ttfamily \label{lora_8c_aacc88f32c7baeb924e13546e7147ba27} 
+void lora\+\_\+service (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+
+
+Process incoming UART data and parse Lo\+Ra responses. 
+
+Must be called periodically (e.\+g., in main loop) to handle asynchronous responses from the Lo\+Ra module. Processes +OK, +ERR, and +RCV messages. Non-\/blocking -\/ processes all available data and returns immediately. Here is the call graph for this function:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=304pt]{lora_8c_aacc88f32c7baeb924e13546e7147ba27_cgraph}
+\end{center}
+\end{figure}
+Here is the caller graph for this function:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=232pt]{lora_8c_aacc88f32c7baeb924e13546e7147ba27_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{lora_8c_a878fee5b2f0a62676d29396a9d1b0fe3}\index{lora.c@{lora.c}!lora\_set\_ready@{lora\_set\_ready}}
+\index{lora\_set\_ready@{lora\_set\_ready}!lora.c@{lora.c}}
+\doxysubsubsection{\texorpdfstring{lora\_set\_ready()}{lora\_set\_ready()}}
+{\footnotesize\ttfamily \label{lora_8c_a878fee5b2f0a62676d29396a9d1b0fe3} 
+void lora\+\_\+set\+\_\+ready (\begin{DoxyParamCaption}\item[{uint8\+\_\+t}]{ready}{}\end{DoxyParamCaption})}
+
+
+
+Manually set module ready state (internal use). 
+
+
+\begin{DoxyParams}{Parameters}
+{\em ready} & 1 to mark module as ready, 0 to mark as busy \\
+\hline
+\end{DoxyParams}

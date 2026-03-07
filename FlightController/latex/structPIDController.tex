@@ -1,0 +1,109 @@
+\doxysection{PIDController Struct Reference}
+\hypertarget{structPIDController}{}\label{structPIDController}\index{PIDController@{PIDController}}
+
+
+Single-\/axis \doxylink{structPID}{PID} controller with anti-\/windup.  
+
+
+
+
+{\ttfamily \+\#include $<$pid.\+h$>$}
+
+\doxysubsubsection*{Data Fields}
+\begin{DoxyCompactItemize}
+\item 
+float \doxymbox{\hyperlink{structPIDController_a5c3eb07a0c4a00b86e1433b84e458a56}{Kp}}
+\item 
+float \doxymbox{\hyperlink{structPIDController_a8acd1f19045a89a9dbd1848e56ae6ae0}{Ki}}
+\item 
+float \doxymbox{\hyperlink{structPIDController_a22ef7c93498970edb0b04bef3ae3d2f9}{Kd}}
+\item 
+float \doxymbox{\hyperlink{structPIDController_a9f1834a4933702b2de5076effea32f1f}{integral}}
+\item 
+float \doxymbox{\hyperlink{structPIDController_ac5e11f396c30844cbc2ff4660a060e17}{previous\+\_\+error}}
+\item 
+float \doxymbox{\hyperlink{structPIDController_a2806ff7c9637c29b248485a14f7db23f}{integral\+\_\+limit}}
+\item 
+float \doxymbox{\hyperlink{structPIDController_a644afd9cd0a169676dd27cee1d675ad6}{output\+\_\+limit}}
+\item 
+float \doxymbox{\hyperlink{structPIDController_a02cd3e4ce1a562287cf280a1b3e7586e}{p\+\_\+term}}
+\item 
+float \doxymbox{\hyperlink{structPIDController_a476dc405bbc7948fe17d3c624ac347c0}{i\+\_\+term}}
+\item 
+float \doxymbox{\hyperlink{structPIDController_a24c8f767b10244523983de598dbbd4a0}{d\+\_\+term}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+Single-\/axis \doxylink{structPID}{PID} controller with anti-\/windup. 
+
+Implements \doxylink{structPID}{PID} control with direct rate feedback for derivative term. The D term uses measured angular velocity instead of error derivative, eliminating derivative kick and reducing noise sensitivity. 
+
+\label{doc-variable-members}
+\Hypertarget{structPIDController_doc-variable-members}
+\doxysubsection{Field Documentation}
+\Hypertarget{structPIDController_a24c8f767b10244523983de598dbbd4a0}\index{PIDController@{PIDController}!d\_term@{d\_term}}
+\index{d\_term@{d\_term}!PIDController@{PIDController}}
+\doxysubsubsection{\texorpdfstring{d\_term}{d\_term}}
+{\footnotesize\ttfamily \label{structPIDController_a24c8f767b10244523983de598dbbd4a0} 
+float PIDController::\+d\+\_\+term}
+
+Last D term value (for telemetry/\+debugging) \Hypertarget{structPIDController_a476dc405bbc7948fe17d3c624ac347c0}\index{PIDController@{PIDController}!i\_term@{i\_term}}
+\index{i\_term@{i\_term}!PIDController@{PIDController}}
+\doxysubsubsection{\texorpdfstring{i\_term}{i\_term}}
+{\footnotesize\ttfamily \label{structPIDController_a476dc405bbc7948fe17d3c624ac347c0} 
+float PIDController::\+i\+\_\+term}
+
+Last I term value (for telemetry/\+debugging) \Hypertarget{structPIDController_a9f1834a4933702b2de5076effea32f1f}\index{PIDController@{PIDController}!integral@{integral}}
+\index{integral@{integral}!PIDController@{PIDController}}
+\doxysubsubsection{\texorpdfstring{integral}{integral}}
+{\footnotesize\ttfamily \label{structPIDController_a9f1834a4933702b2de5076effea32f1f} 
+float PIDController::\+integral}
+
+Accumulated integral term \Hypertarget{structPIDController_a2806ff7c9637c29b248485a14f7db23f}\index{PIDController@{PIDController}!integral\_limit@{integral\_limit}}
+\index{integral\_limit@{integral\_limit}!PIDController@{PIDController}}
+\doxysubsubsection{\texorpdfstring{integral\_limit}{integral\_limit}}
+{\footnotesize\ttfamily \label{structPIDController_a2806ff7c9637c29b248485a14f7db23f} 
+float PIDController::\+integral\+\_\+limit}
+
+Integral windup limit (prevents excessive I accumulation) \Hypertarget{structPIDController_a22ef7c93498970edb0b04bef3ae3d2f9}\index{PIDController@{PIDController}!Kd@{Kd}}
+\index{Kd@{Kd}!PIDController@{PIDController}}
+\doxysubsubsection{\texorpdfstring{Kd}{Kd}}
+{\footnotesize\ttfamily \label{structPIDController_a22ef7c93498970edb0b04bef3ae3d2f9} 
+float PIDController::\+\+Kd}
+
+Derivative gain (damping, applied to rate measurement) \Hypertarget{structPIDController_a8acd1f19045a89a9dbd1848e56ae6ae0}\index{PIDController@{PIDController}!Ki@{Ki}}
+\index{Ki@{Ki}!PIDController@{PIDController}}
+\doxysubsubsection{\texorpdfstring{Ki}{Ki}}
+{\footnotesize\ttfamily \label{structPIDController_a8acd1f19045a89a9dbd1848e56ae6ae0} 
+float PIDController::\+\+Ki}
+
+Integral gain (steady-\/state error correction) \Hypertarget{structPIDController_a5c3eb07a0c4a00b86e1433b84e458a56}\index{PIDController@{PIDController}!Kp@{Kp}}
+\index{Kp@{Kp}!PIDController@{PIDController}}
+\doxysubsubsection{\texorpdfstring{Kp}{Kp}}
+{\footnotesize\ttfamily \label{structPIDController_a5c3eb07a0c4a00b86e1433b84e458a56} 
+float PIDController::\+\+Kp}
+
+Proportional gain (error response) \Hypertarget{structPIDController_a644afd9cd0a169676dd27cee1d675ad6}\index{PIDController@{PIDController}!output\_limit@{output\_limit}}
+\index{output\_limit@{output\_limit}!PIDController@{PIDController}}
+\doxysubsubsection{\texorpdfstring{output\_limit}{output\_limit}}
+{\footnotesize\ttfamily \label{structPIDController_a644afd9cd0a169676dd27cee1d675ad6} 
+float PIDController::\+output\+\_\+limit}
+
+Output saturation limit (±limit) \Hypertarget{structPIDController_a02cd3e4ce1a562287cf280a1b3e7586e}\index{PIDController@{PIDController}!p\_term@{p\_term}}
+\index{p\_term@{p\_term}!PIDController@{PIDController}}
+\doxysubsubsection{\texorpdfstring{p\_term}{p\_term}}
+{\footnotesize\ttfamily \label{structPIDController_a02cd3e4ce1a562287cf280a1b3e7586e} 
+float PIDController::\+p\+\_\+term}
+
+Last P term value (for telemetry/\+debugging) \Hypertarget{structPIDController_ac5e11f396c30844cbc2ff4660a060e17}\index{PIDController@{PIDController}!previous\_error@{previous\_error}}
+\index{previous\_error@{previous\_error}!PIDController@{PIDController}}
+\doxysubsubsection{\texorpdfstring{previous\_error}{previous\_error}}
+{\footnotesize\ttfamily \label{structPIDController_ac5e11f396c30844cbc2ff4660a060e17} 
+float PIDController::\+previous\+\_\+error}
+
+Error from previous timestep (unused with rate feedback) 
+
+The documentation for this struct was generated from the following file:\+\begin{DoxyCompactItemize}
+\item 
+src/\+\doxymbox{\hyperlink{pid_8h}{pid.\+h}}\end{DoxyCompactItemize}

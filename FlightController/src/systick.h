@@ -37,6 +37,8 @@ void systick_init(void);
  */
 uint32_t millis(void);
 
+uint32_t micros(void);
+
 /**
  * @brief Blocking delay in milliseconds
  *

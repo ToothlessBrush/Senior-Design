@@ -1,0 +1,631 @@
+\doxysection{src/\+imu.h File Reference}
+\hypertarget{imu_8h}{}\label{imu_8h}\index{src/imu.h@{src/imu.h}}
+
+
+\doxylink{structIMU}{IMU} driver for LSM6\+DSL accelerometer/\+gyroscope sensor.  
+
+
+{\ttfamily \+\#include $<$stdbool.\+h$>$}\newline
+{\ttfamily \+\#include $<$stdint.\+h$>$}\newline
+Include dependency graph for imu.\+h:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=212pt]{imu_8h__incl}
+\end{center}
+\end{figure}
+This graph shows which files directly or indirectly include this file:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{imu_8h__dep__incl}
+\end{center}
+\end{figure}
+\doxysubsubsection*{Data Structures}
+\begin{DoxyCompactItemize}
+\item 
+struct \doxymbox{\hyperlink{structBiquad__t}{Biquad\+\_\+t}}
+\begin{DoxyCompactList}\small\item\em Biquad (2nd order IIR) low-\/pass filter. \end{DoxyCompactList}\item 
+struct \doxymbox{\hyperlink{structAttitude}{Attitude}}
+\begin{DoxyCompactList}\small\item\em 3D attitude (Euler angles in radians) \end{DoxyCompactList}\item 
+union \doxymbox{\hyperlink{unionVec3}{Vec3}}
+\begin{DoxyCompactList}\small\item\em 3D floating-\/point vector \end{DoxyCompactList}\item 
+union \doxymbox{\hyperlink{unionIVec3}{IVec3}}
+\begin{DoxyCompactList}\small\item\em 3D integer vector for raw sensor readings \end{DoxyCompactList}\item 
+union \doxymbox{\hyperlink{unionVec2}{Vec2}}
+\begin{DoxyCompactList}\small\item\em 2D floating-\/point vector \end{DoxyCompactList}\item 
+struct \doxymbox{\hyperlink{structAcceleration}{Acceleration}}
+\begin{DoxyCompactList}\small\item\em 3-\/axis acceleration (deprecated, use \doxylink{unionVec3}{Vec3} instead) \end{DoxyCompactList}\item 
+struct \doxymbox{\hyperlink{structIMU__Calibration}{IMU\+\_\+\+Calibration}}
+\begin{DoxyCompactList}\small\item\em \doxylink{structIMU}{IMU} calibration data. \end{DoxyCompactList}\item 
+struct \doxymbox{\hyperlink{structIMU}{IMU}}
+\begin{DoxyCompactList}\small\item\em \doxylink{structIMU}{IMU} context structure with sensor data and state. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsubsection*{Functions}
+\begin{DoxyCompactItemize}
+\item 
+bool \doxymbox{\hyperlink{imu_8h_a65480c51a55c7c0899f27cc247817955}{verify\+IMU}} (void)
+\begin{DoxyCompactList}\small\item\em Verify \doxylink{structIMU}{IMU} presence and identity via SPI. \end{DoxyCompactList}\item 
+void \doxymbox{\hyperlink{imu_8h_aa12dd88a5f18152376f540a5f3c36ded}{read\+Acc\+Raw}} (\doxymbox{\hyperlink{unionIVec3}{IVec3}} \texorpdfstring{$\ast$}{*}a)
+\begin{DoxyCompactList}\small\item\em Read raw 3-\/axis accelerometer data from LSM6\+DSL. \end{DoxyCompactList}\item 
+void \doxymbox{\hyperlink{imu_8h_ac943d896cbe6840f268c8a0b823f2bc9}{read\+Gyro\+Raw}} (\doxymbox{\hyperlink{unionIVec3}{IVec3}} \texorpdfstring{$\ast$}{*}g)
+\begin{DoxyCompactList}\small\item\em Read raw 3-\/axis gyroscope data from LSM6\+DSL. \end{DoxyCompactList}\item 
+void \doxymbox{\hyperlink{imu_8h_aa0f07a23613b5460d7c5bc26dafb6c91}{read\+Mag\+Raw}} (\doxymbox{\hyperlink{unionIVec3}{IVec3}} \texorpdfstring{$\ast$}{*}m)
+\begin{DoxyCompactList}\small\item\em Read raw 3-\/axis magnetometer data (unused). \end{DoxyCompactList}\item 
+void \doxymbox{\hyperlink{imu_8h_ab974cd5c25e40de5c8fddb82296d1585}{gyro\+To\+Rad\+PS}} (const \doxymbox{\hyperlink{unionIVec3}{IVec3}} \texorpdfstring{$\ast$}{*}gyro\+\_\+raw, \doxymbox{\hyperlink{unionVec3}{Vec3}} \texorpdfstring{$\ast$}{*}gyro\+\_\+rad\+\_\+s)
+\begin{DoxyCompactList}\small\item\em Convert raw gyroscope readings to rad/\+s. \end{DoxyCompactList}\item 
+void \doxymbox{\hyperlink{imu_8h_a1ad15b26e2204d05070997cde67cb326}{acc\+ToG}} (const \doxymbox{\hyperlink{unionIVec3}{IVec3}} \texorpdfstring{$\ast$}{*}acc\+\_\+raw, \doxymbox{\hyperlink{unionVec3}{Vec3}} \texorpdfstring{$\ast$}{*}acc\+\_\+g)
+\begin{DoxyCompactList}\small\item\em Convert raw accelerometer readings to g (gravitational units). \end{DoxyCompactList}\item 
+void \doxymbox{\hyperlink{imu_8h_a2ac64e96c3601ab76e49a08624e1334c}{mag\+To\+Gauss}} (const \doxymbox{\hyperlink{unionIVec3}{IVec3}} \texorpdfstring{$\ast$}{*}mag\+\_\+raw, \doxymbox{\hyperlink{unionVec3}{Vec3}} \texorpdfstring{$\ast$}{*}mag\+\_\+gauss)
+\begin{DoxyCompactList}\small\item\em Convert raw magnetometer readings to gauss (unused). \end{DoxyCompactList}\item 
+void \doxymbox{\hyperlink{imu_8h_af93057995d06995fd3958c493e457326}{update\+Orientation}} (\doxymbox{\hyperlink{structAttitude}{Attitude}} \texorpdfstring{$\ast$}{*}attitude, const \doxymbox{\hyperlink{unionVec3}{Vec3}} \texorpdfstring{$\ast$}{*}acc\+\_\+g, const \doxymbox{\hyperlink{unionVec3}{Vec3}} \texorpdfstring{$\ast$}{*}gyro\+\_\+rad\+\_\+s, float dt)
+\begin{DoxyCompactList}\small\item\em Update attitude estimate using complementary filter. \end{DoxyCompactList}\item 
+bool \doxymbox{\hyperlink{imu_8h_af1a25c927d50f67a93bac5b930cdebe1}{imu\+\_\+init}} (\doxymbox{\hyperlink{structIMU}{IMU}} \texorpdfstring{$\ast$}{*}imu)
+\begin{DoxyCompactList}\small\item\em Initialize \doxylink{structIMU}{IMU} sensor and data structures. \end{DoxyCompactList}\item 
+void \doxymbox{\hyperlink{imu_8h_adc03ca49fd244054f4f7b7ca0afb3558}{IMU\+\_\+update}} (\doxymbox{\hyperlink{structIMU}{IMU}} \texorpdfstring{$\ast$}{*}imu, float dt)
+\begin{DoxyCompactList}\small\item\em Update \doxylink{structIMU}{IMU} with new sensor readings. \end{DoxyCompactList}\item 
+bool \doxymbox{\hyperlink{imu_8h_ab572d62d9bf20cb3a4544900c89d5649}{imu\+\_\+data\+\_\+ready}} ()
+\begin{DoxyCompactList}\small\item\em Check if new \doxylink{structIMU}{IMU} data is ready. \end{DoxyCompactList}\item 
+void \doxymbox{\hyperlink{imu_8h_a879f89f3872a908141ec19d9bfdaa1a8}{IMU\+\_\+calibrate}} (\doxymbox{\hyperlink{structIMU}{IMU}} \texorpdfstring{$\ast$}{*}imu, uint16\+\_\+t samples)
+\begin{DoxyCompactList}\small\item\em Calibrate gyroscope and accelerometer biases. \end{DoxyCompactList}\item 
+void \doxymbox{\hyperlink{imu_8h_a51efbfa905aced2f8a5ee7c1f250b410}{IMU\+\_\+calibrate\+\_\+mag}} (\doxymbox{\hyperlink{structIMU}{IMU}} \texorpdfstring{$\ast$}{*}imu, uint16\+\_\+t samples)
+\begin{DoxyCompactList}\small\item\em Calibrate magnetometer (unused). \end{DoxyCompactList}\item 
+void \doxymbox{\hyperlink{imu_8h_ae2a686dcdd6a1cf644ce9db2b1a19d88}{biquad\+\_\+lpf\+\_\+init}} (\doxymbox{\hyperlink{structBiquad__t}{Biquad\+\_\+t}} \texorpdfstring{$\ast$}{*}filter, float cutoff\+\_\+freq, float sample\+\_\+freq)
+\begin{DoxyCompactList}\small\item\em Initialize biquad low-\/pass filter. \end{DoxyCompactList}\item 
+float \doxymbox{\hyperlink{imu_8h_abeb5724eb7d057c30f48d58959aa2276}{biquad\+\_\+apply}} (\doxymbox{\hyperlink{structBiquad__t}{Biquad\+\_\+t}} \texorpdfstring{$\ast$}{*}filter, float input)
+\begin{DoxyCompactList}\small\item\em Apply biquad filter to input sample. \end{DoxyCompactList}\item 
+void \doxymbox{\hyperlink{imu_8h_aa0f501ee4901aa6b14130a4b1bc4d0d4}{write\+Acc\+Reg}} (uint8\+\_\+t reg, uint8\+\_\+t value)
+\begin{DoxyCompactList}\small\item\em Write byte to accelerometer register (unused helper). \end{DoxyCompactList}\item 
+void \doxymbox{\hyperlink{imu_8h_a9c7bd5a1b69672f31e8a51a55bd3db74}{write\+Gyr\+Reg}} (uint8\+\_\+t reg, uint8\+\_\+t value)
+\begin{DoxyCompactList}\small\item\em Write byte to gyroscope register (unused helper). \end{DoxyCompactList}\item 
+void \doxymbox{\hyperlink{imu_8h_a564f54226631c35fea2bcffe72e7eed9}{IMU\+\_\+reset\+\_\+velocity}} (\doxymbox{\hyperlink{structIMU}{IMU}} \texorpdfstring{$\ast$}{*}imu)
+\begin{DoxyCompactList}\small\item\em Reset velocity estimation state. \end{DoxyCompactList}\end{DoxyCompactItemize}
+\doxysubsubsection*{Variables}
+\begin{DoxyCompactItemize}
+\item 
+int \doxymbox{\hyperlink{imu_8h_abe36a500ca0f45f39f6381ce94c4f780}{Berry\+IMUversion}}
+\begin{DoxyCompactList}\small\item\em Berry\+IMU version identifier (always 3 for Berry\+IMUv4/\+\+LSM6\+DSL). \end{DoxyCompactList}\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\doxylink{structIMU}{IMU} driver for LSM6\+DSL accelerometer/\+gyroscope sensor. 
+
+Provides high-\/speed (6660 Hz) \doxylink{structIMU}{IMU} data acquisition with:\+
+\begin{DoxyItemize}
+\item 3-\/axis gyroscope (±500 dps range, converted to rad/\+s)
+\item 3-\/axis accelerometer (±8g range)
+\item Complementary filter for attitude estimation (roll, pitch, yaw)
+\item Biquad low-\/pass filters for noise reduction (motor vibration rejection)
+\item Bias calibration for gyro and accelerometer
+\item Velocity estimation from high-\/pass filtered acceleration
+\item Interrupt-\/driven data ready signal for precise timing
+\end{DoxyItemize}
+
+Hardware:\+ LSM6\+DSL via SPI1, data ready interrupt on PA0 (EXTI0) Update Rate:\+ 6660 Hz (150 μs period)
+
+Coordinate System (NED -\/ North-\/\+East-\/\+Down):\+
+\begin{DoxyItemize}
+\item X:\+ Forward (nose direction)
+\item Y:\+ Right (right wing direction)
+\item Z:\+ Down
+\item Roll:\+ Rotation about X (positive = right wing down)
+\item Pitch:\+ Rotation about Y (positive = nose up)
+\item Yaw:\+ Rotation about Z (positive = clockwise from above) 
+\end{DoxyItemize}
+
+\label{doc-func-members}
+\Hypertarget{imu_8h_doc-func-members}
+\doxysubsection{Function Documentation}
+\Hypertarget{imu_8h_a1ad15b26e2204d05070997cde67cb326}\index{imu.h@{imu.h}!accToG@{accToG}}
+\index{accToG@{accToG}!imu.h@{imu.h}}
+\doxysubsubsection{\texorpdfstring{accToG()}{accToG()}}
+{\footnotesize\ttfamily \label{imu_8h_a1ad15b26e2204d05070997cde67cb326} 
+void acc\+ToG (\begin{DoxyParamCaption}\item[{const \doxymbox{\hyperlink{unionIVec3}{IVec3}} \texorpdfstring{$\ast$}{*}}]{acc\+\_\+raw}{, }\item[{\doxymbox{\hyperlink{unionVec3}{Vec3}} \texorpdfstring{$\ast$}{*}}]{acc\+\_\+g}{}\end{DoxyParamCaption})}
+
+
+
+Convert raw accelerometer readings to g (gravitational units). 
+
+Scales raw 16-\/bit values to acceleration in g. LSM6\+DSL configured for ±8g range:\+ 16g /\+ 65536 counts.
+
+
+\begin{DoxyParams}{Parameters}
+{\em acc\+\_\+raw} & Pointer to raw accelerometer data \\
+\hline
+{\em acc\+\_\+g} & Pointer to output vector (g) \\
+\hline
+\end{DoxyParams}
+Here is the caller graph for this function:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=327pt]{imu_8h_a1ad15b26e2204d05070997cde67cb326_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{imu_8h_abeb5724eb7d057c30f48d58959aa2276}\index{imu.h@{imu.h}!biquad\_apply@{biquad\_apply}}
+\index{biquad\_apply@{biquad\_apply}!imu.h@{imu.h}}
+\doxysubsubsection{\texorpdfstring{biquad\_apply()}{biquad\_apply()}}
+{\footnotesize\ttfamily \label{imu_8h_abeb5724eb7d057c30f48d58959aa2276} 
+float biquad\+\_\+apply (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{structBiquad__t}{Biquad\+\_\+t}} \texorpdfstring{$\ast$}{*}}]{filter}{, }\item[{float}]{input}{}\end{DoxyParamCaption})}
+
+
+
+Apply biquad filter to input sample. 
+
+Implements Direct Form II Transposed structure. Updates internal history and returns filtered output.
+
+
+\begin{DoxyParams}{Parameters}
+{\em filter} & Pointer to \doxylink{structBiquad__t}{Biquad\+\_\+t} structure \\
+\hline
+{\em input} & Input sample \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+Filtered output 
+\end{DoxyReturn}
+Here is the caller graph for this function:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=349pt]{imu_8h_abeb5724eb7d057c30f48d58959aa2276_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{imu_8h_ae2a686dcdd6a1cf644ce9db2b1a19d88}\index{imu.h@{imu.h}!biquad\_lpf\_init@{biquad\_lpf\_init}}
+\index{biquad\_lpf\_init@{biquad\_lpf\_init}!imu.h@{imu.h}}
+\doxysubsubsection{\texorpdfstring{biquad\_lpf\_init()}{biquad\_lpf\_init()}}
+{\footnotesize\ttfamily \label{imu_8h_ae2a686dcdd6a1cf644ce9db2b1a19d88} 
+void biquad\+\_\+lpf\+\_\+init (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{structBiquad__t}{Biquad\+\_\+t}} \texorpdfstring{$\ast$}{*}}]{filter}{, }\item[{float}]{cutoff\+\_\+freq}{, }\item[{float}]{sample\+\_\+freq}{}\end{DoxyParamCaption})}
+
+
+
+Initialize biquad low-\/pass filter. 
+
+Calculates Butterworth LPF coefficients (Q=0.\+707) for specified cutoff frequency and sample rate. Zeros filter history.
+
+
+\begin{DoxyParams}{Parameters}
+{\em filter} & Pointer to \doxylink{structBiquad__t}{Biquad\+\_\+t} structure \\
+\hline
+{\em cutoff\+\_\+freq} & Cutoff frequency (Hz) \\
+\hline
+{\em sample\+\_\+freq} & Sample rate (Hz, 6660 for \doxylink{structIMU}{IMU}) \\
+\hline
+\end{DoxyParams}
+Here is the caller graph for this function:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=337pt]{imu_8h_ae2a686dcdd6a1cf644ce9db2b1a19d88_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{imu_8h_ab974cd5c25e40de5c8fddb82296d1585}\index{imu.h@{imu.h}!gyroToRadPS@{gyroToRadPS}}
+\index{gyroToRadPS@{gyroToRadPS}!imu.h@{imu.h}}
+\doxysubsubsection{\texorpdfstring{gyroToRadPS()}{gyroToRadPS()}}
+{\footnotesize\ttfamily \label{imu_8h_ab974cd5c25e40de5c8fddb82296d1585} 
+void gyro\+To\+Rad\+PS (\begin{DoxyParamCaption}\item[{const \doxymbox{\hyperlink{unionIVec3}{IVec3}} \texorpdfstring{$\ast$}{*}}]{gyro\+\_\+raw}{, }\item[{\doxymbox{\hyperlink{unionVec3}{Vec3}} \texorpdfstring{$\ast$}{*}}]{gyro\+\_\+rad\+\_\+s}{}\end{DoxyParamCaption})}
+
+
+
+Convert raw gyroscope readings to rad/\+s. 
+
+Scales raw 16-\/bit values to angular velocity in radians per second. LSM6\+DSL configured for ±500 dps range:\+ 1000 dps /\+ 65536 counts.
+
+
+\begin{DoxyParams}{Parameters}
+{\em gyro\+\_\+raw} & Pointer to raw gyroscope data \\
+\hline
+{\em gyro\+\_\+rad\+\_\+s} & Pointer to output vector (rad/\+s) \\
+\hline
+\end{DoxyParams}
+Here is the caller graph for this function:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{imu_8h_ab974cd5c25e40de5c8fddb82296d1585_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{imu_8h_a879f89f3872a908141ec19d9bfdaa1a8}\index{imu.h@{imu.h}!IMU\_calibrate@{IMU\_calibrate}}
+\index{IMU\_calibrate@{IMU\_calibrate}!imu.h@{imu.h}}
+\doxysubsubsection{\texorpdfstring{IMU\_calibrate()}{IMU\_calibrate()}}
+{\footnotesize\ttfamily \label{imu_8h_a879f89f3872a908141ec19d9bfdaa1a8} 
+void IMU\+\_\+calibrate (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{structIMU}{IMU}} \texorpdfstring{$\ast$}{*}}]{imu}{, }\item[{uint16\+\_\+t}]{samples}{}\end{DoxyParamCaption})}
+
+
+
+Calibrate gyroscope and accelerometer biases. 
+
+Collects specified number of samples at 6660 Hz and averages to determine sensor biases. \doxylink{structIMU}{IMU} must be stationary on level surface. Results stored in imu-\/\texorpdfstring{$>$}{>}cal for automatic application in \doxylink{imu_8h_adc03ca49fd244054f4f7b7ca0afb3558}{IMU\+\_\+update()}.
+
+Gyro calibration:\+ Averages readings to find zero-\/rate offset. Accel calibration:\+ Averages readings, subtracts 1g from Z axis (expects Z up).
+
+
+\begin{DoxyParams}{Parameters}
+{\em imu} & Pointer to \doxylink{structIMU}{IMU} structure \\
+\hline
+{\em samples} & Number of samples to collect (e.\+g., 6660 for 1 second) \\
+\hline
+\end{DoxyParams}
+Here is the call graph for this function:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{imu_8h_a879f89f3872a908141ec19d9bfdaa1a8_cgraph}
+\end{center}
+\end{figure}
+Here is the caller graph for this function:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=240pt]{imu_8h_a879f89f3872a908141ec19d9bfdaa1a8_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{imu_8h_a51efbfa905aced2f8a5ee7c1f250b410}\index{imu.h@{imu.h}!IMU\_calibrate\_mag@{IMU\_calibrate\_mag}}
+\index{IMU\_calibrate\_mag@{IMU\_calibrate\_mag}!imu.h@{imu.h}}
+\doxysubsubsection{\texorpdfstring{IMU\_calibrate\_mag()}{IMU\_calibrate\_mag()}}
+{\footnotesize\ttfamily \label{imu_8h_a51efbfa905aced2f8a5ee7c1f250b410} 
+void IMU\+\_\+calibrate\+\_\+mag (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{structIMU}{IMU}} \texorpdfstring{$\ast$}{*}}]{imu}{, }\item[{uint16\+\_\+t}]{samples}{}\end{DoxyParamCaption})}
+
+
+
+Calibrate magnetometer (unused). 
+
+
+\begin{DoxyParams}{Parameters}
+{\em imu} & Pointer to \doxylink{structIMU}{IMU} structure \\
+\hline
+{\em samples} & Number of samples to collect \\
+\hline
+\end{DoxyParams}
+\Hypertarget{imu_8h_ab572d62d9bf20cb3a4544900c89d5649}\index{imu.h@{imu.h}!imu\_data\_ready@{imu\_data\_ready}}
+\index{imu\_data\_ready@{imu\_data\_ready}!imu.h@{imu.h}}
+\doxysubsubsection{\texorpdfstring{imu\_data\_ready()}{imu\_data\_ready()}}
+{\footnotesize\ttfamily \label{imu_8h_ab572d62d9bf20cb3a4544900c89d5649} 
+bool imu\+\_\+data\+\_\+ready (\begin{DoxyParamCaption}{}{}\end{DoxyParamCaption})}
+
+
+
+Check if new \doxylink{structIMU}{IMU} data is ready. 
+
+Reads EXTI0 pending register to check if LSM6\+DSL data ready interrupt has fired. Clears interrupt flag if set. Use to determine when to call \doxylink{imu_8h_adc03ca49fd244054f4f7b7ca0afb3558}{IMU\+\_\+update()} for precise timing.
+
+\begin{DoxyReturn}{Returns}
+true if new data available, false otherwise 
+\end{DoxyReturn}
+Here is the caller graph for this function:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{imu_8h_ab572d62d9bf20cb3a4544900c89d5649_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{imu_8h_af1a25c927d50f67a93bac5b930cdebe1}\index{imu.h@{imu.h}!imu\_init@{imu\_init}}
+\index{imu\_init@{imu\_init}!imu.h@{imu.h}}
+\doxysubsubsection{\texorpdfstring{imu\_init()}{imu\_init()}}
+{\footnotesize\ttfamily \label{imu_8h_af1a25c927d50f67a93bac5b930cdebe1} 
+bool imu\+\_\+init (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{structIMU}{IMU}} \texorpdfstring{$\ast$}{*}}]{imu}{}\end{DoxyParamCaption})}
+
+
+
+Initialize \doxylink{structIMU}{IMU} sensor and data structures. 
+
+Configures LSM6\+DSL via SPI:\+
+\begin{DoxyItemize}
+\item ODR:\+ 6660 Hz for gyro and accel
+\item Gyro range:\+ ±500 dps with LPF1 enabled
+\item Accel range:\+ ±8g with LPF2 enabled (composite filter for vibration rejection)
+\item Data ready interrupt on INT1 -\/\texorpdfstring{$>$}{>} PA0
+\item Software biquad filters:\+ 50 Hz gyro, 25 Hz accel
+\end{DoxyItemize}
+
+
+\begin{DoxyParams}{Parameters}
+{\em imu} & Pointer to \doxylink{structIMU}{IMU} structure to initialize \\
+\hline
+\end{DoxyParams}
+\begin{DoxyReturn}{Returns}
+true if initialization successful, false if WHO\+\_\+\+AM\+\_\+I check fails 
+\end{DoxyReturn}
+Here is the call graph for this function:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{imu_8h_af1a25c927d50f67a93bac5b930cdebe1_cgraph}
+\end{center}
+\end{figure}
+Here is the caller graph for this function:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=213pt]{imu_8h_af1a25c927d50f67a93bac5b930cdebe1_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{imu_8h_a564f54226631c35fea2bcffe72e7eed9}\index{imu.h@{imu.h}!IMU\_reset\_velocity@{IMU\_reset\_velocity}}
+\index{IMU\_reset\_velocity@{IMU\_reset\_velocity}!imu.h@{imu.h}}
+\doxysubsubsection{\texorpdfstring{IMU\_reset\_velocity()}{IMU\_reset\_velocity()}}
+{\footnotesize\ttfamily \label{imu_8h_a564f54226631c35fea2bcffe72e7eed9} 
+void IMU\+\_\+reset\+\_\+velocity (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{structIMU}{IMU}} \texorpdfstring{$\ast$}{*}}]{imu}{}\end{DoxyParamCaption})}
+
+
+
+Reset velocity estimation state. 
+
+Zeros velocity, high-\/pass filtered acceleration, and previous acceleration. Call when transitioning to armed state to prevent stale velocity estimates.
+
+
+\begin{DoxyParams}{Parameters}
+{\em imu} & Pointer to \doxylink{structIMU}{IMU} structure \\
+\hline
+\end{DoxyParams}
+Here is the caller graph for this function:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=267pt]{imu_8h_a564f54226631c35fea2bcffe72e7eed9_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{imu_8h_adc03ca49fd244054f4f7b7ca0afb3558}\index{imu.h@{imu.h}!IMU\_update@{IMU\_update}}
+\index{IMU\_update@{IMU\_update}!imu.h@{imu.h}}
+\doxysubsubsection{\texorpdfstring{IMU\_update()}{IMU\_update()}}
+{\footnotesize\ttfamily \label{imu_8h_adc03ca49fd244054f4f7b7ca0afb3558} 
+void IMU\+\_\+update (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{structIMU}{IMU}} \texorpdfstring{$\ast$}{*}}]{imu}{, }\item[{float}]{dt}{}\end{DoxyParamCaption})}
+
+
+
+Update \doxylink{structIMU}{IMU} with new sensor readings. 
+
+Reads raw sensor data, applies scaling and calibration, runs low-\/pass filters, updates attitude estimate, and calculates velocity from high-\/pass filtered acceleration. Should be called at fixed 6660 Hz rate when \doxylink{imu_8h_ab572d62d9bf20cb3a4544900c89d5649}{imu\+\_\+data\+\_\+ready()} is true.
+
+Processing pipeline:\+
+\begin{DoxyEnumerate}
+\item Read raw gyro and accel
+\item Convert to physical units (rad/\+s, g)
+\item Apply bias calibration
+\item Apply biquad low-\/pass filters
+\item Update attitude (complementary filter)
+\item Estimate velocity (high-\/pass filter + integration)
+\end{DoxyEnumerate}
+
+
+\begin{DoxyParams}{Parameters}
+{\em imu} & Pointer to \doxylink{structIMU}{IMU} structure \\
+\hline
+{\em dt} & Time delta since last update (seconds, \texorpdfstring{$\sim$}{\string~}0.00015) \\
+\hline
+\end{DoxyParams}
+Here is the call graph for this function:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{imu_8h_adc03ca49fd244054f4f7b7ca0afb3558_cgraph}
+\end{center}
+\end{figure}
+Here is the caller graph for this function:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=231pt]{imu_8h_adc03ca49fd244054f4f7b7ca0afb3558_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{imu_8h_a2ac64e96c3601ab76e49a08624e1334c}\index{imu.h@{imu.h}!magToGauss@{magToGauss}}
+\index{magToGauss@{magToGauss}!imu.h@{imu.h}}
+\doxysubsubsection{\texorpdfstring{magToGauss()}{magToGauss()}}
+{\footnotesize\ttfamily \label{imu_8h_a2ac64e96c3601ab76e49a08624e1334c} 
+void mag\+To\+Gauss (\begin{DoxyParamCaption}\item[{const \doxymbox{\hyperlink{unionIVec3}{IVec3}} \texorpdfstring{$\ast$}{*}}]{mag\+\_\+raw}{, }\item[{\doxymbox{\hyperlink{unionVec3}{Vec3}} \texorpdfstring{$\ast$}{*}}]{mag\+\_\+gauss}{}\end{DoxyParamCaption})}
+
+
+
+Convert raw magnetometer readings to gauss (unused). 
+
+
+\begin{DoxyParams}{Parameters}
+{\em mag\+\_\+raw} & Pointer to raw magnetometer data \\
+\hline
+{\em mag\+\_\+gauss} & Pointer to output vector (gauss) \\
+\hline
+\end{DoxyParams}
+\Hypertarget{imu_8h_aa12dd88a5f18152376f540a5f3c36ded}\index{imu.h@{imu.h}!readAccRaw@{readAccRaw}}
+\index{readAccRaw@{readAccRaw}!imu.h@{imu.h}}
+\doxysubsubsection{\texorpdfstring{readAccRaw()}{readAccRaw()}}
+{\footnotesize\ttfamily \label{imu_8h_aa12dd88a5f18152376f540a5f3c36ded} 
+void read\+Acc\+Raw (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{unionIVec3}{IVec3}} \texorpdfstring{$\ast$}{*}}]{a}{}\end{DoxyParamCaption})}
+
+
+
+Read raw 3-\/axis accelerometer data from LSM6\+DSL. 
+
+Reads 6 bytes from OUTX\+\_\+\+L\+\_\+\+XL register (auto-\/increment) and combines into signed 16-\/bit values for each axis.
+
+
+\begin{DoxyParams}{Parameters}
+{\em a} & Pointer to \doxylink{unionIVec3}{IVec3} to store raw accelerometer data \\
+\hline
+\end{DoxyParams}
+Here is the call graph for this function:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{imu_8h_aa12dd88a5f18152376f540a5f3c36ded_cgraph}
+\end{center}
+\end{figure}
+Here is the caller graph for this function:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{imu_8h_aa12dd88a5f18152376f540a5f3c36ded_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{imu_8h_ac943d896cbe6840f268c8a0b823f2bc9}\index{imu.h@{imu.h}!readGyroRaw@{readGyroRaw}}
+\index{readGyroRaw@{readGyroRaw}!imu.h@{imu.h}}
+\doxysubsubsection{\texorpdfstring{readGyroRaw()}{readGyroRaw()}}
+{\footnotesize\ttfamily \label{imu_8h_ac943d896cbe6840f268c8a0b823f2bc9} 
+void read\+Gyro\+Raw (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{unionIVec3}{IVec3}} \texorpdfstring{$\ast$}{*}}]{g}{}\end{DoxyParamCaption})}
+
+
+
+Read raw 3-\/axis gyroscope data from LSM6\+DSL. 
+
+Reads 6 bytes from OUTX\+\_\+\+L\+\_\+G register (auto-\/increment) and combines into signed 16-\/bit values for each axis.
+
+
+\begin{DoxyParams}{Parameters}
+{\em g} & Pointer to \doxylink{unionIVec3}{IVec3} to store raw gyroscope data \\
+\hline
+\end{DoxyParams}
+Here is the call graph for this function:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{imu_8h_ac943d896cbe6840f268c8a0b823f2bc9_cgraph}
+\end{center}
+\end{figure}
+Here is the caller graph for this function:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{imu_8h_ac943d896cbe6840f268c8a0b823f2bc9_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{imu_8h_aa0f07a23613b5460d7c5bc26dafb6c91}\index{imu.h@{imu.h}!readMagRaw@{readMagRaw}}
+\index{readMagRaw@{readMagRaw}!imu.h@{imu.h}}
+\doxysubsubsection{\texorpdfstring{readMagRaw()}{readMagRaw()}}
+{\footnotesize\ttfamily \label{imu_8h_aa0f07a23613b5460d7c5bc26dafb6c91} 
+void read\+Mag\+Raw (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{unionIVec3}{IVec3}} \texorpdfstring{$\ast$}{*}}]{m}{}\end{DoxyParamCaption})}
+
+
+
+Read raw 3-\/axis magnetometer data (unused). 
+
+
+\begin{DoxyParams}{Parameters}
+{\em m} & Pointer to \doxylink{unionIVec3}{IVec3} to store raw magnetometer data \\
+\hline
+\end{DoxyParams}
+\Hypertarget{imu_8h_af93057995d06995fd3958c493e457326}\index{imu.h@{imu.h}!updateOrientation@{updateOrientation}}
+\index{updateOrientation@{updateOrientation}!imu.h@{imu.h}}
+\doxysubsubsection{\texorpdfstring{updateOrientation()}{updateOrientation()}}
+{\footnotesize\ttfamily \label{imu_8h_af93057995d06995fd3958c493e457326} 
+void update\+Orientation (\begin{DoxyParamCaption}\item[{\doxymbox{\hyperlink{structAttitude}{Attitude}} \texorpdfstring{$\ast$}{*}}]{attitude}{, }\item[{const \doxymbox{\hyperlink{unionVec3}{Vec3}} \texorpdfstring{$\ast$}{*}}]{acc\+\_\+g}{, }\item[{const \doxymbox{\hyperlink{unionVec3}{Vec3}} \texorpdfstring{$\ast$}{*}}]{gyro\+\_\+rad\+\_\+s}{, }\item[{float}]{dt}{}\end{DoxyParamCaption})}
+
+
+
+Update attitude estimate using complementary filter. 
+
+Combines gyroscope integration (high-\/pass) with accelerometer-\/derived angles (low-\/pass). Complementary filter coefficient:\+ 0.\+95 (95\% gyro, 5\% accel). Yaw is pure gyro integration (no magnetometer correction).
+
+
+\begin{DoxyParams}{Parameters}
+{\em attitude} & Pointer to \doxylink{structAttitude}{Attitude} structure to update \\
+\hline
+{\em acc\+\_\+g} & Pointer to accelerometer data (g) \\
+\hline
+{\em gyro\+\_\+rad\+\_\+s} & Pointer to gyroscope data (rad/\+s) \\
+\hline
+{\em dt} & Time delta since last update (seconds) \\
+\hline
+\end{DoxyParams}
+Here is the caller graph for this function:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{imu_8h_af93057995d06995fd3958c493e457326_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{imu_8h_a65480c51a55c7c0899f27cc247817955}\index{imu.h@{imu.h}!verifyIMU@{verifyIMU}}
+\index{verifyIMU@{verifyIMU}!imu.h@{imu.h}}
+\doxysubsubsection{\texorpdfstring{verifyIMU()}{verifyIMU()}}
+{\footnotesize\ttfamily \label{imu_8h_a65480c51a55c7c0899f27cc247817955} 
+bool verify\+IMU (\begin{DoxyParamCaption}\item[{void}]{}{}\end{DoxyParamCaption})}
+
+
+
+Verify \doxylink{structIMU}{IMU} presence and identity via SPI. 
+
+Reads WHO\+\_\+\+AM\+\_\+I register (0x0F) from LSM6\+DSL. Expected response:\+ 0x6A.
+
+\begin{DoxyReturn}{Returns}
+true if LSM6\+DSL detected, false otherwise 
+\end{DoxyReturn}
+Here is the call graph for this function:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=350pt]{imu_8h_a65480c51a55c7c0899f27cc247817955_cgraph}
+\end{center}
+\end{figure}
+Here is the caller graph for this function:\+
+\nopagebreak
+\begin{figure}[H]
+\begin{center}
+\leavevmode
+\includegraphics[width=313pt]{imu_8h_a65480c51a55c7c0899f27cc247817955_icgraph}
+\end{center}
+\end{figure}
+\Hypertarget{imu_8h_aa0f501ee4901aa6b14130a4b1bc4d0d4}\index{imu.h@{imu.h}!writeAccReg@{writeAccReg}}
+\index{writeAccReg@{writeAccReg}!imu.h@{imu.h}}
+\doxysubsubsection{\texorpdfstring{writeAccReg()}{writeAccReg()}}
+{\footnotesize\ttfamily \label{imu_8h_aa0f501ee4901aa6b14130a4b1bc4d0d4} 
+void write\+Acc\+Reg (\begin{DoxyParamCaption}\item[{uint8\+\_\+t}]{reg}{, }\item[{uint8\+\_\+t}]{value}{}\end{DoxyParamCaption})}
+
+
+
+Write byte to accelerometer register (unused helper). 
+
+
+\begin{DoxyParams}{Parameters}
+{\em reg} & Register address \\
+\hline
+{\em value} & Byte value to write \\
+\hline
+\end{DoxyParams}
+\Hypertarget{imu_8h_a9c7bd5a1b69672f31e8a51a55bd3db74}\index{imu.h@{imu.h}!writeGyrReg@{writeGyrReg}}
+\index{writeGyrReg@{writeGyrReg}!imu.h@{imu.h}}
+\doxysubsubsection{\texorpdfstring{writeGyrReg()}{writeGyrReg()}}
+{\footnotesize\ttfamily \label{imu_8h_a9c7bd5a1b69672f31e8a51a55bd3db74} 
+void write\+Gyr\+Reg (\begin{DoxyParamCaption}\item[{uint8\+\_\+t}]{reg}{, }\item[{uint8\+\_\+t}]{value}{}\end{DoxyParamCaption})}
+
+
+
+Write byte to gyroscope register (unused helper). 
+
+
+\begin{DoxyParams}{Parameters}
+{\em reg} & Register address \\
+\hline
+{\em value} & Byte value to write \\
+\hline
+\end{DoxyParams}
+
+
+\label{doc-var-members}
+\Hypertarget{imu_8h_doc-var-members}
+\doxysubsection{Variable Documentation}
+\Hypertarget{imu_8h_abe36a500ca0f45f39f6381ce94c4f780}\index{imu.h@{imu.h}!BerryIMUversion@{BerryIMUversion}}
+\index{BerryIMUversion@{BerryIMUversion}!imu.h@{imu.h}}
+\doxysubsubsection{\texorpdfstring{BerryIMUversion}{BerryIMUversion}}
+{\footnotesize\ttfamily \label{imu_8h_abe36a500ca0f45f39f6381ce94c4f780} 
+int Berry\+IMUversion\hspace{0.3cm}{\ttfamily [extern]}}
+
+
+
+Berry\+IMU version identifier (always 3 for Berry\+IMUv4/\+\+LSM6\+DSL). 
+

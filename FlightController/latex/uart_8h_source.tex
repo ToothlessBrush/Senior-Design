@@ -1,0 +1,34 @@
+\doxysection{uart.\+h}
+\hypertarget{uart_8h_source}{}\label{uart_8h_source}\index{src/uart.h@{src/uart.h}}
+\doxymbox{\hyperlink{uart_8h}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ }
+\DoxyCodeLine{00022\ }
+\DoxyCodeLine{00023\ \textcolor{preprocessor}{\#ifndef\ UART\_H}}
+\DoxyCodeLine{00024\ \textcolor{preprocessor}{\#define\ UART\_H}}
+\DoxyCodeLine{00025\ }
+\DoxyCodeLine{00026\ \textcolor{preprocessor}{\#include\ <stdint.h>}}
+\DoxyCodeLine{00027\ }
+\DoxyCodeLine{00028\ \textcolor{preprocessor}{\#define\ UART\_RX\_BUFFER\_SIZE\ 256\ \ }\textcolor{preprocessor}{}}
+\DoxyCodeLine{00029\ }
+\DoxyCodeLine{00037\ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{uart_8h_a0c0ca72359ddf28dcd15900dfba19343}{uart\_init}}(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00038\ }
+\DoxyCodeLine{00047\ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{uart_8h_a8c06afe2f1e393776650ebe7f0b336f2}{uart\_send\_byte}}(uint8\_t\ data);}
+\DoxyCodeLine{00048\ }
+\DoxyCodeLine{00058\ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{uart_8h_adc5ab09aa19841e18a039de4b3250da4}{uart\_send\_string}}(\textcolor{keyword}{const}\ \textcolor{keywordtype}{char}\ *str);}
+\DoxyCodeLine{00059\ }
+\DoxyCodeLine{00070\ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{uart_8h_a1b8a4c4d49c67e880616f4c57f3adf94}{uart\_send\_data}}(\textcolor{keyword}{const}\ uint8\_t\ *data,\ uint16\_t\ len);}
+\DoxyCodeLine{00071\ }
+\DoxyCodeLine{00081\ uint8\_t\ \doxymbox{\hyperlink{uart_8h_ae373bf303a694f2ce38c1f27ec41642a}{uart\_receive\_byte}}(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00082\ }
+\DoxyCodeLine{00088\ \textcolor{keywordtype}{int}\ \doxymbox{\hyperlink{uart_8h_a412e2a9d9d471236aa92508d3023a71f}{uart\_data\_available}}(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00089\ }
+\DoxyCodeLine{00097\ uint16\_t\ \doxymbox{\hyperlink{uart_8h_a5317c459d18ba501401b60628188cfff}{uart\_bytes\_available}}(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00098\ }
+\DoxyCodeLine{00105\ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{uart_8h_a7266e29e25a18254075f5d56f29f49b0}{uart\_flush}}(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00106\ }
+\DoxyCodeLine{00112\ \textcolor{keywordtype}{int}\ \doxymbox{\hyperlink{uart_8h_a94c6373da9edd7665f479b7c59b719c1}{uart\_tx\_busy}}(\textcolor{keywordtype}{void});}
+\DoxyCodeLine{00113\ }
+\DoxyCodeLine{00114\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\ UART\_H}}
+
+\end{DoxyCode}

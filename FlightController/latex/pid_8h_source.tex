@@ -1,0 +1,95 @@
+\doxysection{pid.\+h}
+\hypertarget{pid_8h_source}{}\label{pid_8h_source}\index{src/pid.h@{src/pid.h}}
+\doxymbox{\hyperlink{pid_8h}{Go to the documentation of this file.}}
+\begin{DoxyCode}{0}
+\DoxyCodeLine{00001\ }
+\DoxyCodeLine{00020\ }
+\DoxyCodeLine{00021\ \textcolor{preprocessor}{\#ifndef\ PID\_H}}
+\DoxyCodeLine{00022\ \textcolor{preprocessor}{\#define\ PID\_H}}
+\DoxyCodeLine{00023\ }
+\DoxyCodeLine{00024\ \textcolor{preprocessor}{\#include\ "{}\doxymbox{\hyperlink{imu_8h}{imu.h}}"{}}}
+\DoxyCodeLine{00025\ }
+\DoxyCodeLine{00033\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\{}
+\DoxyCodeLine{00034\ \ \ \ \ \textcolor{keywordtype}{float}\ \doxymbox{\hyperlink{structPIDController_a5c3eb07a0c4a00b86e1433b84e458a56}{Kp}};\ }
+\DoxyCodeLine{00035\ \ \ \ \ \textcolor{keywordtype}{float}\ \doxymbox{\hyperlink{structPIDController_a8acd1f19045a89a9dbd1848e56ae6ae0}{Ki}};\ }
+\DoxyCodeLine{00036\ \ \ \ \ \textcolor{keywordtype}{float}\ \doxymbox{\hyperlink{structPIDController_a22ef7c93498970edb0b04bef3ae3d2f9}{Kd}};\ }
+\DoxyCodeLine{00037\ }
+\DoxyCodeLine{00038\ \ \ \ \ \textcolor{keywordtype}{float}\ \doxymbox{\hyperlink{structPIDController_a9f1834a4933702b2de5076effea32f1f}{integral}};\ \ \ \ \ \ \ }
+\DoxyCodeLine{00039\ \ \ \ \ \textcolor{keywordtype}{float}\ \doxymbox{\hyperlink{structPIDController_ac5e11f396c30844cbc2ff4660a060e17}{previous\_error}};\ }
+\DoxyCodeLine{00040\ \ \ \ \ \textcolor{keywordtype}{float}\ \doxymbox{\hyperlink{structPIDController_a2806ff7c9637c29b248485a14f7db23f}{integral\_limit}};\ }
+\DoxyCodeLine{00041\ }
+\DoxyCodeLine{00042\ \ \ \ \ \textcolor{keywordtype}{float}\ \doxymbox{\hyperlink{structPIDController_a644afd9cd0a169676dd27cee1d675ad6}{output\_limit}};\ }
+\DoxyCodeLine{00043\ }
+\DoxyCodeLine{00044\ \ \ \ \ \textcolor{comment}{//\ Telemetry\ values}}
+\DoxyCodeLine{00045\ \ \ \ \ \textcolor{keywordtype}{float}\ \doxymbox{\hyperlink{structPIDController_a02cd3e4ce1a562287cf280a1b3e7586e}{p\_term}};\ }
+\DoxyCodeLine{00046\ \ \ \ \ \textcolor{keywordtype}{float}\ \doxymbox{\hyperlink{structPIDController_a476dc405bbc7948fe17d3c624ac347c0}{i\_term}};\ }
+\DoxyCodeLine{00047\ \ \ \ \ \textcolor{keywordtype}{float}\ \doxymbox{\hyperlink{structPIDController_a24c8f767b10244523983de598dbbd4a0}{d\_term}};\ }
+\DoxyCodeLine{00048\ \}\ \doxymbox{\hyperlink{structPIDController}{PIDController}};}
+\DoxyCodeLine{00049\ }
+\DoxyCodeLine{00060\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\{}
+\DoxyCodeLine{00061\ \ \ \ \ \doxymbox{\hyperlink{structAttitude}{Attitude}}\ \doxymbox{\hyperlink{structPID_a2621e02cd139dddb3da1f6ca14e0a9a6}{setpoints}};\ \ \ }
+\DoxyCodeLine{00062\ \ \ \ \ \doxymbox{\hyperlink{structAttitude}{Attitude}}\ \doxymbox{\hyperlink{structPID_a95e0e8890f89acdf08d433f9250e71c9}{measurement}};\ }
+\DoxyCodeLine{00063\ \ \ \ \ \doxymbox{\hyperlink{structAttitude}{Attitude}}\ \doxymbox{\hyperlink{structPID_af48a9c5b1dff053f7f68ffb2b399a5c7}{output}};\ \ \ \ \ \ }
+\DoxyCodeLine{00064\ }
+\DoxyCodeLine{00065\ \ \ \ \ \doxymbox{\hyperlink{structPIDController}{PIDController}}\ \doxymbox{\hyperlink{structPID_ad64ffb2204f4cc4ef448470cbf8a025a}{pitch\_pid}};\ }
+\DoxyCodeLine{00066\ \ \ \ \ \doxymbox{\hyperlink{structPIDController}{PIDController}}\ \doxymbox{\hyperlink{structPID_ad4f9ee7b5089c9be7bbd3413a47f8362}{roll\_pid}};\ \ }
+\DoxyCodeLine{00067\ \ \ \ \ \doxymbox{\hyperlink{structPIDController}{PIDController}}\ \doxymbox{\hyperlink{structPID_aef13b5c91892f0298c0a71f53ed2d7c0}{yaw\_pid}};\ \ \ }
+\DoxyCodeLine{00068\ }
+\DoxyCodeLine{00069\ \ \ \ \ \doxymbox{\hyperlink{structPIDController}{PIDController}}\ \doxymbox{\hyperlink{structPID_aacc45d894db4a21307552031ced8ac8e}{velocity\_x\_pid}};\ }
+\DoxyCodeLine{00070\ \ \ \ \ \doxymbox{\hyperlink{structPIDController}{PIDController}}\ \doxymbox{\hyperlink{structPID_a16b5b083913e34204ebeccc42e64eea8}{velocity\_y\_pid}};\ }
+\DoxyCodeLine{00071\ }
+\DoxyCodeLine{00072\ \ \ \ \ \doxymbox{\hyperlink{structAttitude}{Attitude}}\ \doxymbox{\hyperlink{structPID_aff9916f3b24d35d3f673e416f051fb45}{base\_setpoints}};\ \ \ \ \ \ \ \ \ \ }
+\DoxyCodeLine{00073\ \ \ \ \ \textcolor{keywordtype}{bool}\ \doxymbox{\hyperlink{structPID_a2e81cebbeab7d42eaecd8d6fd40e6bf0}{velocity\_correction\_enabled}};\ }
+\DoxyCodeLine{00074\ \}\ \doxymbox{\hyperlink{structPID}{PID}};}
+\DoxyCodeLine{00075\ }
+\DoxyCodeLine{00082\ \textcolor{keyword}{typedef}\ \textcolor{keyword}{struct\ }\{}
+\DoxyCodeLine{00083\ \ \ \ \ \textcolor{comment}{//\ Roll\ axis\ (right\ wing\ down\ =\ positive\ roll)}}
+\DoxyCodeLine{00084\ \ \ \ \ \textcolor{keywordtype}{float}\ \doxymbox{\hyperlink{structPIDCreateInfo_afa10873b7bd01545fdc33dfc3ca39b4d}{roll\_Kp}};\ \ \ \ \ \ \ }
+\DoxyCodeLine{00085\ \ \ \ \ \textcolor{keywordtype}{float}\ \doxymbox{\hyperlink{structPIDCreateInfo_a4f7dd13e0cc76d092403431af2aca299}{roll\_Ki}};\ \ \ \ \ \ \ }
+\DoxyCodeLine{00086\ \ \ \ \ \textcolor{keywordtype}{float}\ \doxymbox{\hyperlink{structPIDCreateInfo_a4c5d9393b5e6c9e905cd01730bc029da}{roll\_Kd}};\ \ \ \ \ \ \ }
+\DoxyCodeLine{00087\ \ \ \ \ \textcolor{keywordtype}{float}\ \doxymbox{\hyperlink{structPIDCreateInfo_aa94193eccd7373420e60af93b1d8c306}{roll\_Ki\_limit}};\ }
+\DoxyCodeLine{00088\ \ \ \ \ \textcolor{keywordtype}{float}\ \doxymbox{\hyperlink{structPIDCreateInfo_a546e88eda94735e2b085d4d18aa27757}{roll\_limit}};\ \ \ \ }
+\DoxyCodeLine{00089\ }
+\DoxyCodeLine{00090\ \ \ \ \ \textcolor{comment}{//\ Pitch\ axis\ (nose\ up\ =\ positive\ pitch)}}
+\DoxyCodeLine{00091\ \ \ \ \ \textcolor{keywordtype}{float}\ \doxymbox{\hyperlink{structPIDCreateInfo_a57bd420739d9bcc63e35404c8132347a}{pitch\_Kp}};\ \ \ \ \ \ \ }
+\DoxyCodeLine{00092\ \ \ \ \ \textcolor{keywordtype}{float}\ \doxymbox{\hyperlink{structPIDCreateInfo_a947079ebdfff9b42158fdcf7ea6e1766}{pitch\_Ki}};\ \ \ \ \ \ \ }
+\DoxyCodeLine{00093\ \ \ \ \ \textcolor{keywordtype}{float}\ \doxymbox{\hyperlink{structPIDCreateInfo_aba6e207448a31903a8157e2e1c54fbd3}{pitch\_Kd}};\ \ \ \ \ \ \ }
+\DoxyCodeLine{00094\ \ \ \ \ \textcolor{keywordtype}{float}\ \doxymbox{\hyperlink{structPIDCreateInfo_aa0d75fd3b9b2530109a47328f6acedc6}{pitch\_Ki\_limit}};\ }
+\DoxyCodeLine{00095\ \ \ \ \ \textcolor{keywordtype}{float}\ \doxymbox{\hyperlink{structPIDCreateInfo_ae7b7add6744df8b4591f40d4ed09bf0d}{pitch\_limit}};\ \ \ \ }
+\DoxyCodeLine{00096\ }
+\DoxyCodeLine{00097\ \ \ \ \ \textcolor{comment}{//\ Yaw\ axis\ (clockwise\ from\ above\ =\ positive\ yaw)}}
+\DoxyCodeLine{00098\ \ \ \ \ \textcolor{keywordtype}{float}\ \doxymbox{\hyperlink{structPIDCreateInfo_ad5d8497c490f7c57bda9aac916ef65fb}{yaw\_Kp}};\ \ \ \ \ \ \ }
+\DoxyCodeLine{00099\ \ \ \ \ \textcolor{keywordtype}{float}\ \doxymbox{\hyperlink{structPIDCreateInfo_a99e0b57ba936b9b7d60fff6bd3178c44}{yaw\_Ki}};\ \ \ \ \ \ \ }
+\DoxyCodeLine{00100\ \ \ \ \ \textcolor{keywordtype}{float}\ \doxymbox{\hyperlink{structPIDCreateInfo_ae6640e055ccdb7efafecc33c5ad0d68e}{yaw\_Kd}};\ \ \ \ \ \ \ }
+\DoxyCodeLine{00101\ \ \ \ \ \textcolor{keywordtype}{float}\ \doxymbox{\hyperlink{structPIDCreateInfo_a96b891d364df2d8a39dcac89e62427ab}{yaw\_Ki\_limit}};\ }
+\DoxyCodeLine{00102\ \ \ \ \ \textcolor{keywordtype}{float}\ \doxymbox{\hyperlink{structPIDCreateInfo_a7cec9747adab9514bdc82a7613a26b61}{yaw\_limit}};\ \ \ \ }
+\DoxyCodeLine{00103\ }
+\DoxyCodeLine{00104\ \ \ \ \ \textcolor{comment}{//\ Velocity\ X\ (forward/backward\ position\ correction)}}
+\DoxyCodeLine{00105\ \ \ \ \ \textcolor{keywordtype}{float}\ \doxymbox{\hyperlink{structPIDCreateInfo_ac901b7d914757407ad6d6d0175508eba}{velocity\_x\_Kp}};\ \ \ \ \ \ \ }
+\DoxyCodeLine{00106\ \ \ \ \ \textcolor{keywordtype}{float}\ \doxymbox{\hyperlink{structPIDCreateInfo_a273786ef1d21b1bad4812e3da9ca6964}{velocity\_x\_Ki}};\ \ \ \ \ \ \ }
+\DoxyCodeLine{00107\ \ \ \ \ \textcolor{keywordtype}{float}\ \doxymbox{\hyperlink{structPIDCreateInfo_af330460c70c39759503af3ab790a5c5a}{velocity\_x\_Kd}};\ \ \ \ \ \ \ }
+\DoxyCodeLine{00108\ \ \ \ \ \textcolor{keywordtype}{float}\ \doxymbox{\hyperlink{structPIDCreateInfo_ab62486e6344596a0ef6343944254cede}{velocity\_x\_Ki\_limit}};\ }
+\DoxyCodeLine{00109\ \ \ \ \ \textcolor{keywordtype}{float}\ \doxymbox{\hyperlink{structPIDCreateInfo_af5b81e520df085d956c7970a65abc346}{velocity\_x\_limit}};\ \ \ \ }
+\DoxyCodeLine{00110\ }
+\DoxyCodeLine{00111\ \ \ \ \ \textcolor{comment}{//\ Velocity\ Y\ (left/right\ position\ correction)}}
+\DoxyCodeLine{00112\ \ \ \ \ \textcolor{keywordtype}{float}\ \doxymbox{\hyperlink{structPIDCreateInfo_a833373e281220233c2f93e004320c739}{velocity\_y\_Kp}};\ \ \ \ \ \ \ }
+\DoxyCodeLine{00113\ \ \ \ \ \textcolor{keywordtype}{float}\ \doxymbox{\hyperlink{structPIDCreateInfo_af63fa58551211bf7c39e7583abe25f42}{velocity\_y\_Ki}};\ \ \ \ \ \ \ }
+\DoxyCodeLine{00114\ \ \ \ \ \textcolor{keywordtype}{float}\ \doxymbox{\hyperlink{structPIDCreateInfo_a490a9ca76bf26fbd4204d6257079917d}{velocity\_y\_Kd}};\ \ \ \ \ \ \ }
+\DoxyCodeLine{00115\ \ \ \ \ \textcolor{keywordtype}{float}\ \doxymbox{\hyperlink{structPIDCreateInfo_a619083998dd9acbecc23c57952c8058c}{velocity\_y\_Ki\_limit}};\ }
+\DoxyCodeLine{00116\ \ \ \ \ \textcolor{keywordtype}{float}\ \doxymbox{\hyperlink{structPIDCreateInfo_a2dd8b551eeb646407552373624d4a9bc}{velocity\_y\_limit}};\ \ \ \ }
+\DoxyCodeLine{00117\ \}\ \doxymbox{\hyperlink{structPIDCreateInfo}{PIDCreateInfo}};}
+\DoxyCodeLine{00118\ }
+\DoxyCodeLine{00129\ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{pid_8h_a8c4e75c5f4ece3bcde24926503084c9c}{pid\_init}}(\doxymbox{\hyperlink{structPID}{PID}}\ *pid,\ \textcolor{keyword}{const}\ \doxymbox{\hyperlink{structPIDCreateInfo}{PIDCreateInfo}}\ *create\_info);}
+\DoxyCodeLine{00130\ }
+\DoxyCodeLine{00147\ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{pid_8h_a8d01657a359adeca98d06b804d3f48b5}{pid\_update}}(\doxymbox{\hyperlink{structPID}{PID}}\ *pid,\ \textcolor{keyword}{const}\ \doxymbox{\hyperlink{structIMU}{IMU}}\ *imu,\ \textcolor{keywordtype}{float}\ dt);}
+\DoxyCodeLine{00148\ }
+\DoxyCodeLine{00166\ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{pid_8h_a93ddb786194d7f54db8df7c1af6ea248}{pid\_velocity\_correction}}(\doxymbox{\hyperlink{structPID}{PID}}\ *pid,\ \textcolor{keyword}{const}\ \doxymbox{\hyperlink{structIMU}{IMU}}\ *imu,\ \textcolor{keywordtype}{float}\ dt);}
+\DoxyCodeLine{00167\ }
+\DoxyCodeLine{00175\ \textcolor{keywordtype}{void}\ \doxymbox{\hyperlink{pid_8h_a1dc69e16f6a58f7fc37ad1280ee790c0}{pid\_reset}}(\doxymbox{\hyperlink{structPID}{PID}}\ *pid);}
+\DoxyCodeLine{00176\ }
+\DoxyCodeLine{00196\ \textcolor{keywordtype}{float}\ \doxymbox{\hyperlink{pid_8h_a5817bd86f1119f93c336ff03a899ad04}{get\_pid\_output}}(\doxymbox{\hyperlink{structPIDController}{PIDController}}\ *pid,\ \textcolor{keywordtype}{float}\ setpoint,\ \textcolor{keywordtype}{float}\ measurement,}
+\DoxyCodeLine{00197\ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \ \textcolor{keywordtype}{float}\ angular\_velocity,\ \textcolor{keywordtype}{float}\ dt);}
+\DoxyCodeLine{00198\ }
+\DoxyCodeLine{00199\ \textcolor{preprocessor}{\#endif\ }\textcolor{comment}{//\ PID\_H}}
+
+\end{DoxyCode}

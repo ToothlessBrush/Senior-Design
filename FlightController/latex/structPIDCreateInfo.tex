@@ -1,0 +1,229 @@
+\doxysection{PIDCreate\+Info Struct Reference}
+\hypertarget{structPIDCreateInfo}{}\label{structPIDCreateInfo}\index{PIDCreateInfo@{PIDCreateInfo}}
+
+
+\doxylink{structPID}{PID} initialization parameters for all five controllers.  
+
+
+
+
+{\ttfamily \+\#include $<$pid.\+h$>$}
+
+\doxysubsubsection*{Data Fields}
+\begin{DoxyCompactItemize}
+\item 
+float \doxymbox{\hyperlink{structPIDCreateInfo_afa10873b7bd01545fdc33dfc3ca39b4d}{roll\+\_\+\+Kp}}
+\item 
+float \doxymbox{\hyperlink{structPIDCreateInfo_a4f7dd13e0cc76d092403431af2aca299}{roll\+\_\+\+Ki}}
+\item 
+float \doxymbox{\hyperlink{structPIDCreateInfo_a4c5d9393b5e6c9e905cd01730bc029da}{roll\+\_\+\+Kd}}
+\item 
+float \doxymbox{\hyperlink{structPIDCreateInfo_aa94193eccd7373420e60af93b1d8c306}{roll\+\_\+\+Ki\+\_\+limit}}
+\item 
+float \doxymbox{\hyperlink{structPIDCreateInfo_a546e88eda94735e2b085d4d18aa27757}{roll\+\_\+limit}}
+\item 
+float \doxymbox{\hyperlink{structPIDCreateInfo_a57bd420739d9bcc63e35404c8132347a}{pitch\+\_\+\+Kp}}
+\item 
+float \doxymbox{\hyperlink{structPIDCreateInfo_a947079ebdfff9b42158fdcf7ea6e1766}{pitch\+\_\+\+Ki}}
+\item 
+float \doxymbox{\hyperlink{structPIDCreateInfo_aba6e207448a31903a8157e2e1c54fbd3}{pitch\+\_\+\+Kd}}
+\item 
+float \doxymbox{\hyperlink{structPIDCreateInfo_aa0d75fd3b9b2530109a47328f6acedc6}{pitch\+\_\+\+Ki\+\_\+limit}}
+\item 
+float \doxymbox{\hyperlink{structPIDCreateInfo_ae7b7add6744df8b4591f40d4ed09bf0d}{pitch\+\_\+limit}}
+\item 
+float \doxymbox{\hyperlink{structPIDCreateInfo_ad5d8497c490f7c57bda9aac916ef65fb}{yaw\+\_\+\+Kp}}
+\item 
+float \doxymbox{\hyperlink{structPIDCreateInfo_a99e0b57ba936b9b7d60fff6bd3178c44}{yaw\+\_\+\+Ki}}
+\item 
+float \doxymbox{\hyperlink{structPIDCreateInfo_ae6640e055ccdb7efafecc33c5ad0d68e}{yaw\+\_\+\+Kd}}
+\item 
+float \doxymbox{\hyperlink{structPIDCreateInfo_a96b891d364df2d8a39dcac89e62427ab}{yaw\+\_\+\+Ki\+\_\+limit}}
+\item 
+float \doxymbox{\hyperlink{structPIDCreateInfo_a7cec9747adab9514bdc82a7613a26b61}{yaw\+\_\+limit}}
+\item 
+float \doxymbox{\hyperlink{structPIDCreateInfo_ac901b7d914757407ad6d6d0175508eba}{velocity\+\_\+x\+\_\+\+Kp}}
+\item 
+float \doxymbox{\hyperlink{structPIDCreateInfo_a273786ef1d21b1bad4812e3da9ca6964}{velocity\+\_\+x\+\_\+\+Ki}}
+\item 
+float \doxymbox{\hyperlink{structPIDCreateInfo_af330460c70c39759503af3ab790a5c5a}{velocity\+\_\+x\+\_\+\+Kd}}
+\item 
+float \doxymbox{\hyperlink{structPIDCreateInfo_ab62486e6344596a0ef6343944254cede}{velocity\+\_\+x\+\_\+\+Ki\+\_\+limit}}
+\item 
+float \doxymbox{\hyperlink{structPIDCreateInfo_af5b81e520df085d956c7970a65abc346}{velocity\+\_\+x\+\_\+limit}}
+\item 
+float \doxymbox{\hyperlink{structPIDCreateInfo_a833373e281220233c2f93e004320c739}{velocity\+\_\+y\+\_\+\+Kp}}
+\item 
+float \doxymbox{\hyperlink{structPIDCreateInfo_af63fa58551211bf7c39e7583abe25f42}{velocity\+\_\+y\+\_\+\+Ki}}
+\item 
+float \doxymbox{\hyperlink{structPIDCreateInfo_a490a9ca76bf26fbd4204d6257079917d}{velocity\+\_\+y\+\_\+\+Kd}}
+\item 
+float \doxymbox{\hyperlink{structPIDCreateInfo_a619083998dd9acbecc23c57952c8058c}{velocity\+\_\+y\+\_\+\+Ki\+\_\+limit}}
+\item 
+float \doxymbox{\hyperlink{structPIDCreateInfo_a2dd8b551eeb646407552373624d4a9bc}{velocity\+\_\+y\+\_\+limit}}
+\end{DoxyCompactItemize}
+
+
+\doxysubsection{Detailed Description}
+\doxylink{structPID}{PID} initialization parameters for all five controllers. 
+
+Contains gains, integral limits, and output limits for all axes. Used to configure the \doxylink{structPID}{PID} system during initialization. 
+
+\label{doc-variable-members}
+\Hypertarget{structPIDCreateInfo_doc-variable-members}
+\doxysubsection{Field Documentation}
+\Hypertarget{structPIDCreateInfo_aba6e207448a31903a8157e2e1c54fbd3}\index{PIDCreateInfo@{PIDCreateInfo}!pitch\_Kd@{pitch\_Kd}}
+\index{pitch\_Kd@{pitch\_Kd}!PIDCreateInfo@{PIDCreateInfo}}
+\doxysubsubsection{\texorpdfstring{pitch\_Kd}{pitch\_Kd}}
+{\footnotesize\ttfamily \label{structPIDCreateInfo_aba6e207448a31903a8157e2e1c54fbd3} 
+float PIDCreate\+Info::\+pitch\+\_\+\+Kd}
+
+Pitch derivative gain \Hypertarget{structPIDCreateInfo_a947079ebdfff9b42158fdcf7ea6e1766}\index{PIDCreateInfo@{PIDCreateInfo}!pitch\_Ki@{pitch\_Ki}}
+\index{pitch\_Ki@{pitch\_Ki}!PIDCreateInfo@{PIDCreateInfo}}
+\doxysubsubsection{\texorpdfstring{pitch\_Ki}{pitch\_Ki}}
+{\footnotesize\ttfamily \label{structPIDCreateInfo_a947079ebdfff9b42158fdcf7ea6e1766} 
+float PIDCreate\+Info::\+pitch\+\_\+\+Ki}
+
+Pitch integral gain \Hypertarget{structPIDCreateInfo_aa0d75fd3b9b2530109a47328f6acedc6}\index{PIDCreateInfo@{PIDCreateInfo}!pitch\_Ki\_limit@{pitch\_Ki\_limit}}
+\index{pitch\_Ki\_limit@{pitch\_Ki\_limit}!PIDCreateInfo@{PIDCreateInfo}}
+\doxysubsubsection{\texorpdfstring{pitch\_Ki\_limit}{pitch\_Ki\_limit}}
+{\footnotesize\ttfamily \label{structPIDCreateInfo_aa0d75fd3b9b2530109a47328f6acedc6} 
+float PIDCreate\+Info::\+pitch\+\_\+\+Ki\+\_\+limit}
+
+Pitch integral windup limit \Hypertarget{structPIDCreateInfo_a57bd420739d9bcc63e35404c8132347a}\index{PIDCreateInfo@{PIDCreateInfo}!pitch\_Kp@{pitch\_Kp}}
+\index{pitch\_Kp@{pitch\_Kp}!PIDCreateInfo@{PIDCreateInfo}}
+\doxysubsubsection{\texorpdfstring{pitch\_Kp}{pitch\_Kp}}
+{\footnotesize\ttfamily \label{structPIDCreateInfo_a57bd420739d9bcc63e35404c8132347a} 
+float PIDCreate\+Info::\+pitch\+\_\+\+Kp}
+
+Pitch proportional gain \Hypertarget{structPIDCreateInfo_ae7b7add6744df8b4591f40d4ed09bf0d}\index{PIDCreateInfo@{PIDCreateInfo}!pitch\_limit@{pitch\_limit}}
+\index{pitch\_limit@{pitch\_limit}!PIDCreateInfo@{PIDCreateInfo}}
+\doxysubsubsection{\texorpdfstring{pitch\_limit}{pitch\_limit}}
+{\footnotesize\ttfamily \label{structPIDCreateInfo_ae7b7add6744df8b4591f40d4ed09bf0d} 
+float PIDCreate\+Info::\+pitch\+\_\+limit}
+
+Pitch output limit (max throttle correction) \Hypertarget{structPIDCreateInfo_a4c5d9393b5e6c9e905cd01730bc029da}\index{PIDCreateInfo@{PIDCreateInfo}!roll\_Kd@{roll\_Kd}}
+\index{roll\_Kd@{roll\_Kd}!PIDCreateInfo@{PIDCreateInfo}}
+\doxysubsubsection{\texorpdfstring{roll\_Kd}{roll\_Kd}}
+{\footnotesize\ttfamily \label{structPIDCreateInfo_a4c5d9393b5e6c9e905cd01730bc029da} 
+float PIDCreate\+Info::\+roll\+\_\+\+Kd}
+
+Roll derivative gain \Hypertarget{structPIDCreateInfo_a4f7dd13e0cc76d092403431af2aca299}\index{PIDCreateInfo@{PIDCreateInfo}!roll\_Ki@{roll\_Ki}}
+\index{roll\_Ki@{roll\_Ki}!PIDCreateInfo@{PIDCreateInfo}}
+\doxysubsubsection{\texorpdfstring{roll\_Ki}{roll\_Ki}}
+{\footnotesize\ttfamily \label{structPIDCreateInfo_a4f7dd13e0cc76d092403431af2aca299} 
+float PIDCreate\+Info::\+roll\+\_\+\+Ki}
+
+Roll integral gain \Hypertarget{structPIDCreateInfo_aa94193eccd7373420e60af93b1d8c306}\index{PIDCreateInfo@{PIDCreateInfo}!roll\_Ki\_limit@{roll\_Ki\_limit}}
+\index{roll\_Ki\_limit@{roll\_Ki\_limit}!PIDCreateInfo@{PIDCreateInfo}}
+\doxysubsubsection{\texorpdfstring{roll\_Ki\_limit}{roll\_Ki\_limit}}
+{\footnotesize\ttfamily \label{structPIDCreateInfo_aa94193eccd7373420e60af93b1d8c306} 
+float PIDCreate\+Info::\+roll\+\_\+\+Ki\+\_\+limit}
+
+Roll integral windup limit \Hypertarget{structPIDCreateInfo_afa10873b7bd01545fdc33dfc3ca39b4d}\index{PIDCreateInfo@{PIDCreateInfo}!roll\_Kp@{roll\_Kp}}
+\index{roll\_Kp@{roll\_Kp}!PIDCreateInfo@{PIDCreateInfo}}
+\doxysubsubsection{\texorpdfstring{roll\_Kp}{roll\_Kp}}
+{\footnotesize\ttfamily \label{structPIDCreateInfo_afa10873b7bd01545fdc33dfc3ca39b4d} 
+float PIDCreate\+Info::\+roll\+\_\+\+Kp}
+
+Roll proportional gain \Hypertarget{structPIDCreateInfo_a546e88eda94735e2b085d4d18aa27757}\index{PIDCreateInfo@{PIDCreateInfo}!roll\_limit@{roll\_limit}}
+\index{roll\_limit@{roll\_limit}!PIDCreateInfo@{PIDCreateInfo}}
+\doxysubsubsection{\texorpdfstring{roll\_limit}{roll\_limit}}
+{\footnotesize\ttfamily \label{structPIDCreateInfo_a546e88eda94735e2b085d4d18aa27757} 
+float PIDCreate\+Info::\+roll\+\_\+limit}
+
+Roll output limit (max throttle correction) \Hypertarget{structPIDCreateInfo_af330460c70c39759503af3ab790a5c5a}\index{PIDCreateInfo@{PIDCreateInfo}!velocity\_x\_Kd@{velocity\_x\_Kd}}
+\index{velocity\_x\_Kd@{velocity\_x\_Kd}!PIDCreateInfo@{PIDCreateInfo}}
+\doxysubsubsection{\texorpdfstring{velocity\_x\_Kd}{velocity\_x\_Kd}}
+{\footnotesize\ttfamily \label{structPIDCreateInfo_af330460c70c39759503af3ab790a5c5a} 
+float PIDCreate\+Info::\+velocity\+\_\+x\+\_\+\+Kd}
+
+Velocity X derivative gain \Hypertarget{structPIDCreateInfo_a273786ef1d21b1bad4812e3da9ca6964}\index{PIDCreateInfo@{PIDCreateInfo}!velocity\_x\_Ki@{velocity\_x\_Ki}}
+\index{velocity\_x\_Ki@{velocity\_x\_Ki}!PIDCreateInfo@{PIDCreateInfo}}
+\doxysubsubsection{\texorpdfstring{velocity\_x\_Ki}{velocity\_x\_Ki}}
+{\footnotesize\ttfamily \label{structPIDCreateInfo_a273786ef1d21b1bad4812e3da9ca6964} 
+float PIDCreate\+Info::\+velocity\+\_\+x\+\_\+\+Ki}
+
+Velocity X integral gain \Hypertarget{structPIDCreateInfo_ab62486e6344596a0ef6343944254cede}\index{PIDCreateInfo@{PIDCreateInfo}!velocity\_x\_Ki\_limit@{velocity\_x\_Ki\_limit}}
+\index{velocity\_x\_Ki\_limit@{velocity\_x\_Ki\_limit}!PIDCreateInfo@{PIDCreateInfo}}
+\doxysubsubsection{\texorpdfstring{velocity\_x\_Ki\_limit}{velocity\_x\_Ki\_limit}}
+{\footnotesize\ttfamily \label{structPIDCreateInfo_ab62486e6344596a0ef6343944254cede} 
+float PIDCreate\+Info::\+velocity\+\_\+x\+\_\+\+Ki\+\_\+limit}
+
+Velocity X integral windup limit \Hypertarget{structPIDCreateInfo_ac901b7d914757407ad6d6d0175508eba}\index{PIDCreateInfo@{PIDCreateInfo}!velocity\_x\_Kp@{velocity\_x\_Kp}}
+\index{velocity\_x\_Kp@{velocity\_x\_Kp}!PIDCreateInfo@{PIDCreateInfo}}
+\doxysubsubsection{\texorpdfstring{velocity\_x\_Kp}{velocity\_x\_Kp}}
+{\footnotesize\ttfamily \label{structPIDCreateInfo_ac901b7d914757407ad6d6d0175508eba} 
+float PIDCreate\+Info::\+velocity\+\_\+x\+\_\+\+Kp}
+
+Velocity X proportional gain \Hypertarget{structPIDCreateInfo_af5b81e520df085d956c7970a65abc346}\index{PIDCreateInfo@{PIDCreateInfo}!velocity\_x\_limit@{velocity\_x\_limit}}
+\index{velocity\_x\_limit@{velocity\_x\_limit}!PIDCreateInfo@{PIDCreateInfo}}
+\doxysubsubsection{\texorpdfstring{velocity\_x\_limit}{velocity\_x\_limit}}
+{\footnotesize\ttfamily \label{structPIDCreateInfo_af5b81e520df085d956c7970a65abc346} 
+float PIDCreate\+Info::\+velocity\+\_\+x\+\_\+limit}
+
+Velocity X output limit (max pitch setpoint adjustment) \Hypertarget{structPIDCreateInfo_a490a9ca76bf26fbd4204d6257079917d}\index{PIDCreateInfo@{PIDCreateInfo}!velocity\_y\_Kd@{velocity\_y\_Kd}}
+\index{velocity\_y\_Kd@{velocity\_y\_Kd}!PIDCreateInfo@{PIDCreateInfo}}
+\doxysubsubsection{\texorpdfstring{velocity\_y\_Kd}{velocity\_y\_Kd}}
+{\footnotesize\ttfamily \label{structPIDCreateInfo_a490a9ca76bf26fbd4204d6257079917d} 
+float PIDCreate\+Info::\+velocity\+\_\+y\+\_\+\+Kd}
+
+Velocity Y derivative gain \Hypertarget{structPIDCreateInfo_af63fa58551211bf7c39e7583abe25f42}\index{PIDCreateInfo@{PIDCreateInfo}!velocity\_y\_Ki@{velocity\_y\_Ki}}
+\index{velocity\_y\_Ki@{velocity\_y\_Ki}!PIDCreateInfo@{PIDCreateInfo}}
+\doxysubsubsection{\texorpdfstring{velocity\_y\_Ki}{velocity\_y\_Ki}}
+{\footnotesize\ttfamily \label{structPIDCreateInfo_af63fa58551211bf7c39e7583abe25f42} 
+float PIDCreate\+Info::\+velocity\+\_\+y\+\_\+\+Ki}
+
+Velocity Y integral gain \Hypertarget{structPIDCreateInfo_a619083998dd9acbecc23c57952c8058c}\index{PIDCreateInfo@{PIDCreateInfo}!velocity\_y\_Ki\_limit@{velocity\_y\_Ki\_limit}}
+\index{velocity\_y\_Ki\_limit@{velocity\_y\_Ki\_limit}!PIDCreateInfo@{PIDCreateInfo}}
+\doxysubsubsection{\texorpdfstring{velocity\_y\_Ki\_limit}{velocity\_y\_Ki\_limit}}
+{\footnotesize\ttfamily \label{structPIDCreateInfo_a619083998dd9acbecc23c57952c8058c} 
+float PIDCreate\+Info::\+velocity\+\_\+y\+\_\+\+Ki\+\_\+limit}
+
+Velocity Y integral windup limit \Hypertarget{structPIDCreateInfo_a833373e281220233c2f93e004320c739}\index{PIDCreateInfo@{PIDCreateInfo}!velocity\_y\_Kp@{velocity\_y\_Kp}}
+\index{velocity\_y\_Kp@{velocity\_y\_Kp}!PIDCreateInfo@{PIDCreateInfo}}
+\doxysubsubsection{\texorpdfstring{velocity\_y\_Kp}{velocity\_y\_Kp}}
+{\footnotesize\ttfamily \label{structPIDCreateInfo_a833373e281220233c2f93e004320c739} 
+float PIDCreate\+Info::\+velocity\+\_\+y\+\_\+\+Kp}
+
+Velocity Y proportional gain \Hypertarget{structPIDCreateInfo_a2dd8b551eeb646407552373624d4a9bc}\index{PIDCreateInfo@{PIDCreateInfo}!velocity\_y\_limit@{velocity\_y\_limit}}
+\index{velocity\_y\_limit@{velocity\_y\_limit}!PIDCreateInfo@{PIDCreateInfo}}
+\doxysubsubsection{\texorpdfstring{velocity\_y\_limit}{velocity\_y\_limit}}
+{\footnotesize\ttfamily \label{structPIDCreateInfo_a2dd8b551eeb646407552373624d4a9bc} 
+float PIDCreate\+Info::\+velocity\+\_\+y\+\_\+limit}
+
+Velocity Y output limit (max roll setpoint adjustment) \Hypertarget{structPIDCreateInfo_ae6640e055ccdb7efafecc33c5ad0d68e}\index{PIDCreateInfo@{PIDCreateInfo}!yaw\_Kd@{yaw\_Kd}}
+\index{yaw\_Kd@{yaw\_Kd}!PIDCreateInfo@{PIDCreateInfo}}
+\doxysubsubsection{\texorpdfstring{yaw\_Kd}{yaw\_Kd}}
+{\footnotesize\ttfamily \label{structPIDCreateInfo_ae6640e055ccdb7efafecc33c5ad0d68e} 
+float PIDCreate\+Info::\+yaw\+\_\+\+Kd}
+
+Yaw derivative gain \Hypertarget{structPIDCreateInfo_a99e0b57ba936b9b7d60fff6bd3178c44}\index{PIDCreateInfo@{PIDCreateInfo}!yaw\_Ki@{yaw\_Ki}}
+\index{yaw\_Ki@{yaw\_Ki}!PIDCreateInfo@{PIDCreateInfo}}
+\doxysubsubsection{\texorpdfstring{yaw\_Ki}{yaw\_Ki}}
+{\footnotesize\ttfamily \label{structPIDCreateInfo_a99e0b57ba936b9b7d60fff6bd3178c44} 
+float PIDCreate\+Info::\+yaw\+\_\+\+Ki}
+
+Yaw integral gain \Hypertarget{structPIDCreateInfo_a96b891d364df2d8a39dcac89e62427ab}\index{PIDCreateInfo@{PIDCreateInfo}!yaw\_Ki\_limit@{yaw\_Ki\_limit}}
+\index{yaw\_Ki\_limit@{yaw\_Ki\_limit}!PIDCreateInfo@{PIDCreateInfo}}
+\doxysubsubsection{\texorpdfstring{yaw\_Ki\_limit}{yaw\_Ki\_limit}}
+{\footnotesize\ttfamily \label{structPIDCreateInfo_a96b891d364df2d8a39dcac89e62427ab} 
+float PIDCreate\+Info::\+yaw\+\_\+\+Ki\+\_\+limit}
+
+Yaw integral windup limit \Hypertarget{structPIDCreateInfo_ad5d8497c490f7c57bda9aac916ef65fb}\index{PIDCreateInfo@{PIDCreateInfo}!yaw\_Kp@{yaw\_Kp}}
+\index{yaw\_Kp@{yaw\_Kp}!PIDCreateInfo@{PIDCreateInfo}}
+\doxysubsubsection{\texorpdfstring{yaw\_Kp}{yaw\_Kp}}
+{\footnotesize\ttfamily \label{structPIDCreateInfo_ad5d8497c490f7c57bda9aac916ef65fb} 
+float PIDCreate\+Info::\+yaw\+\_\+\+Kp}
+
+Yaw proportional gain \Hypertarget{structPIDCreateInfo_a7cec9747adab9514bdc82a7613a26b61}\index{PIDCreateInfo@{PIDCreateInfo}!yaw\_limit@{yaw\_limit}}
+\index{yaw\_limit@{yaw\_limit}!PIDCreateInfo@{PIDCreateInfo}}
+\doxysubsubsection{\texorpdfstring{yaw\_limit}{yaw\_limit}}
+{\footnotesize\ttfamily \label{structPIDCreateInfo_a7cec9747adab9514bdc82a7613a26b61} 
+float PIDCreate\+Info::\+yaw\+\_\+limit}
+
+Yaw output limit (max throttle correction) 
+
+The documentation for this struct was generated from the following file:\+\begin{DoxyCompactItemize}
+\item 
+src/\+\doxymbox{\hyperlink{pid_8h}{pid.\+h}}\end{DoxyCompactItemize}

@@ -24,6 +24,7 @@ add_executable(FlightController
     lora.c
     motor_control.c
     optical_flow.c
+    crsf.c
 )
 target_link_libraries(FlightController PRIVATE core)
 

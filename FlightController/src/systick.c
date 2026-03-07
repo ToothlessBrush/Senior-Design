@@ -19,6 +19,14 @@ void SysTick_Handler(void) { systick_counter++; }
 
 uint32_t millis(void) { return systick_counter; }
 
+uint32_t micros(void) {
+    uint32_t ms, ticks;
+    do {
+        ms = millis();
+        ticks = SysTick->VAL;
+    } while (ms != millis());
+    return ms * 1000 + (SysTick->LOAD - ticks) / 100;
+}
 void delay_ms(uint32_t ms) {
     uint32_t start = millis();
     while ((millis() - start) < ms)
