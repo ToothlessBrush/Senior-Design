@@ -1,5 +1,10 @@
 #include "optical_flow.h"
+#include "utils.h"
+
+#ifndef UNIT_TEST
 #include "uart.h"
+#endif
+
 #include <string.h>
 
 // Parser state
@@ -97,7 +102,7 @@ static void reset_parser(void) {
 /**
  * @brief Process a single byte from UART
  */
-static void process_byte(uint8_t byte) {
+UNIT_TEST_STATIC void optical_flow_feed_byte(uint8_t byte) {
     total_bytes_received++;
     last_byte_received = byte;
 
@@ -190,21 +195,34 @@ static void process_byte(uint8_t byte) {
 
 void optical_flow_init(void) {
     // Initialize UART6 for optical flow sensor
-    uart_init(UART_INSTANCE_6);
+#ifndef UNIT_TEST
+    uart_init(UART_INSTANCE_6, 115200);
+#endif
 
     // Initialize sensor data
     memset(&sensor_data, 0, sizeof(sensor_data));
 
     // Reset parser state
     reset_parser();
+
+    total_bytes_received = 0;
+    frames_parsed = 0;
+    checksum_errors = 0;
+    header_errors = 0;
+    last_byte_received = 0;
+    last_dev_id = 0;
+    last_sys_id = 0;
+    last_msg_id = 0;
 }
 
 void optical_flow_update(void) {
+#ifndef UNIT_TEST
     // Process all available bytes from UART6
     while (uart_data_available(UART_INSTANCE_6)) {
         uint8_t byte = uart_receive_byte(UART_INSTANCE_6);
-        process_byte(byte);
+        optical_flow_feed_byte(byte);
     }
+#endif
 }
 
 const optical_flow_data_t *optical_flow_get_data(void) { return &sensor_data; }

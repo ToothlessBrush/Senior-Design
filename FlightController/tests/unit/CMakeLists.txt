@@ -18,3 +18,4 @@ endfunction()
 
 # Tests 
 add_unit_test(test_crsf ${SRC}/crsf.c)
+add_unit_test(test_optical_flow_parse ${SRC}/optical_flow.c)

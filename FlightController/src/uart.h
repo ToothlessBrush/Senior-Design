@@ -59,7 +59,7 @@ typedef enum {
  *
  * @param instance UART instance to initialize (UART_INSTANCE_2 or UART_INSTANCE_6)
  */
-void uart_init(uart_instance_t instance);
+void uart_init(uart_instance_t instance, uint32_t baud_rate);
 
 /**
  * @brief Send single byte (blocking, non-DMA)

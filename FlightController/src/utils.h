@@ -5,6 +5,12 @@
 #include "pid.h"
 #include <stdint.h>
 
+#ifdef UNIT_TEST
+#define UNIT_TEST_STATIC
+#else
+#define UNIT_TEST_STATIC static
+#endif
+
 typedef struct {
     int sign;    // 1 for positive, -1 for negative
     int whole;   // whole part (always positive)
