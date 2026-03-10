@@ -196,7 +196,7 @@ UNIT_TEST_STATIC void optical_flow_feed_byte(uint8_t byte) {
 void optical_flow_init(void) {
     // Initialize UART6 for optical flow sensor
 #ifndef UNIT_TEST
-    uart_init(UART_INSTANCE_6);
+    uart_init(UART_INSTANCE_6, 115200);
 #endif
 
     // Initialize sensor data

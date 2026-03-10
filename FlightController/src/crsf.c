@@ -1,8 +1,10 @@
 
 #include "crsf.h"
 #ifndef UNIT_TEST
+#include "systick.h"
 #include "uart.h"
 #endif
+#include <stdint.h>
 #include <string.h>
 
 static crsfFrameDef_t crsfFrame;            // frame being assembled
@@ -10,8 +12,8 @@ static crsfFrameDef_t crsfChannelDataFrame; // last validated frame
 
 static uint16_t crsfChannelData[CRSF_MAX_CHANNELS];
 static float channelScale = CRSF_RC_CHANNEL_SCALE_LEGACY;
-static uint8_t crsfPos =
-    0; // current byte position within frame being assembled
+static uint8_t crsfPos = 0; // current byte position within frame being assembled
+static uint32_t last_frame_ms = 0; // millis() at last valid RC frame
 
 static uint8_t crc8_dvb_s2(uint8_t crc, uint8_t a) {
     crc ^= a;
@@ -163,6 +165,9 @@ void crsf_feed_byte(uint8_t byte) {
                     memcpy(&crsfChannelDataFrame, &crsfFrame,
                            sizeof(crsfFrame));
                     crsf_decode_channels_from_frame();
+#ifndef UNIT_TEST
+                    last_frame_ms = millis();
+#endif
                 }
                 break;
 
@@ -180,6 +185,16 @@ void crsf_process(void) {
 #ifndef UNIT_TEST
     while (uart_data_available(UART_INSTANCE_1))
         crsf_feed_byte((uint8_t)uart_receive_byte(UART_INSTANCE_1));
+#endif
+}
+
+uint32_t crsf_signal_age_ms(void) {
+#ifndef UNIT_TEST
+    if (last_frame_ms == 0)
+        return UINT32_MAX;
+    return millis() - last_frame_ms;
+#else
+    return 0;
 #endif
 }
 

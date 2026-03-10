@@ -29,7 +29,7 @@ int main(void) {
     delay_ms(500);
 
     // Initialize UART2 for LoRa communication
-    uart_init(UART_INSTANCE_2);
+    uart_init(UART_INSTANCE_2, 115200);
 
     // Initialize LoRa module
     if (lora_init() == LORA_OK) {

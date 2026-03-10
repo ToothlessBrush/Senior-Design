@@ -15,6 +15,8 @@ target_link_libraries(core PUBLIC stm32f411)
 # Main flight controller firmware
 add_executable(FlightController
     main.c
+    scheduler.c
+    flight_controller.c
     uart.c
     i2c.c
     spi.c

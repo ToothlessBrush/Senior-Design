@@ -2,8 +2,6 @@
 #include "stm32f411xe.h"
 #include <stddef.h>
 
-#define UART_BAUD_RATE 115200  // UART2 and UART6 baud rate
-#define UART1_BAUD_RATE 500000 // UART1 exact: APB2(100MHz) / BRR(200) = 500000
 #define UART_TX_BUFFER_SIZE 256
 
 // Static RX buffers — separate so each instance can have its own size
@@ -65,7 +63,7 @@ static inline void uart_sync_dma_rx_head(uart_state_t *state) {
     }
 }
 
-void uart_init(uart_instance_t instance) {
+void uart_init(uart_instance_t instance, uint32_t baud_rate) {
     switch (instance) {
     case UART_INSTANCE_2: {
         // UART2 - LoRa Module (PA2/PA3)
@@ -92,7 +90,7 @@ void uart_init(uart_instance_t instance) {
 
         // APB1 clock is 50MHz (100MHz system clock / 2)
         uint32_t apb1_clock = 50000000;
-        USART2->BRR = apb1_clock / UART_BAUD_RATE;
+        USART2->BRR = apb1_clock / baud_rate;
 
         // Configure USART2
         USART2->CR1 = USART_CR1_UE;
@@ -151,7 +149,7 @@ void uart_init(uart_instance_t instance) {
 
         // APB2 clock is 100MHz (system clock)
         uint32_t apb2_clock = 100000000;
-        USART6->BRR = apb2_clock / UART_BAUD_RATE;
+        USART6->BRR = apb2_clock / baud_rate;
 
         // Configure USART6
         USART6->CR1 = USART_CR1_UE;
@@ -210,8 +208,8 @@ void uart_init(uart_instance_t instance) {
         GPIOA->PUPDR &= ~(3u << (10 * 2));
         GPIOA->PUPDR |= (1u << (10 * 2));
 
-        // 420kbaud: BRR = 238 (exact, no fractional error)
-        USART1->BRR = 238;
+        uint32_t apb2_clock = 100000000;
+        USART1->BRR = apb2_clock / baud_rate;
 
         // Enable USART1: TE + RE + IDLEIE (idle-line interrupt for DMA RX
         // framing) RXNEIE is intentionally NOT set — DMA handles every byte
