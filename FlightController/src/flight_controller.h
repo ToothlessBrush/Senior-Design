@@ -24,4 +24,4 @@ void task_led(void);
 void task_crsf_service(void);
 void task_config_service(void);
 
-#endif // FLIGHT_CONTROLLER_H
+#endif

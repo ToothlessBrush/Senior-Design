@@ -114,18 +114,23 @@ void task_imu_pid(void) {
 }
 
 void task_led(void) {
+    static uint8_t tick = 0;
+    tick++;
+
     if (IS_ARMED(fc_state)) {
-        led_on();
+        // Fast blink: 5Hz (on/off every tick)
+        (tick % 2) ? led_on() : led_off();
         return;
     }
 
     if (IS_SIGNAL_OK(fc_state)) {
-        // Connected but disarmed: solid on
+        // Connected, disarmed: solid on
         led_on();
-    } else {
-        // No signal: blink
-        toggle_led();
+        return;
     }
+
+    // No signal: slow blink, 1Hz (on for 100ms every second)
+    (tick % 10 == 0) ? led_on() : led_off();
 }
 
 // Handle configuration commands from LoRa (or future BT module on UART2).

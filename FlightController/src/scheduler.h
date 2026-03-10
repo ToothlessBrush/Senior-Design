@@ -1,3 +1,5 @@
+#ifndef SCHEDULER_H
+#define SCHEDULER_H
 
 #include <stdint.h>
 
@@ -9,3 +11,5 @@ typedef struct {
 
 void init_scheduler(Task tasks[], uint32_t count);
 void run_scheduler(void);
+
+#endif
