@@ -29,7 +29,7 @@
 #define MICROLINK_DEV_ID 0x0F
 #define MICROLINK_SYS_ID 0x00
 #define MICROLINK_MSG_ID 0x51
-#define MICROLINK_MTF01_PAYLOAD_LEN 0x14  // 20 bytes
+#define MICROLINK_MTF01_PAYLOAD_LEN 0x14 // 20 bytes
 
 // Frame parsing states
 typedef enum {
@@ -43,23 +43,27 @@ typedef enum {
     PARSE_STATE_CHECKSUM
 } parse_state_t;
 
+#ifdef UNIT_TEST
+void optical_flow_feed_byte(uint8_t byte);
+#endif
+
 /**
  * @brief MTF-01 sensor data structure (20-byte payload)
  */
 typedef struct {
-    uint32_t system_time;        /**< System time in milliseconds */
-    uint32_t distance;           /**< Distance in mm (min=1, 0=invalid) */
-    uint8_t distance_strength;   /**< Distance strength (0-255) */
-    uint8_t distance_precision;  /**< Distance precision (0-255, lower=better) */
-    uint8_t distance_status;     /**< Distance status (1=valid, 0=invalid) */
-    uint8_t reserved1;           /**< Reserved byte */
-    int16_t flow_vel_x;          /**< Flow velocity X (cm/s @ 1m) */
-    int16_t flow_vel_y;          /**< Flow velocity Y (cm/s @ 1m) */
-    uint8_t flow_quality;        /**< Flow quality (0-255, higher=better) */
-    uint8_t flow_status;         /**< Flow status (1=valid, 0=invalid) */
-    uint16_t reserved2;          /**< Reserved 2 bytes */
-    uint8_t sequence;            /**< Frame sequence number */
-    uint8_t data_valid;          /**< Set to 1 when new valid data received */
+    uint32_t system_time;       /**< System time in milliseconds */
+    uint32_t distance;          /**< Distance in mm (min=1, 0=invalid) */
+    uint8_t distance_strength;  /**< Distance strength (0-255) */
+    uint8_t distance_precision; /**< Distance precision (0-255, lower=better) */
+    uint8_t distance_status;    /**< Distance status (1=valid, 0=invalid) */
+    uint8_t reserved1;          /**< Reserved byte */
+    int16_t flow_vel_x;         /**< Flow velocity X (cm/s @ 1m) */
+    int16_t flow_vel_y;         /**< Flow velocity Y (cm/s @ 1m) */
+    uint8_t flow_quality;       /**< Flow quality (0-255, higher=better) */
+    uint8_t flow_status;        /**< Flow status (1=valid, 0=invalid) */
+    uint16_t reserved2;         /**< Reserved 2 bytes */
+    uint8_t sequence;           /**< Frame sequence number */
+    uint8_t data_valid;         /**< Set to 1 when new valid data received */
 } optical_flow_data_t;
 
 /**
@@ -87,7 +91,7 @@ void optical_flow_update(void);
  *
  * @return Pointer to optical_flow_data_t structure
  */
-const optical_flow_data_t* optical_flow_get_data(void);
+const optical_flow_data_t *optical_flow_get_data(void);
 
 /**
  * @brief Calculate actual velocity from flow velocity and distance
@@ -107,7 +111,8 @@ float optical_flow_calc_velocity(int16_t flow_vel, uint32_t distance);
  * @param data Pointer to optical flow data
  * @return 1 if distance valid, 0 otherwise
  */
-static inline uint8_t optical_flow_is_distance_valid(const optical_flow_data_t *data) {
+static inline uint8_t
+optical_flow_is_distance_valid(const optical_flow_data_t *data) {
     return (data->distance_status == 1 && data->distance > 0);
 }
 
@@ -117,7 +122,8 @@ static inline uint8_t optical_flow_is_distance_valid(const optical_flow_data_t *
  * @param data Pointer to optical flow data
  * @return 1 if flow valid, 0 otherwise
  */
-static inline uint8_t optical_flow_is_flow_valid(const optical_flow_data_t *data) {
+static inline uint8_t
+optical_flow_is_flow_valid(const optical_flow_data_t *data) {
     return (data->flow_status == 1);
 }
 
@@ -133,8 +139,9 @@ static inline uint8_t optical_flow_is_flow_valid(const optical_flow_data_t *data
  * @param last_sys Last SYS_ID byte received
  * @param last_msg Last MSG_ID byte received
  */
-void optical_flow_get_debug_stats(uint32_t *bytes, uint32_t *frames, uint32_t *chk_err,
-                                   uint32_t *hdr_err, uint8_t *state, uint8_t *last_dev,
-                                   uint8_t *last_sys, uint8_t *last_msg);
+void optical_flow_get_debug_stats(uint32_t *bytes, uint32_t *frames,
+                                  uint32_t *chk_err, uint32_t *hdr_err,
+                                  uint8_t *state, uint8_t *last_dev,
+                                  uint8_t *last_sys, uint8_t *last_msg);
 
 #endif // OPTICAL_FLOW_H
