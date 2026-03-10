@@ -3,6 +3,7 @@
 #include "imu.h"
 #include "lora.h"
 #include "motor_control.h"
+#include "optical_flow.h"
 #include "pid.h"
 #include "protocol.h"
 #include "system.h"
@@ -78,6 +79,7 @@ void fc_init(void) {
     led_init();
     led_off();
 
+    optical_flow_init();
     lora_init();
     lora_send_string(
         1, "CMD:GET_CONFIG"); // request full config from ground station
@@ -236,6 +238,21 @@ void task_config_service(void) {
     default:
         break;
     }
+}
+
+void task_optical_flow(void) {
+    optical_flow_update();
+
+    if (!IS_ARMED(fc_state))
+        return;
+
+    const optical_flow_data_t *of = optical_flow_get_data();
+    if (!optical_flow_is_flow_valid(of))
+        return;
+
+    // flow_vel_x/y are actual velocity in cm/s (MTF-02P compensates internally)
+    imu.velocity.x = of->flow_vel_x / 100.0f;
+    imu.velocity.y = of->flow_vel_y / 100.0f;
 }
 
 void task_crsf_service(void) {

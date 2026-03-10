@@ -119,6 +119,7 @@ static void crsf_decode_channels_from_frame(void) {
 // ────────────────────────────────────────────────────────────────
 
 void crsf_init(void) {
+    uart_init(UART_INSTANCE_1, 420000);
     memset(crsfChannelData, 0, sizeof(crsfChannelData));
     crsfPos = 0;
 }

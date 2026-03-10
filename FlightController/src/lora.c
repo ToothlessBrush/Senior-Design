@@ -112,6 +112,7 @@ int lora_send_at_command(const char *cmd, char *response, uint16_t max_len,
  * @return LORA_OK if all configuration succeeded, LORA_ERROR otherwise
  */
 int lora_init(void) {
+    uart_init(UART_INSTANCE_2, 115200);
     char response[128];
     char cmd[64];
 
