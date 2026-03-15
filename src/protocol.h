@@ -193,6 +193,10 @@ typedef struct __attribute__((packed)) {
     float yaw_p_term; /**< Yaw proportional term */
     float yaw_i_term; /**< Yaw integral term */
     float yaw_d_term; /**< Yaw derivative term */
+
+    // Optical flow velocity estimate (m/s, NED frame)
+    float vel_x; /**< Forward velocity (m/s, +forward) */
+    float vel_y; /**< Lateral velocity (m/s, +right) */
 } TelemetryPacket;
 
 /**

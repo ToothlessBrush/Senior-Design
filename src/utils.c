@@ -1,8 +1,9 @@
 #include "utils.h"
-#include "lora.h"
+#include "comm.h"
 #include "protocol.h"
 #include "systick.h"
 #include <stdio.h>
+
 
 void split_float(float value, int decimal_places, float_parts_t *result) {
     // Determine sign
@@ -62,6 +63,8 @@ void send_telem(const IMU *imu, const PID *pid) {
         packet.yaw_p_term = pid->yaw_pid.p_term;
         packet.yaw_i_term = pid->yaw_pid.i_term;
         packet.yaw_d_term = pid->yaw_pid.d_term;
+        packet.vel_x = imu->velocity.x;
+        packet.vel_y = imu->velocity.y;
 
         // Convert to hex string (fast - just table lookups and bit shifts)
         const uint8_t *data = (const uint8_t *)&packet;
@@ -79,6 +82,6 @@ void send_telem(const IMU *imu, const PID *pid) {
 
         *hex_ptr = '\0'; // Null terminate
 
-        lora_send_string_nb(1, hex_buffer);
+        comm_send_string_nb(hex_buffer);
     }
 }
