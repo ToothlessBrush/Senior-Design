@@ -3,7 +3,7 @@
 #include "protocol.h"
 #include "systick.h"
 #include <stdio.h>
-
+#include <string.h>
 
 void split_float(float value, int decimal_places, float_parts_t *result) {
     // Determine sign

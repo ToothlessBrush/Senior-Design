@@ -1,5 +1,6 @@
 #include "system.h"
 #include "stm32f411xe.h"
+#include <string.h>
 
 void led_init(void) {
     // Enable GPIOC clock (onboard LED is usually on PC13)
@@ -22,9 +23,9 @@ void led_init(void) {
 
 void toggle_led(void) { GPIOC->ODR ^= GPIO_ODR_ODR_13; }
 
-void led_on(void) { GPIOC->ODR &= ~GPIO_ODR_ODR_13; }  // Active low
+void led_on(void) { GPIOC->ODR &= ~GPIO_ODR_ODR_13; } // Active low
 
-void led_off(void) { GPIOC->ODR |= GPIO_ODR_ODR_13; }  // Active low
+void led_off(void) { GPIOC->ODR |= GPIO_ODR_ODR_13; } // Active low
 
 // config chip to use 25mhz HSL clock and PLL x4 for a total of 100mhz
 void SystemClock_Config_100MHz_HSE(void) {
@@ -50,11 +51,11 @@ void SystemClock_Config_100MHz_HSE(void) {
     // SYSCLK = VCO / PLLP = 200 MHz / 2 = 100 MHz
     // USB clock = VCO / PLLQ = 200 MHz / 4 = 50 MHz
 
-    RCC->PLLCFGR = (25 << 0) |  // PLLM = 25
-                    (200 << 6) | // PLLN = 200
-                    (0 << 16) |   // PLLP = 2 (00 = /2)
-                    RCC_PLLCFGR_PLLSRC_HSE |        // PLL source = HSE
-                    (4 << 24);    // PLLQ = 4
+    RCC->PLLCFGR = (25 << 0) |              // PLLM = 25
+                   (200 << 6) |             // PLLN = 200
+                   (0 << 16) |              // PLLP = 2 (00 = /2)
+                   RCC_PLLCFGR_PLLSRC_HSE | // PLL source = HSE
+                   (4 << 24);               // PLLQ = 4
 
     // Enable PLL
     RCC->CR |= RCC_CR_PLLON;
@@ -76,4 +77,75 @@ void SystemClock_Config_100MHz_HSE(void) {
 
     // Update SystemCoreClock variable
     SystemCoreClock = 100000000;
+}
+
+void flash_unlock(void) {
+    if (!(FLASH->CR & FLASH_CR_LOCK)) {
+        return;
+    }
+    while (FLASH->SR & FLASH_SR_BSY)
+        ;
+    FLASH->KEYR = 0x45670123;
+    FLASH->KEYR = 0xCDEF89AB;
+}
+
+void flash_lock(void) { FLASH->CR |= FLASH_CR_LOCK; }
+
+// Erase a sector (0-7 on F411, voltage range 3.3V = parallelism x32)
+void flash_erase_sector(uint8_t sector) {
+    while (FLASH->SR & FLASH_SR_BSY)
+        ;
+
+    FLASH->CR &= ~FLASH_CR_SNB;
+    FLASH->CR |= FLASH_CR_SER | (sector << FLASH_CR_SNB_Pos);
+    FLASH->CR |= FLASH_CR_STRT;
+
+    while (FLASH->SR & FLASH_SR_BSY)
+        ;
+
+    FLASH->CR &= ~FLASH_CR_SER; // clear erase mode
+}
+
+// Write a buffer of 32-bit words to a flash address
+// addr must be 4-byte aligned, must be pre-erased
+bool flash_write(uint32_t addr, const uint32_t *data, uint32_t len_words) {
+    while (FLASH->SR & FLASH_SR_BSY)
+        ;
+
+    FLASH->CR &= ~FLASH_CR_PSIZE;  // clear parallelism
+    FLASH->CR |= FLASH_CR_PSIZE_1; // x32 (for 3.3V supply)
+    FLASH->CR |= FLASH_CR_PG;      // enable programming
+
+    for (uint32_t i = 0; i < len_words; i++) {
+        *(volatile uint32_t *)(addr + i * 4) = data[i];
+        while (FLASH->SR & FLASH_SR_BSY)
+            ;
+
+        if (FLASH->SR & (FLASH_SR_PGSERR | FLASH_SR_PGPERR | FLASH_SR_WRPERR)) {
+            FLASH->SR |= FLASH_SR_PGSERR | FLASH_SR_PGPERR | FLASH_SR_WRPERR;
+            return false; // bail on error
+        }
+    }
+
+    FLASH->CR &= ~FLASH_CR_PG; // disable programming
+
+    return true;
+}
+
+// Save config to a flash sector — full erase + rewrite cycle
+bool flash_save(uint8_t sector, uint32_t sector_addr, const void *data,
+                uint32_t size_bytes) {
+    uint32_t len_words = (size_bytes + 3) / 4; // round up to word boundary
+
+    flash_unlock();
+    flash_erase_sector(sector);
+    bool status = flash_write(sector_addr, (const uint32_t *)data, len_words);
+    flash_lock();
+
+    return status;
+}
+
+// Read back — flash is memory-mapped, just cast the address
+void flash_read(uint32_t addr, void *out, uint32_t size_bytes) {
+    memcpy(out, (const void *)addr, size_bytes);
 }

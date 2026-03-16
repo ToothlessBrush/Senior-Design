@@ -17,7 +17,11 @@
 #ifndef SYSTEM_H
 #define SYSTEM_H
 
-#include "systick.h"
+#include <stdbool.h>
+#include <stdint.h>
+
+#define CONFIG_SECTOR 7
+#define CONFIG_SECTOR_ADDR 0x08060000
 
 /**
  * @brief Initialize onboard LED (PC13)
@@ -68,5 +72,10 @@ void led_off(void);
  * Must be called before peripheral initialization.
  */
 void SystemClock_Config_100MHz_HSE(void);
+
+bool flash_save(uint8_t sector, uint32_t sector_addr, const void *data,
+                uint32_t size_bytes);
+
+void flash_read(uint32_t addr, void *out, uint32_t size_bytes);
 
 #endif // SYSTEM_H

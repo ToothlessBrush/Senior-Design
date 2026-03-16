@@ -12,7 +12,8 @@ static crsfFrameDef_t crsfChannelDataFrame; // last validated frame
 
 static uint16_t crsfChannelData[CRSF_MAX_CHANNELS];
 static float channelScale = CRSF_RC_CHANNEL_SCALE_LEGACY;
-static uint8_t crsfPos = 0; // current byte position within frame being assembled
+static uint8_t crsfPos =
+    0; // current byte position within frame being assembled
 static uint32_t last_frame_ms = 0; // millis() at last valid RC frame
 
 static uint8_t crc8_dvb_s2(uint8_t crc, uint8_t a) {
@@ -119,7 +120,9 @@ static void crsf_decode_channels_from_frame(void) {
 // ────────────────────────────────────────────────────────────────
 
 void crsf_init(void) {
+#ifndef UNIT_TEST
     uart_init(UART_INSTANCE_1, 420000);
+#endif
     memset(crsfChannelData, 0, sizeof(crsfChannelData));
     crsfPos = 0;
 }

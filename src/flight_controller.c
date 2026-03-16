@@ -39,6 +39,15 @@
 #define MAX_PITCH_ANGLE 0.5f // ~28 deg
 #define MAX_YAW_ANGLE 0.5f   // ~28 deg
 
+// persistant data
+#define FLASH_CONFIG_MAGIC 0xDEADBEEF
+
+typedef struct __attribute__((packed)) {
+    uint32_t magic;
+    CommandConfig config;
+    IMU_Calibration cal;
+} FlashConfig;
+
 uint8_t fc_state = 0;
 
 static IMU imu = {0};
@@ -46,255 +55,369 @@ static PID pid = {0};
 static float base_throttle = 0.0f;
 
 typedef struct {
-  float motor1; /**< Motor 1 bias (rear left, CW) */
-  float motor2; /**< Motor 2 bias (front right, CCW) */
-  float motor3; /**< Motor 3 bias (rear right, CCW) */
-  float motor4; /**< Motor 4 bias (front left, CW) */
+    float motor1; /**< Motor 1 bias (rear left, CW) */
+    float motor2; /**< Motor 2 bias (front right, CCW) */
+    float motor3; /**< Motor 3 bias (rear right, CCW) */
+    float motor4; /**< Motor 4 bias (front left, CW) */
 } MotorBias;
 
 static MotorBias bias = {0};
 
 static void drive_motors(float throttle, PID *p, MotorBias *b) {
-  float m4 = throttle + b->motor4 + p->output.pitch + p->output.yaw;
-  float m3 = throttle + b->motor3 - p->output.roll - p->output.yaw;
-  float m2 = throttle + b->motor2 + p->output.roll - p->output.yaw;
-  float m1 = throttle + b->motor1 - p->output.pitch + p->output.yaw;
+    float m4 = throttle + b->motor4 + p->output.pitch + p->output.yaw;
+    float m3 = throttle + b->motor3 - p->output.roll - p->output.yaw;
+    float m2 = throttle + b->motor2 + p->output.roll - p->output.yaw;
+    float m1 = throttle + b->motor1 - p->output.pitch + p->output.yaw;
 
-  m1 = fmaxf(MIN_THROTTLE, fminf(MAX_THROTTLE, m1));
-  m2 = fmaxf(MIN_THROTTLE, fminf(MAX_THROTTLE, m2));
-  m3 = fmaxf(MIN_THROTTLE, fminf(MAX_THROTTLE, m3));
-  m4 = fmaxf(MIN_THROTTLE, fminf(MAX_THROTTLE, m4));
+    m1 = fmaxf(MIN_THROTTLE, fminf(MAX_THROTTLE, m1));
+    m2 = fmaxf(MIN_THROTTLE, fminf(MAX_THROTTLE, m2));
+    m3 = fmaxf(MIN_THROTTLE, fminf(MAX_THROTTLE, m3));
+    m4 = fmaxf(MIN_THROTTLE, fminf(MAX_THROTTLE, m4));
 
-  SetMotorThrottle(motor1, (int16_t)(m1 * 1000.0f + 1.0f));
-  SetMotorThrottle(motor2, (int16_t)(m2 * 1000.0f + 1.0f));
-  SetMotorThrottle(motor3, (int16_t)(m3 * 1000.0f + 1.0f));
-  SetMotorThrottle(motor4, (int16_t)(m4 * 1000.0f + 1.0f));
+    SetMotorThrottle(motor1, (int16_t)(m1 * 1000.0f + 1.0f));
+    SetMotorThrottle(motor2, (int16_t)(m2 * 1000.0f + 1.0f));
+    SetMotorThrottle(motor3, (int16_t)(m3 * 1000.0f + 1.0f));
+    SetMotorThrottle(motor4, (int16_t)(m4 * 1000.0f + 1.0f));
 }
 
 void fc_init(void) {
-  PIDCreateInfo pid_info = {0}; // gains configured via tuning commands
-  imu_init(&imu);
-  pid_init(&pid, &pid_info);
-  crsf_init();
-  led_init();
-  led_off();
+    imu_init(&imu);
+    crsf_init();
+    led_init();
+    led_off();
 
-  optical_flow_init();
-  comm_init();
-  comm_send_string("CMD:GET_CONFIG"); // request full config from ground station
+    optical_flow_init();
+    comm_init();
+
+    FlashConfig saved;
+    flash_read(CONFIG_SECTOR_ADDR, &saved, sizeof(FlashConfig));
+
+    if (saved.magic == FLASH_CONFIG_MAGIC) {
+        imu.cal = saved.cal;
+
+        bias.motor1 = saved.config.motor1;
+        bias.motor2 = saved.config.motor2;
+        bias.motor3 = saved.config.motor3;
+        bias.motor4 = saved.config.motor4;
+
+        PIDCreateInfo pid_info = {
+            .roll_Kp = saved.config.roll_Kp,
+            .roll_Ki = saved.config.roll_Ki,
+            .roll_Kd = saved.config.roll_Kd,
+            .roll_Ki_limit = saved.config.roll_i_limit,
+            .roll_limit = saved.config.roll_pid_limit,
+            .pitch_Kp = saved.config.pitch_Kp,
+            .pitch_Ki = saved.config.pitch_Ki,
+            .pitch_Kd = saved.config.pitch_Kd,
+            .pitch_Ki_limit = saved.config.pitch_i_limit,
+            .pitch_limit = saved.config.pitch_pid_limit,
+            .yaw_Kp = saved.config.yaw_Kp,
+            .yaw_Ki = saved.config.yaw_Ki,
+            .yaw_Kd = saved.config.yaw_Kd,
+            .yaw_Ki_limit = saved.config.yaw_i_limit,
+            .yaw_limit = saved.config.yaw_pid_limit,
+            .velocity_x_Kp = saved.config.velocity_x_Kp,
+            .velocity_x_Ki = saved.config.velocity_x_Ki,
+            .velocity_x_Kd = saved.config.velocity_x_Kd,
+            .velocity_x_Ki_limit = saved.config.velocity_x_i_limit,
+            .velocity_x_limit = saved.config.velocity_x_pid_limit,
+            .velocity_y_Kp = saved.config.velocity_y_Kp,
+            .velocity_y_Ki = saved.config.velocity_y_Ki,
+            .velocity_y_Kd = saved.config.velocity_y_Kd,
+            .velocity_y_Ki_limit = saved.config.velocity_y_i_limit,
+            .velocity_y_limit = saved.config.velocity_y_pid_limit,
+        };
+
+        pid_init(&pid, &pid_info);
+        comm_send_string("INIT_CONFIG_OK");
+    } else {
+        PIDCreateInfo pid_info = {0};
+        pid_init(&pid, &pid_info);
+        comm_send_string("INIT_NO_CONFIG");
+    }
 }
 
 void arm(void) {
-  base_throttle = 0.0f;
-  pid_reset(&pid);
-  IMU_reset_velocity(&imu);
+    base_throttle = 0.0f;
+    pid_reset(&pid);
+    IMU_reset_velocity(&imu);
 
-  InitMotors();
-  StartMotors();
-  delay_ms(2500); // ESC initialization
+    InitMotors();
+    StartMotors();
+    delay_ms(2500); // ESC initialization
 
-  fc_state |= FC_ARMED;
+    fc_state |= FC_ARMED;
 }
 
 void disarm(void) {
-  StopMotors();
-  fc_state &= ~FC_ARMED;
+    StopMotors();
+    fc_state &= ~FC_ARMED;
 }
 
 void task_imu_pid(void) {
-  if (!IS_ARMED(fc_state))
-    return;
+    if (!IS_ARMED(fc_state))
+        return;
 
-  if (!imu_data_ready())
-    return;
+    if (!imu_data_ready())
+        return;
 
-  IMU_update(&imu, FIXED_DT);
-  pid_update(&pid, &imu, FIXED_DT);
-  drive_motors(base_throttle, &pid, &bias);
-  send_telem(&imu, &pid); // self-rate-limited to MIN_SEND_INTERVAL
+    IMU_update(&imu, FIXED_DT);
+    pid_update(&pid, &imu, FIXED_DT);
+    drive_motors(base_throttle, &pid, &bias);
+    send_telem(&imu, &pid); // self-rate-limited to MIN_SEND_INTERVAL
 }
 
 void task_led(void) {
-  static uint8_t tick = 0;
-  tick++;
+    static uint8_t tick = 0;
+    tick++;
 
-  if (IS_ARMED(fc_state)) {
-    // Fast blink: 5Hz (on/off every tick)
-    (tick % 2) ? led_on() : led_off();
-    return;
-  }
+    if (IS_ARMED(fc_state)) {
+        // Fast blink: 5Hz (on/off every tick)
+        (tick % 2) ? led_on() : led_off();
+        return;
+    }
 
-  if (IS_SIGNAL_OK(fc_state)) {
-    // Connected, disarmed: solid on
-    led_on();
-    return;
-  }
+    if (IS_SIGNAL_OK(fc_state)) {
+        // Connected, disarmed: solid on
+        led_on();
+        return;
+    }
 
-  // No signal: slow blink, 1Hz (on for 100ms every second)
-  (tick % 10 == 0) ? led_on() : led_off();
+    // No signal: slow blink, 1Hz (on for 100ms every second)
+    (tick % 10 == 0) ? led_on() : led_off();
 }
 
 // Handle configuration commands from LoRa (or future BT module on UART2).
 // Only config commands are accepted here — arm/disarm is CRSF-only.
 void task_config_service(void) {
-  comm_service();
+    comm_service();
 
-  if (!comm_data_available())
-    return;
+    if (!comm_data_available())
+        return;
 
-  comm_message_t *msg = comm_get_received_data();
-  ParsedCommand cmd = comm_parse_command(msg->data, msg->length);
-  comm_clear_received_flag();
+    comm_message_t *msg = comm_get_received_data();
+    ParsedCommand cmd = comm_parse_command(msg->data, msg->length);
+    comm_clear_received_flag();
 
-  switch (cmd.type) {
-  case CMD_SET_PID: {
-    PIDController *axis_pid;
-    switch (cmd.payload.pid.axis) {
-    case 0:
-      axis_pid = &pid.pitch_pid;
-      break;
-    case 1:
-      axis_pid = &pid.roll_pid;
-      break;
-    case 2:
-      axis_pid = &pid.yaw_pid;
-      break;
-    case 3:
-      axis_pid = &pid.velocity_x_pid;
-      break;
-    case 4:
-      axis_pid = &pid.velocity_y_pid;
-      break;
+    switch (cmd.type) {
+    case CMD_SET_PID: {
+        PIDController *axis_pid;
+        switch (cmd.payload.pid.axis) {
+        case 0:
+            axis_pid = &pid.pitch_pid;
+            break;
+        case 1:
+            axis_pid = &pid.roll_pid;
+            break;
+        case 2:
+            axis_pid = &pid.yaw_pid;
+            break;
+        case 3:
+            axis_pid = &pid.velocity_x_pid;
+            break;
+        case 4:
+            axis_pid = &pid.velocity_y_pid;
+            break;
+        default:
+            comm_send_string_nb("ERR:BAD_AXIS");
+            return;
+        }
+        axis_pid->Kp = cmd.payload.pid.P;
+        axis_pid->Ki = cmd.payload.pid.I;
+        axis_pid->Kd = cmd.payload.pid.D;
+        axis_pid->integral_limit = cmd.payload.pid.I_limit;
+        axis_pid->output_limit = cmd.payload.pid.pid_limit;
+
+        FlashConfig to_save;
+        flash_read(CONFIG_SECTOR_ADDR, &to_save, sizeof(FlashConfig));
+        to_save.magic = FLASH_CONFIG_MAGIC; // ensure valid if first write
+
+        float P = cmd.payload.pid.P;
+        float I = cmd.payload.pid.I;
+        float D = cmd.payload.pid.D;
+        float I_limit = cmd.payload.pid.I_limit;
+        float limit = cmd.payload.pid.pid_limit;
+
+        // I dont like that its 2 switch statements but I cant be asked to clean
+        // this
+        switch (cmd.payload.pid.axis) {
+        case 0:
+            to_save.config.pitch_Kp = P;
+            to_save.config.pitch_Ki = I;
+            to_save.config.pitch_Kd = D;
+            to_save.config.pitch_i_limit = I_limit;
+            to_save.config.pitch_pid_limit = limit;
+            break;
+        case 1:
+            to_save.config.roll_Kp = P;
+            to_save.config.roll_Ki = I;
+            to_save.config.roll_Kd = D;
+            to_save.config.roll_i_limit = I_limit;
+            to_save.config.roll_pid_limit = limit;
+            break;
+        case 2:
+            to_save.config.yaw_Kp = P;
+            to_save.config.yaw_Ki = I;
+            to_save.config.yaw_Kd = D;
+            to_save.config.yaw_i_limit = I_limit;
+            to_save.config.yaw_pid_limit = limit;
+            break;
+        case 3:
+            to_save.config.velocity_x_Kp = P;
+            to_save.config.velocity_x_Ki = I;
+            to_save.config.velocity_x_Kd = D;
+            to_save.config.velocity_x_i_limit = I_limit;
+            to_save.config.velocity_x_pid_limit = limit;
+            break;
+        case 4:
+            to_save.config.velocity_y_Kp = P;
+            to_save.config.velocity_y_Ki = I;
+            to_save.config.velocity_y_Kd = D;
+            to_save.config.velocity_y_i_limit = I_limit;
+            to_save.config.velocity_y_pid_limit = limit;
+            break;
+        }
+
+        flash_save(CONFIG_SECTOR, CONFIG_SECTOR_ADDR, &to_save,
+                   sizeof(FlashConfig));
+        comm_send_string_nb("ACK:PID");
+        break;
+    }
+
+    case CMD_SET_MOTOR_BIAS:
+        bias.motor1 = cmd.payload.bias.motor1;
+        bias.motor2 = cmd.payload.bias.motor2;
+        bias.motor3 = cmd.payload.bias.motor3;
+        bias.motor4 = cmd.payload.bias.motor4;
+        comm_send_string_nb("ACK:BIAS");
+        break;
+
+    case CMD_CONFIG:
+        bias.motor1 = cmd.payload.sync.motor1;
+        bias.motor2 = cmd.payload.sync.motor2;
+        bias.motor3 = cmd.payload.sync.motor3;
+        bias.motor4 = cmd.payload.sync.motor4;
+
+        pid.pitch_pid.Kp = cmd.payload.sync.pitch_Kp;
+        pid.pitch_pid.Ki = cmd.payload.sync.pitch_Ki;
+        pid.pitch_pid.Kd = cmd.payload.sync.pitch_Kd;
+        pid.pitch_pid.integral_limit = cmd.payload.sync.pitch_i_limit;
+        pid.pitch_pid.output_limit = cmd.payload.sync.pitch_pid_limit;
+
+        pid.roll_pid.Kp = cmd.payload.sync.roll_Kp;
+        pid.roll_pid.Ki = cmd.payload.sync.roll_Ki;
+        pid.roll_pid.Kd = cmd.payload.sync.roll_Kd;
+        pid.roll_pid.integral_limit = cmd.payload.sync.roll_i_limit;
+        pid.roll_pid.output_limit = cmd.payload.sync.roll_pid_limit;
+
+        pid.yaw_pid.Kp = cmd.payload.sync.yaw_Kp;
+        pid.yaw_pid.Ki = cmd.payload.sync.yaw_Ki;
+        pid.yaw_pid.Kd = cmd.payload.sync.yaw_Kd;
+        pid.yaw_pid.integral_limit = cmd.payload.sync.yaw_i_limit;
+        pid.yaw_pid.output_limit = cmd.payload.sync.yaw_pid_limit;
+
+        pid.velocity_x_pid.Kp = cmd.payload.sync.velocity_x_Kp;
+        pid.velocity_x_pid.Ki = cmd.payload.sync.velocity_x_Ki;
+        pid.velocity_x_pid.Kd = cmd.payload.sync.velocity_x_Kd;
+        pid.velocity_x_pid.integral_limit = cmd.payload.sync.velocity_x_i_limit;
+        pid.velocity_x_pid.output_limit = cmd.payload.sync.velocity_x_pid_limit;
+
+        pid.velocity_y_pid.Kp = cmd.payload.sync.velocity_y_Kp;
+        pid.velocity_y_pid.Ki = cmd.payload.sync.velocity_y_Ki;
+        pid.velocity_y_pid.Kd = cmd.payload.sync.velocity_y_Kd;
+        pid.velocity_y_pid.integral_limit = cmd.payload.sync.velocity_y_i_limit;
+        pid.velocity_y_pid.output_limit = cmd.payload.sync.velocity_y_pid_limit;
+
+        FlashConfig to_save = {
+            .magic = FLASH_CONFIG_MAGIC,
+            .config = cmd.payload.sync,
+            .cal = imu.cal,
+        };
+        flash_save(CONFIG_SECTOR, CONFIG_SECTOR_ADDR, &to_save,
+                   sizeof(FlashConfig));
+
+        comm_send_string_nb("ACK:CONFIG");
+        break;
+
+    case CMD_CALIBRATE:
+        if (!IS_ARMED(fc_state)) {
+            toggle_led();
+            IMU_calibrate(&imu, 6660);
+            toggle_led();
+
+            FlashConfig to_save;
+            flash_read(CONFIG_SECTOR_ADDR, &to_save, sizeof(FlashConfig));
+            to_save.magic = FLASH_CONFIG_MAGIC;
+            to_save.cal = imu.cal; // overwrite with fresh cal
+            flash_save(CONFIG_SECTOR, CONFIG_SECTOR_ADDR, &to_save,
+                       sizeof(FlashConfig));
+
+            comm_send_string_nb("ACK:CALIBRATE");
+        }
+        break;
+
     default:
-      comm_send_string_nb("ERR:BAD_AXIS");
-      return;
+        break;
     }
-    axis_pid->Kp = cmd.payload.pid.P;
-    axis_pid->Ki = cmd.payload.pid.I;
-    axis_pid->Kd = cmd.payload.pid.D;
-    axis_pid->integral_limit = cmd.payload.pid.I_limit;
-    axis_pid->output_limit = cmd.payload.pid.pid_limit;
-    comm_send_string_nb("ACK:PID");
-    break;
-  }
-
-  case CMD_SET_MOTOR_BIAS:
-    bias.motor1 = cmd.payload.bias.motor1;
-    bias.motor2 = cmd.payload.bias.motor2;
-    bias.motor3 = cmd.payload.bias.motor3;
-    bias.motor4 = cmd.payload.bias.motor4;
-    comm_send_string_nb("ACK:BIAS");
-    break;
-
-  case CMD_CONFIG:
-    bias.motor1 = cmd.payload.sync.motor1;
-    bias.motor2 = cmd.payload.sync.motor2;
-    bias.motor3 = cmd.payload.sync.motor3;
-    bias.motor4 = cmd.payload.sync.motor4;
-
-    pid.pitch_pid.Kp = cmd.payload.sync.pitch_Kp;
-    pid.pitch_pid.Ki = cmd.payload.sync.pitch_Ki;
-    pid.pitch_pid.Kd = cmd.payload.sync.pitch_Kd;
-    pid.pitch_pid.integral_limit = cmd.payload.sync.pitch_i_limit;
-    pid.pitch_pid.output_limit = cmd.payload.sync.pitch_pid_limit;
-
-    pid.roll_pid.Kp = cmd.payload.sync.roll_Kp;
-    pid.roll_pid.Ki = cmd.payload.sync.roll_Ki;
-    pid.roll_pid.Kd = cmd.payload.sync.roll_Kd;
-    pid.roll_pid.integral_limit = cmd.payload.sync.roll_i_limit;
-    pid.roll_pid.output_limit = cmd.payload.sync.roll_pid_limit;
-
-    pid.yaw_pid.Kp = cmd.payload.sync.yaw_Kp;
-    pid.yaw_pid.Ki = cmd.payload.sync.yaw_Ki;
-    pid.yaw_pid.Kd = cmd.payload.sync.yaw_Kd;
-    pid.yaw_pid.integral_limit = cmd.payload.sync.yaw_i_limit;
-    pid.yaw_pid.output_limit = cmd.payload.sync.yaw_pid_limit;
-
-    pid.velocity_x_pid.Kp = cmd.payload.sync.velocity_x_Kp;
-    pid.velocity_x_pid.Ki = cmd.payload.sync.velocity_x_Ki;
-    pid.velocity_x_pid.Kd = cmd.payload.sync.velocity_x_Kd;
-    pid.velocity_x_pid.integral_limit = cmd.payload.sync.velocity_x_i_limit;
-    pid.velocity_x_pid.output_limit = cmd.payload.sync.velocity_x_pid_limit;
-
-    pid.velocity_y_pid.Kp = cmd.payload.sync.velocity_y_Kp;
-    pid.velocity_y_pid.Ki = cmd.payload.sync.velocity_y_Ki;
-    pid.velocity_y_pid.Kd = cmd.payload.sync.velocity_y_Kd;
-    pid.velocity_y_pid.integral_limit = cmd.payload.sync.velocity_y_i_limit;
-    pid.velocity_y_pid.output_limit = cmd.payload.sync.velocity_y_pid_limit;
-
-    comm_send_string_nb("ACK:CONFIG");
-    break;
-
-  case CMD_CALIBRATE:
-    if (!IS_ARMED(fc_state)) {
-      toggle_led();
-      IMU_calibrate(&imu, 6660);
-      toggle_led();
-      comm_send_string_nb("ACK:CALIBRATE");
-    }
-    break;
-
-  default:
-    break;
-  }
 }
 
 void task_optical_flow(void) {
-  optical_flow_update();
+    optical_flow_update();
 
-  if (!IS_ARMED(fc_state))
-    return;
+    if (!IS_ARMED(fc_state))
+        return;
 
-  const optical_flow_data_t *of = optical_flow_get_data();
-  if (!optical_flow_is_flow_valid(of))
-    return;
+    const optical_flow_data_t *of = optical_flow_get_data();
+    if (!optical_flow_is_flow_valid(of))
+        return;
 
-  // flow_vel_x/y are actual velocity in cm/s (MTF-02P compensates internally)
-  imu.velocity.x = of->flow_vel_x / 100.0f;
-  imu.velocity.y = of->flow_vel_y / 100.0f;
+    // flow_vel_x/y are actual velocity in cm/s (MTF-02P compensates internally)
+    imu.velocity.x = of->flow_vel_x / 100.0f;
+    imu.velocity.y = of->flow_vel_y / 100.0f;
 }
 
 void task_crsf_service(void) {
-  crsf_process();
+    crsf_process();
 
-  if (crsf_signal_age_ms() > CRSF_SIGNAL_TIMEOUT_MS) {
-    fc_state &= ~FC_SIGNAL_OK;
-    if (IS_ARMED(fc_state)) {
-      fc_state |= FC_FAILSAFE;
-      disarm();
-    }
-    return;
-  }
-
-  fc_state |= FC_SIGNAL_OK;
-  fc_state &= ~FC_FAILSAFE;
-
-  float arm_ch = crsf_get_channel(CRSF_CH_ARM);
-  float throttle_ch = crsf_get_channel(CRSF_CH_THROTTLE);
-
-  if (!IS_ARMED(fc_state)) {
-    if (arm_ch > CRSF_ARM_THRESHOLD && throttle_ch < CRSF_THROTTLE_LOW)
-      arm();
-  } else {
-    if (arm_ch < CRSF_DISARM_THRESHOLD) {
-      disarm();
-      return;
+    if (crsf_signal_age_ms() > CRSF_SIGNAL_TIMEOUT_MS) {
+        fc_state &= ~FC_SIGNAL_OK;
+        if (IS_ARMED(fc_state)) {
+            fc_state |= FC_FAILSAFE;
+            disarm();
+        }
+        return;
     }
 
-    // Map sticks to setpoints and throttle while armed
-    float roll_ch = crsf_get_channel(CRSF_CH_ROLL);
-    float pitch_ch = crsf_get_channel(CRSF_CH_PITCH);
-    float yaw_ch = crsf_get_channel(CRSF_CH_YAW);
+    fc_state |= FC_SIGNAL_OK;
+    fc_state &= ~FC_FAILSAFE;
 
-    pid.setpoints.roll = ((roll_ch - CRSF_MID) / CRSF_RANGE) * MAX_ROLL_ANGLE;
-    pid.setpoints.pitch =
-        ((pitch_ch - CRSF_MID) / CRSF_RANGE) * MAX_PITCH_ANGLE;
-    pid.setpoints.yaw = ((yaw_ch - CRSF_MID) / CRSF_RANGE) * MAX_YAW_ANGLE;
+    float arm_ch = crsf_get_channel(CRSF_CH_ARM);
+    float throttle_ch = crsf_get_channel(CRSF_CH_THROTTLE);
 
-    base_throttle = (throttle_ch - CRSF_THR_MIN) / CRSF_THR_SPAN;
-    if (base_throttle < 0.0f)
-      base_throttle = 0.0f;
-    if (base_throttle > 1.0f)
-      base_throttle = 1.0f;
-  }
+    if (!IS_ARMED(fc_state)) {
+        if (arm_ch > CRSF_ARM_THRESHOLD && throttle_ch < CRSF_THROTTLE_LOW)
+            arm();
+    } else {
+        if (arm_ch < CRSF_DISARM_THRESHOLD) {
+            disarm();
+            return;
+        }
+
+        // Map sticks to setpoints and throttle while armed
+        float roll_ch = crsf_get_channel(CRSF_CH_ROLL);
+        float pitch_ch = crsf_get_channel(CRSF_CH_PITCH);
+        float yaw_ch = crsf_get_channel(CRSF_CH_YAW);
+
+        pid.setpoints.roll =
+            ((roll_ch - CRSF_MID) / CRSF_RANGE) * MAX_ROLL_ANGLE;
+        pid.setpoints.pitch =
+            ((pitch_ch - CRSF_MID) / CRSF_RANGE) * MAX_PITCH_ANGLE;
+        pid.setpoints.yaw = ((yaw_ch - CRSF_MID) / CRSF_RANGE) * MAX_YAW_ANGLE;
+
+        base_throttle = (throttle_ch - CRSF_THR_MIN) / CRSF_THR_SPAN;
+        if (base_throttle < 0.0f)
+            base_throttle = 0.0f;
+        if (base_throttle > 1.0f)
+            base_throttle = 1.0f;
+    }
 }
