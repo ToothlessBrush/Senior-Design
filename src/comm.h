@@ -33,14 +33,14 @@
 #include "lora.h"
 #include "protocol.h"
 typedef lora_message_t comm_message_t;
-#define comm_init()                lora_init()
-#define comm_service()             lora_service()
-#define comm_data_available()      lora_data_available()
-#define comm_get_received_data()   lora_get_received_data()
+#define comm_init() lora_init()
+#define comm_service() lora_service()
+#define comm_data_available() lora_data_available()
+#define comm_get_received_data() lora_get_received_data()
 #define comm_clear_received_flag() lora_clear_received_flag()
-#define comm_send_string(s)        lora_send_string(1, (s))
-#define comm_send_string_nb(s)     lora_send_string_nb(1, (s))
-#define comm_parse_command(d, l)   parse_command((d), (l))
+#define comm_send_string(s) lora_send_string(1, (s))
+#define comm_send_string_nb(s) lora_send_string_nb(1, (s))
+#define comm_parse_command(d, l) parse_command((d), (l))
 
 #else // Bluetooth (default)
 
@@ -48,15 +48,15 @@ typedef lora_message_t comm_message_t;
 typedef bt_message_t comm_message_t;
 
 // BT has no air-time duty-cycle restriction — send telemetry as fast as needed
-#define MIN_SEND_INTERVAL 0
-#define comm_init()                bt_init()
-#define comm_service()             bt_service()
-#define comm_data_available()      bt_data_available()
-#define comm_get_received_data()   bt_get_received_data()
+#define MIN_SEND_INTERVAL 20 // 50hz
+#define comm_init() bt_init()
+#define comm_service() bt_service()
+#define comm_data_available() bt_data_available()
+#define comm_get_received_data() bt_get_received_data()
 #define comm_clear_received_flag() bt_clear_received_flag()
-#define comm_send_string(s)        bt_send_string(s)
-#define comm_send_string_nb(s)     bt_send_string_nb(s)
-#define comm_parse_command(d, l)   bt_parse_command((d), (l))
+#define comm_send_string(s) bt_send_string(s)
+#define comm_send_string_nb(s) bt_send_string_nb(s)
+#define comm_parse_command(d, l) bt_parse_command((d), (l))
 
 #endif // USE_LORA
 

@@ -138,10 +138,13 @@ void fc_init(void) {
 }
 
 void arm(void) {
+    // reset stuff
     base_throttle = 0.0f;
     pid_reset(&pid);
+    imu.attitude.yaw = 0.0;
     IMU_reset_velocity(&imu);
 
+    // start motors
     InitMotors();
     StartMotors();
     delay_ms(2500); // ESC initialization
@@ -155,16 +158,17 @@ void disarm(void) {
 }
 
 void task_imu_pid(void) {
-    if (!IS_ARMED(fc_state))
-        return;
-
     if (!imu_data_ready())
         return;
 
     IMU_update(&imu, FIXED_DT);
+    send_telem(&imu, &pid); // self-rate-limited to MIN_SEND_INTERVAL
+
+    if (!IS_ARMED(fc_state))
+        return;
+
     pid_update(&pid, &imu, FIXED_DT);
     drive_motors(base_throttle, &pid, &bias);
-    send_telem(&imu, &pid); // self-rate-limited to MIN_SEND_INTERVAL
 }
 
 void task_led(void) {
