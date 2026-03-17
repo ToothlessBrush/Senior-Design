@@ -20,6 +20,7 @@ void arm(void);
 void disarm(void);
 
 void task_imu_pid(void);
+void task_telem(void);
 void task_led(void);
 void task_crsf_service(void);
 void task_config_service(void);

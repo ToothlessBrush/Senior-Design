@@ -48,6 +48,7 @@ typedef enum {
     CMD_SET_MOTOR_BIAS, /**< Set per-motor trim values (binary: "MB:...") */
     CMD_START_MANUAL,   /**< Start manual control mode (text: "FC:MANUAL") */
     CMD_CONFIG,         /**< Sync full configuration (binary: "CF:...") */
+    CMD_SAVE,           /**< Save current runtime config to flash (no payload) */
 } CommandType;
 
 /**

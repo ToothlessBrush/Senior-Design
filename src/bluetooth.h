@@ -33,10 +33,15 @@
 #define BT_SYNC_BYTE 0xA5
 
 // Binary protocol type bytes (config + calibration only; flight control is CRSF)
+// Uplink (GUI → firmware) command type bytes
 #define BT_CMD_CALIBRATE      0x01 /**< No payload (0 bytes) */
 #define BT_CMD_SET_PID        0x02 /**< CommandSetPid payload (21 bytes) */
 #define BT_CMD_SET_MOTOR_BIAS 0x03 /**< CommandMotorBias payload (16 bytes) */
 #define BT_CMD_CONFIG         0x04 /**< CommandConfig payload (116 bytes) */
+#define BT_CMD_SAVE           0x05 /**< No payload (0 bytes) — save current runtime config to flash */
+
+// Downlink (firmware → GUI) type bytes
+#define BT_TELEM              0x10 /**< TelemetryPacket payload (56 bytes) */
 
 typedef enum {
     BT_OK    = 0,
@@ -98,6 +103,13 @@ int bt_send_string(const char *str);
  * bt_send_string(). Exists to match the comm.h interface.
  */
 int bt_send_string_nb(const char *str);
+
+/**
+ * @brief Send a framed binary packet: 0xA5 | type | len | payload | CRC8-DVB-S2
+ *
+ * Builds and transmits the complete frame without appending \r\n.
+ */
+int bt_send_frame(uint8_t type, const uint8_t *payload, uint8_t length);
 
 /**
  * @brief Parse a received binary frame into a ParsedCommand

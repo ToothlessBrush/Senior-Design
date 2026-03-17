@@ -4,11 +4,12 @@
 #include "systick.h"
 
 static Task tasks[] = {
-    {task_imu_pid, 0, 0},         // every cycle
-    {task_crsf_service, 0, 0},    // every cycle
-    {task_optical_flow, 20, 0},   // 50hz
-    {task_config_service, 50, 0}, // 20hz
-    {task_led, 100, 0},           // 10hz
+    // {task_imu_pid, 0, 0},         // every cycle
+    // {task_crsf_service, 0, 0},    // every cycle
+    {task_telem, 50, 0}, // 20hz
+    // {task_optical_flow, 20, 0},   // 50hz
+    // {task_config_service, 50, 0}, // 20hz
+    // {task_led, 100, 0},           // 10hz
 };
 
 int main(void) {

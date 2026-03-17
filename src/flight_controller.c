@@ -16,6 +16,7 @@
 
 #define MIN_THROTTLE 0.05f
 #define MAX_THROTTLE 1.0f
+#define MAX_BASE_THROTTLE 0.4f // full stick = 40% throttle
 
 // CRSF channel indices — AETR order
 #define CRSF_CH_ROLL 0     // A - Aileron
@@ -162,7 +163,6 @@ void task_imu_pid(void) {
         return;
 
     IMU_update(&imu, FIXED_DT);
-    send_telem(&imu, &pid); // self-rate-limited to MIN_SEND_INTERVAL
 
     if (!IS_ARMED(fc_state))
         return;
@@ -343,6 +343,48 @@ void task_config_service(void) {
         comm_send_string_nb("ACK:CONFIG");
         break;
 
+    case CMD_SAVE: {
+        CommandConfig cfg = {
+            .motor1 = bias.motor1,
+            .motor2 = bias.motor2,
+            .motor3 = bias.motor3,
+            .motor4 = bias.motor4,
+            .roll_Kp        = pid.roll_pid.Kp,
+            .roll_Ki        = pid.roll_pid.Ki,
+            .roll_Kd        = pid.roll_pid.Kd,
+            .roll_i_limit   = pid.roll_pid.integral_limit,
+            .roll_pid_limit = pid.roll_pid.output_limit,
+            .pitch_Kp        = pid.pitch_pid.Kp,
+            .pitch_Ki        = pid.pitch_pid.Ki,
+            .pitch_Kd        = pid.pitch_pid.Kd,
+            .pitch_i_limit   = pid.pitch_pid.integral_limit,
+            .pitch_pid_limit = pid.pitch_pid.output_limit,
+            .yaw_Kp        = pid.yaw_pid.Kp,
+            .yaw_Ki        = pid.yaw_pid.Ki,
+            .yaw_Kd        = pid.yaw_pid.Kd,
+            .yaw_i_limit   = pid.yaw_pid.integral_limit,
+            .yaw_pid_limit = pid.yaw_pid.output_limit,
+            .velocity_x_Kp        = pid.velocity_x_pid.Kp,
+            .velocity_x_Ki        = pid.velocity_x_pid.Ki,
+            .velocity_x_Kd        = pid.velocity_x_pid.Kd,
+            .velocity_x_i_limit   = pid.velocity_x_pid.integral_limit,
+            .velocity_x_pid_limit = pid.velocity_x_pid.output_limit,
+            .velocity_y_Kp        = pid.velocity_y_pid.Kp,
+            .velocity_y_Ki        = pid.velocity_y_pid.Ki,
+            .velocity_y_Kd        = pid.velocity_y_pid.Kd,
+            .velocity_y_i_limit   = pid.velocity_y_pid.integral_limit,
+            .velocity_y_pid_limit = pid.velocity_y_pid.output_limit,
+        };
+        FlashConfig to_save = {
+            .magic  = FLASH_CONFIG_MAGIC,
+            .config = cfg,
+            .cal    = imu.cal,
+        };
+        flash_save(CONFIG_SECTOR, CONFIG_SECTOR_ADDR, &to_save, sizeof(FlashConfig));
+        comm_send_string_nb("ACK:SAVE");
+        break;
+    }
+
     case CMD_CALIBRATE:
         if (!IS_ARMED(fc_state)) {
             toggle_led();
@@ -418,10 +460,14 @@ void task_crsf_service(void) {
             ((pitch_ch - CRSF_MID) / CRSF_RANGE) * MAX_PITCH_ANGLE;
         pid.setpoints.yaw = ((yaw_ch - CRSF_MID) / CRSF_RANGE) * MAX_YAW_ANGLE;
 
-        base_throttle = (throttle_ch - CRSF_THR_MIN) / CRSF_THR_SPAN;
+        base_throttle = ((throttle_ch - CRSF_THR_MIN) / CRSF_THR_SPAN) * MAX_BASE_THROTTLE;
         if (base_throttle < 0.0f)
             base_throttle = 0.0f;
-        if (base_throttle > 1.0f)
-            base_throttle = 1.0f;
+        if (base_throttle > MAX_BASE_THROTTLE)
+            base_throttle = MAX_BASE_THROTTLE;
     }
+}
+
+void task_telem(void) {
+    send_telem(&imu, &pid);
 }

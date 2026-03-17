@@ -89,6 +89,24 @@ bt_message_t *bt_get_received_data(void) { return &received_message; }
 
 void bt_clear_received_flag(void) { data_received_flag = 0; }
 
+int bt_send_frame(uint8_t type, const uint8_t *payload, uint8_t length) {
+    uint8_t frame[BT_MAX_PAYLOAD + 4];
+    uint8_t crc = 0;
+    crc = crc8_dvb_s2(crc, type);
+    crc = crc8_dvb_s2(crc, length);
+    for (uint8_t i = 0; i < length; i++)
+        crc = crc8_dvb_s2(crc, payload[i]);
+
+    frame[0] = BT_SYNC_BYTE;
+    frame[1] = type;
+    frame[2] = length;
+    memcpy(&frame[3], payload, length);
+    frame[3 + length] = crc;
+
+    uart_send_data(UART_INSTANCE_2, frame, 4 + length);
+    return BT_OK;
+}
+
 int bt_send_data(const uint8_t *data, uint8_t length) {
     uart_send_data(UART_INSTANCE_2, data, (uint16_t)length);
     uart_send_string(UART_INSTANCE_2, "\r\n");
@@ -141,6 +159,10 @@ ParsedCommand bt_parse_command(const uint8_t *data, uint8_t length) {
             cmd.type = CMD_CONFIG;
             memcpy(&cmd.payload.sync, payload, sizeof(CommandConfig));
         }
+        break;
+
+    case BT_CMD_SAVE:
+        cmd.type = CMD_SAVE;
         break;
 
     default:

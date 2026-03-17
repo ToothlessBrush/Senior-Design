@@ -56,6 +56,7 @@ typedef bt_message_t comm_message_t;
 #define comm_clear_received_flag() bt_clear_received_flag()
 #define comm_send_string(s) bt_send_string(s)
 #define comm_send_string_nb(s) bt_send_string_nb(s)
+#define comm_send_frame(t, d, l) bt_send_frame((t), (d), (l))
 #define comm_parse_command(d, l) bt_parse_command((d), (l))
 
 #endif // USE_LORA
