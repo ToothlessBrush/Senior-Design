@@ -26,25 +26,26 @@
 
 // Baud rate must match what the module is configured for.
 // RNBT (RN-42) default: 115200 | HC-05/HC-06 default: 9600
-#define BT_BAUD 115200
+#define BT_BAUD 9600
 
 #define BT_MAX_PAYLOAD 240
 
 #define BT_SYNC_BYTE 0xA5
 
-// Binary protocol type bytes (config + calibration only; flight control is CRSF)
-// Uplink (GUI → firmware) command type bytes
-#define BT_CMD_CALIBRATE      0x01 /**< No payload (0 bytes) */
-#define BT_CMD_SET_PID        0x02 /**< CommandSetPid payload (21 bytes) */
+// Binary protocol type bytes (config + calibration only; flight control is
+// CRSF) Uplink (GUI → firmware) command type bytes
+#define BT_CMD_CALIBRATE 0x01      /**< No payload (0 bytes) */
+#define BT_CMD_SET_PID 0x02        /**< CommandSetPid payload (21 bytes) */
 #define BT_CMD_SET_MOTOR_BIAS 0x03 /**< CommandMotorBias payload (16 bytes) */
-#define BT_CMD_CONFIG         0x04 /**< CommandConfig payload (116 bytes) */
-#define BT_CMD_SAVE           0x05 /**< No payload (0 bytes) — save current runtime config to flash */
+#define BT_CMD_CONFIG 0x04         /**< CommandConfig payload (116 bytes) */
+#define BT_CMD_SAVE                                                            \
+    0x05 /**< No payload (0 bytes) — save current runtime config to flash */
 
 // Downlink (firmware → GUI) type bytes
-#define BT_TELEM              0x10 /**< TelemetryPacket payload (56 bytes) */
+#define BT_TELEM 0x10 /**< TelemetryPacket payload (56 bytes) */
 
 typedef enum {
-    BT_OK    = 0,
+    BT_OK = 0,
     BT_ERROR = -1,
 } bt_status_t;
 
@@ -70,7 +71,8 @@ int bt_init(void);
  * @brief Process incoming UART bytes using the binary framing state machine
  *
  * Call periodically in the main loop. Sets the received flag when a complete,
- * valid frame is assembled. Non-blocking — drains all currently available bytes.
+ * valid frame is assembled. Non-blocking — drains all currently available
+ * bytes.
  */
 void bt_service(void);
 

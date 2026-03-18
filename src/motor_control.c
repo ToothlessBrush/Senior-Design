@@ -372,19 +372,15 @@ void TIM1_UP_TIM10_IRQHandler() {
 #include "spi.h"
 
 void SetMotorThrottleSPI(MotorID motor, uint16_t throttle) {
-    // Cap throttle to valid range (0-2000)
     if (throttle > 2000) {
         throttle = 2000;
     }
 
+    // [15:14] unused | [13:11] motor ID (3 bits) | [10:0] throttle (11 bits)
+    uint16_t packet = ((uint16_t)(motor & 0x07) << 11) | (throttle & 0x07FF);
+
     SPI2_CS_LOW();
-
-    // Send motor ID byte (0x11, 0x22, 0x44, or 0x88)
-    SPI2_Transmit((uint8_t)motor);
-
-    // Send throttle as two bytes (big-endian)
-    SPI2_Transmit((uint8_t)(throttle >> 8));
-    SPI2_Transmit((uint8_t)throttle);
-
+    SPI2_Transmit((uint8_t)(packet >> 8)); // High byte
+    SPI2_Transmit((uint8_t)(packet));      // Low byte
     SPI2_CS_HIGH();
 }

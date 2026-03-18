@@ -8,7 +8,6 @@
 #include "protocol.h"
 #include "system.h"
 #include "systick.h"
-#include "utils.h"
 #include <math.h>
 
 #define IMU_ODR_HZ 6660.0f
@@ -130,11 +129,11 @@ void fc_init(void) {
         };
 
         pid_init(&pid, &pid_info);
-        comm_send_string("INIT_CONFIG_OK");
+        comm_send_string("LOG:INIT_CONFIG_OK");
     } else {
         PIDCreateInfo pid_info = {0};
         pid_init(&pid, &pid_info);
-        comm_send_string("INIT_NO_CONFIG");
+        comm_send_string("LOG:INIT_NO_CONFIG");
     }
 }
 
@@ -282,9 +281,7 @@ void task_config_service(void) {
             break;
         }
 
-        flash_save(CONFIG_SECTOR, CONFIG_SECTOR_ADDR, &to_save,
-                   sizeof(FlashConfig));
-        comm_send_string_nb("ACK:PID");
+        comm_send_string_nb("ACK:SET_PID");
         break;
     }
 
@@ -293,7 +290,7 @@ void task_config_service(void) {
         bias.motor2 = cmd.payload.bias.motor2;
         bias.motor3 = cmd.payload.bias.motor3;
         bias.motor4 = cmd.payload.bias.motor4;
-        comm_send_string_nb("ACK:BIAS");
+        comm_send_string_nb("ACK:SET_BIAS");
         break;
 
     case CMD_CONFIG:
@@ -332,15 +329,7 @@ void task_config_service(void) {
         pid.velocity_y_pid.integral_limit = cmd.payload.sync.velocity_y_i_limit;
         pid.velocity_y_pid.output_limit = cmd.payload.sync.velocity_y_pid_limit;
 
-        FlashConfig to_save = {
-            .magic = FLASH_CONFIG_MAGIC,
-            .config = cmd.payload.sync,
-            .cal = imu.cal,
-        };
-        flash_save(CONFIG_SECTOR, CONFIG_SECTOR_ADDR, &to_save,
-                   sizeof(FlashConfig));
-
-        comm_send_string_nb("ACK:CONFIG");
+        comm_send_string_nb("ACK:SET_CONFIG");
         break;
 
     case CMD_SAVE: {
@@ -349,38 +338,39 @@ void task_config_service(void) {
             .motor2 = bias.motor2,
             .motor3 = bias.motor3,
             .motor4 = bias.motor4,
-            .roll_Kp        = pid.roll_pid.Kp,
-            .roll_Ki        = pid.roll_pid.Ki,
-            .roll_Kd        = pid.roll_pid.Kd,
-            .roll_i_limit   = pid.roll_pid.integral_limit,
+            .roll_Kp = pid.roll_pid.Kp,
+            .roll_Ki = pid.roll_pid.Ki,
+            .roll_Kd = pid.roll_pid.Kd,
+            .roll_i_limit = pid.roll_pid.integral_limit,
             .roll_pid_limit = pid.roll_pid.output_limit,
-            .pitch_Kp        = pid.pitch_pid.Kp,
-            .pitch_Ki        = pid.pitch_pid.Ki,
-            .pitch_Kd        = pid.pitch_pid.Kd,
-            .pitch_i_limit   = pid.pitch_pid.integral_limit,
+            .pitch_Kp = pid.pitch_pid.Kp,
+            .pitch_Ki = pid.pitch_pid.Ki,
+            .pitch_Kd = pid.pitch_pid.Kd,
+            .pitch_i_limit = pid.pitch_pid.integral_limit,
             .pitch_pid_limit = pid.pitch_pid.output_limit,
-            .yaw_Kp        = pid.yaw_pid.Kp,
-            .yaw_Ki        = pid.yaw_pid.Ki,
-            .yaw_Kd        = pid.yaw_pid.Kd,
-            .yaw_i_limit   = pid.yaw_pid.integral_limit,
+            .yaw_Kp = pid.yaw_pid.Kp,
+            .yaw_Ki = pid.yaw_pid.Ki,
+            .yaw_Kd = pid.yaw_pid.Kd,
+            .yaw_i_limit = pid.yaw_pid.integral_limit,
             .yaw_pid_limit = pid.yaw_pid.output_limit,
-            .velocity_x_Kp        = pid.velocity_x_pid.Kp,
-            .velocity_x_Ki        = pid.velocity_x_pid.Ki,
-            .velocity_x_Kd        = pid.velocity_x_pid.Kd,
-            .velocity_x_i_limit   = pid.velocity_x_pid.integral_limit,
+            .velocity_x_Kp = pid.velocity_x_pid.Kp,
+            .velocity_x_Ki = pid.velocity_x_pid.Ki,
+            .velocity_x_Kd = pid.velocity_x_pid.Kd,
+            .velocity_x_i_limit = pid.velocity_x_pid.integral_limit,
             .velocity_x_pid_limit = pid.velocity_x_pid.output_limit,
-            .velocity_y_Kp        = pid.velocity_y_pid.Kp,
-            .velocity_y_Ki        = pid.velocity_y_pid.Ki,
-            .velocity_y_Kd        = pid.velocity_y_pid.Kd,
-            .velocity_y_i_limit   = pid.velocity_y_pid.integral_limit,
+            .velocity_y_Kp = pid.velocity_y_pid.Kp,
+            .velocity_y_Ki = pid.velocity_y_pid.Ki,
+            .velocity_y_Kd = pid.velocity_y_pid.Kd,
+            .velocity_y_i_limit = pid.velocity_y_pid.integral_limit,
             .velocity_y_pid_limit = pid.velocity_y_pid.output_limit,
         };
         FlashConfig to_save = {
-            .magic  = FLASH_CONFIG_MAGIC,
+            .magic = FLASH_CONFIG_MAGIC,
             .config = cfg,
-            .cal    = imu.cal,
+            .cal = imu.cal,
         };
-        flash_save(CONFIG_SECTOR, CONFIG_SECTOR_ADDR, &to_save, sizeof(FlashConfig));
+        flash_save(CONFIG_SECTOR, CONFIG_SECTOR_ADDR, &to_save,
+                   sizeof(FlashConfig));
         comm_send_string_nb("ACK:SAVE");
         break;
     }
@@ -460,7 +450,8 @@ void task_crsf_service(void) {
             ((pitch_ch - CRSF_MID) / CRSF_RANGE) * MAX_PITCH_ANGLE;
         pid.setpoints.yaw = ((yaw_ch - CRSF_MID) / CRSF_RANGE) * MAX_YAW_ANGLE;
 
-        base_throttle = ((throttle_ch - CRSF_THR_MIN) / CRSF_THR_SPAN) * MAX_BASE_THROTTLE;
+        base_throttle =
+            ((throttle_ch - CRSF_THR_MIN) / CRSF_THR_SPAN) * MAX_BASE_THROTTLE;
         if (base_throttle < 0.0f)
             base_throttle = 0.0f;
         if (base_throttle > MAX_BASE_THROTTLE)
@@ -468,6 +459,24 @@ void task_crsf_service(void) {
     }
 }
 
-void task_telem(void) {
-    send_telem(&imu, &pid);
+void task_telementry(void) {
+    TelemetryPacket packet = {0};
+    packet.timestamp_ms = millis();
+    packet.roll = imu.attitude.roll;
+    packet.pitch = imu.attitude.pitch;
+    packet.yaw = imu.attitude.yaw;
+    packet.roll_p_term = pid.roll_pid.p_term;
+    packet.roll_i_term = pid.roll_pid.i_term;
+    packet.roll_d_term = pid.roll_pid.d_term;
+    packet.pitch_p_term = pid.pitch_pid.p_term;
+    packet.pitch_i_term = pid.pitch_pid.i_term;
+    packet.pitch_d_term = pid.pitch_pid.d_term;
+    packet.yaw_p_term = pid.yaw_pid.p_term;
+    packet.yaw_i_term = pid.yaw_pid.i_term;
+    packet.yaw_d_term = pid.yaw_pid.d_term;
+    packet.vel_x = imu.velocity.x;
+    packet.vel_y = imu.velocity.y;
+
+    comm_send_frame(BT_TELEM, (const uint8_t *)&packet,
+                    sizeof(TelemetryPacket));
 }

@@ -45,12 +45,7 @@ void DMA1_Stream2_IRQHandler();
  * Each value has multiple bits set to prevent false triggering if
  * power is lost and all lines float to 0V while CS is active.
  */
-typedef enum {
-    Motor1 = 0x11, // 0b00010001
-    Motor2 = 0x22, // 0b00100010
-    Motor3 = 0x44, // 0b01000100
-    Motor4 = 0x88  // 0b10001000
-} MotorID;
+typedef enum { Motor1 = 0x1, Motor2 = 0x2, Motor3 = 0x3, Motor4 = 0x4 } MotorID;
 
 /**
  * @brief Send motor throttle command via SPI2
