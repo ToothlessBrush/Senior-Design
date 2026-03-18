@@ -121,6 +121,7 @@ void SPI_ReadBlock(uint8_t reg_addr, uint8_t size, uint8_t *data) {
 bool SPI2_Init(void) {
     // Enable clocks
     RCC->AHB1ENR |= RCC_AHB1ENR_GPIOBEN; // GPIO B
+    RCC->AHB1ENR |= RCC_AHB1ENR_GPIOCEN; // GPIO C
     RCC->APB1ENR |= RCC_APB1ENR_SPI2EN;  // SPI2
     __DSB(); // Data Synchronization Barrier - ensure clocks are stable
 
@@ -161,6 +162,16 @@ bool SPI2_Init(void) {
     if (!(SPI2->CR1 & SPI_CR1_SPE)) {
         return false;
     }
+
+    // PC14: motor status (input, no pull)
+    GPIOC->MODER &= ~(3 << (14 * 2)); // Input (00)
+    GPIOC->PUPDR &= ~(3 << (14 * 2)); // No pull
+
+    // PC15: motor enable (output), default low (disabled)
+    GPIOC->MODER &= ~(3 << (15 * 2));
+    GPIOC->MODER |= (1 << (15 * 2)); // Output
+    GPIOC->ODR &= ~(1 << 15);        // Low = disabled
+
     return true;
 }
 

@@ -22,7 +22,6 @@ add_executable(FlightController
     spi.c
     imu.c
     pid.c
-    dshot.c
     lora.c
     bluetooth.c
     motor_control.c

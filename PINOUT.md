@@ -7,8 +7,8 @@ with programming pins on top
 | -------- | ---------- | ---------- | ------- |
 |          | VB         | 3v3        |         |
 |          | C13        | G          |         |
-|          | C14        | 5V         |         |
-|          | C15        | B9         |         |
+| Motor status (in)  | C14 | 5V         |         |
+| Motor enable (out) | C15 | B9         |         |
 |          | R          | B8         |         |
 | IMU INT1 | A0 (EXTI0) | B7 (I2C)   |         |
 |          | A1         | B6 (I2C)   |         |

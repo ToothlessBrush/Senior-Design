@@ -6,6 +6,7 @@
 #include "optical_flow.h"
 #include "pid.h"
 #include "protocol.h"
+#include "spi.h"
 #include "system.h"
 #include "systick.h"
 #include <math.h>
@@ -74,10 +75,10 @@ static void drive_motors(float throttle, PID *p, MotorBias *b) {
     m3 = fmaxf(MIN_THROTTLE, fminf(MAX_THROTTLE, m3));
     m4 = fmaxf(MIN_THROTTLE, fminf(MAX_THROTTLE, m4));
 
-    SetMotorThrottle(motor1, (int16_t)(m1 * 1000.0f + 1.0f));
-    SetMotorThrottle(motor2, (int16_t)(m2 * 1000.0f + 1.0f));
-    SetMotorThrottle(motor3, (int16_t)(m3 * 1000.0f + 1.0f));
-    SetMotorThrottle(motor4, (int16_t)(m4 * 1000.0f + 1.0f));
+    SetMotorThrottleSPI(Motor1, (uint16_t)(m1 * 1000.0f + 1.0f));
+    SetMotorThrottleSPI(Motor2, (uint16_t)(m2 * 1000.0f + 1.0f));
+    SetMotorThrottleSPI(Motor3, (uint16_t)(m3 * 1000.0f + 1.0f));
+    SetMotorThrottleSPI(Motor4, (uint16_t)(m4 * 1000.0f + 1.0f));
 }
 
 void fc_init(void) {
@@ -88,6 +89,7 @@ void fc_init(void) {
 
     optical_flow_init();
     comm_init();
+    SPI2_Init();
 
     FlashConfig saved;
     flash_read(CONFIG_SECTOR_ADDR, &saved, sizeof(FlashConfig));
@@ -144,16 +146,21 @@ void arm(void) {
     imu.attitude.yaw = 0.0;
     IMU_reset_velocity(&imu);
 
-    // start motors
-    InitMotors();
-    StartMotors();
-    delay_ms(2500); // ESC initialization
+    // start motors — wait for controller to signal ready via PC15
+    motor_enable();
+    uint32_t deadline = millis() + 5000;
+    while (!motor_status_ok() && millis() < deadline) {
+    }
+    if (!motor_status_ok()) {
+        motor_disable();
+        return;
+    }
 
     fc_state |= FC_ARMED;
 }
 
 void disarm(void) {
-    StopMotors();
+    motor_disable();
     fc_state &= ~FC_ARMED;
 }
 
