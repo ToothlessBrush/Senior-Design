@@ -12,8 +12,7 @@ void SetMotorThrottleSPI(MotorID motor, uint16_t throttle) {
     uint16_t packet = ((uint16_t)(motor & 0x07) << 11) | (throttle & 0x07FF);
 
     SPI2_CS_LOW();
-    SPI2_Transmit((uint8_t)(packet >> 8)); // High byte
-    SPI2_Transmit((uint8_t)(packet));      // Low byte
+    SPI2_Transmit16(packet);
     SPI2_CS_HIGH();
 }
 

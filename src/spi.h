@@ -103,5 +103,6 @@ bool SPI2_Init(void);
 void SPI2_CS_HIGH(void);
 void SPI2_CS_LOW(void);
 void SPI2_Transmit(uint8_t data);
+void SPI2_Transmit16(uint16_t data);
 
 #endif

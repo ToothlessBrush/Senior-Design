@@ -11,8 +11,11 @@
 #include "systick.h"
 #include <math.h>
 
+// #define NO_IMU /* uncomment to test throttle/motors without IMU hardware */
+
 #define IMU_ODR_HZ 6660.0f
 #define FIXED_DT (1.0f / IMU_ODR_HZ)
+#define IMU_DRDY_TIMEOUT_US 5000 // 5 ms ~ 33 missed DRDY periods
 
 #define MIN_THROTTLE 0.05f
 #define MAX_THROTTLE 1.0f
@@ -41,7 +44,7 @@
 #define MAX_YAW_ANGLE 0.5f   // ~28 deg
 
 // persistant data
-#define FLASH_CONFIG_MAGIC 0xDEADBEEF
+#define FLASH_CONFIG_MAGIC 0xDEADBEF0  // bumped: CommandConfig grew 76→116 bytes
 
 typedef struct __attribute__((packed)) {
     uint32_t magic;
@@ -64,6 +67,8 @@ typedef struct {
 
 static MotorBias bias = {0};
 
+static uint8_t led_config_blink_ticks = 0;
+
 static void drive_motors(float throttle, PID *p, MotorBias *b) {
     float m4 = throttle + b->motor4 + p->output.pitch + p->output.yaw;
     float m3 = throttle + b->motor3 - p->output.roll - p->output.yaw;
@@ -75,14 +80,17 @@ static void drive_motors(float throttle, PID *p, MotorBias *b) {
     m3 = fmaxf(MIN_THROTTLE, fminf(MAX_THROTTLE, m3));
     m4 = fmaxf(MIN_THROTTLE, fminf(MAX_THROTTLE, m4));
 
-    SetMotorThrottleSPI(Motor1, (uint16_t)(m1 * 1000.0f + 1.0f));
-    SetMotorThrottleSPI(Motor2, (uint16_t)(m2 * 1000.0f + 1.0f));
-    SetMotorThrottleSPI(Motor3, (uint16_t)(m3 * 1000.0f + 1.0f));
-    SetMotorThrottleSPI(Motor4, (uint16_t)(m4 * 1000.0f + 1.0f));
+    SetMotorThrottleSPI(Motor1, (uint16_t)(m1 * 2000.0f + 1.0f));
+    SetMotorThrottleSPI(Motor2, (uint16_t)(m2 * 2000.0f + 1.0f));
+    SetMotorThrottleSPI(Motor3, (uint16_t)(m3 * 2000.0f + 1.0f));
+    SetMotorThrottleSPI(Motor4, (uint16_t)(m4 * 2000.0f + 1.0f));
 }
 
 void fc_init(void) {
-    imu_init(&imu);
+#ifndef NO_IMU
+    if (imu_init(&imu))
+        fc_state |= FC_IMU_OK;
+#endif
     crsf_init();
     led_init();
     led_off();
@@ -165,10 +173,26 @@ void disarm(void) {
 }
 
 void task_imu_pid(void) {
-    if (!imu_data_ready())
-        return;
+#ifndef NO_IMU
+    static uint32_t last_drdy_us = 0;
+    uint32_t now = micros();
 
-    IMU_update(&imu, FIXED_DT);
+    if (imu_data_ready()) {
+        last_drdy_us = now;
+        fc_state |= FC_IMU_OK;
+        IMU_update(&imu, FIXED_DT);
+    } else {
+        if (now - last_drdy_us > IMU_DRDY_TIMEOUT_US)
+            fc_state &= ~FC_IMU_OK;
+        return;
+    }
+#else
+    static uint32_t last_us = 0;
+    uint32_t now = micros();
+    if (now - last_us < 150)
+        return;
+    last_us = now;
+#endif
 
     if (!IS_ARMED(fc_state))
         return;
@@ -184,6 +208,21 @@ void task_led(void) {
     if (IS_ARMED(fc_state)) {
         // Fast blink: 5Hz (on/off every tick)
         (tick % 2) ? led_on() : led_off();
+        return;
+    }
+
+    if (led_config_blink_ticks > 0) {
+        // Config received: 2 quick blinks
+        (led_config_blink_ticks % 2) ? led_on() : led_off();
+        led_config_blink_ticks--;
+        return;
+    }
+
+    if (!IS_IMU_OK(fc_state)) {
+        // IMU fault: double-pulse every 2 seconds
+        // tick % 8 at 2Hz = 4s cycle; pulses at positions 0,1 and 2,3
+        uint8_t t = tick % 8;
+        (t == 0 || t == 2) ? led_on() : led_off();
         return;
     }
 
@@ -229,7 +268,7 @@ void task_config_service(void) {
             axis_pid = &pid.velocity_y_pid;
             break;
         default:
-            comm_send_string_nb("ERR:BAD_AXIS");
+            comm_send_string_nb("LOG:BAD_AXIS");
             return;
         }
         axis_pid->Kp = cmd.payload.pid.P;
@@ -288,7 +327,8 @@ void task_config_service(void) {
             break;
         }
 
-        comm_send_string_nb("ACK:SET_PID");
+        led_config_blink_ticks = 4;
+        comm_send_string_nb("LOG:SET_PID");
         break;
     }
 
@@ -297,7 +337,8 @@ void task_config_service(void) {
         bias.motor2 = cmd.payload.bias.motor2;
         bias.motor3 = cmd.payload.bias.motor3;
         bias.motor4 = cmd.payload.bias.motor4;
-        comm_send_string_nb("ACK:SET_BIAS");
+        led_config_blink_ticks = 4;
+        comm_send_string_nb("LOG:SET_BIAS");
         break;
 
     case CMD_CONFIG:
@@ -336,7 +377,8 @@ void task_config_service(void) {
         pid.velocity_y_pid.integral_limit = cmd.payload.sync.velocity_y_i_limit;
         pid.velocity_y_pid.output_limit = cmd.payload.sync.velocity_y_pid_limit;
 
-        comm_send_string_nb("ACK:SET_CONFIG");
+        led_config_blink_ticks = 4;
+        comm_send_string_nb("LOG:SET_CONFIG");
         break;
 
     case CMD_SAVE: {
@@ -378,7 +420,8 @@ void task_config_service(void) {
         };
         flash_save(CONFIG_SECTOR, CONFIG_SECTOR_ADDR, &to_save,
                    sizeof(FlashConfig));
-        comm_send_string_nb("ACK:SAVE");
+        led_config_blink_ticks = 4;
+        comm_send_string_nb("LOG:SAVE");
         break;
     }
 
@@ -395,7 +438,7 @@ void task_config_service(void) {
             flash_save(CONFIG_SECTOR, CONFIG_SECTOR_ADDR, &to_save,
                        sizeof(FlashConfig));
 
-            comm_send_string_nb("ACK:CALIBRATE");
+            comm_send_string_nb("LOG:CALIBRATE");
         }
         break;
 

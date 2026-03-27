@@ -7,6 +7,7 @@ typedef enum {
     FC_ARMED = (1 << 0),
     FC_FAILSAFE = (1 << 1),
     FC_SIGNAL_OK = (1 << 2),
+    FC_IMU_OK = (1 << 3),
 } FcStateFlags;
 
 extern uint8_t fc_state;
@@ -14,6 +15,7 @@ extern uint8_t fc_state;
 #define IS_ARMED(s) ((s) & FC_ARMED)
 #define IS_FAILSAFE(s) ((s) & FC_FAILSAFE)
 #define IS_SIGNAL_OK(s) ((s) & FC_SIGNAL_OK)
+#define IS_IMU_OK(s) ((s) & FC_IMU_OK)
 
 void fc_init(void);
 void arm(void);

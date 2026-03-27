@@ -26,7 +26,7 @@
 
 // Baud rate must match what the module is configured for.
 // RNBT (RN-42) default: 115200 | HC-05/HC-06 default: 9600
-#define BT_BAUD 9600
+#define BT_BAUD 115200
 
 #define BT_MAX_PAYLOAD 240
 
@@ -42,7 +42,7 @@
     0x05 /**< No payload (0 bytes) — save current runtime config to flash */
 
 // Downlink (firmware → GUI) type bytes
-#define BT_TELEM 0x10 /**< TelemetryPacket payload (56 bytes) */
+#define BT_TELEM 0x10 /**< TelemetryPacket payload (60 bytes) */
 
 typedef enum {
     BT_OK = 0,

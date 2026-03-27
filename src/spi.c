@@ -125,6 +125,15 @@ bool SPI2_Init(void) {
     RCC->APB1ENR |= RCC_APB1ENR_SPI2EN;  // SPI2
     __DSB(); // Data Synchronization Barrier - ensure clocks are stable
 
+    // B0, B1, B4, B5 are driven by another MCU on the same lines — configure as
+    // floating inputs so this MCU does not interfere with those signals.
+    GPIOB->MODER &= ~((3 << (0 * 2)) | (3 << (1 * 2)) | (3 << (4 * 2)) |
+                      (3 << (5 * 2))); // Input (00)
+    GPIOB->PUPDR &=
+        ~((3 << (0 * 2)) | (3 << (1 * 2)) | (3 << (4 * 2)) | (3 << (5 * 2)));
+    GPIOB->PUPDR |= ((2 << (0 * 2)) | (2 << (1 * 2)) | (2 << (4 * 2)) |
+                     (2 << (5 * 2))); // Pull-down (10)
+
     // Configure pins B13(SCK), B15(MOSI) as alternate function
     GPIOB->MODER &= ~((3 << (13 * 2)) | (3 << (15 * 2)));
     GPIOB->MODER |= (2 << (13 * 2)) | (2 << (15 * 2)); // Alternate function
@@ -158,6 +167,8 @@ bool SPI2_Init(void) {
     SPI2->CR1 |= SPI_CR1_SSI; // Internal slave select
     SPI2->CR1 |= SPI_CR1_SPE; // Enable SPI
 
+    SPI2->CR1 |= (1 << 11);
+
     // Verify SPI is actually enabled
     if (!(SPI2->CR1 & SPI_CR1_SPE)) {
         return false;
@@ -175,14 +186,14 @@ bool SPI2_Init(void) {
     return true;
 }
 
-void SPI2_CS_Low(void) {
+void SPI2_CS_LOW(void) {
     GPIOB->ODR &= ~(1 << 12); // Pull CS low
     // Add small delay for setup time
     for (volatile int i = 0; i < 10; i++)
         ;
 }
 
-void SPI2_CS_High(void) {
+void SPI2_CS_HIGH(void) {
     GPIOB->ODR |= (1 << 12); // Pull CS high
     // Add small delay for hold time
     for (volatile int i = 0; i < 10; i++)
@@ -190,6 +201,18 @@ void SPI2_CS_High(void) {
 }
 
 void SPI2_Transmit(uint8_t data) {
+    // Clear any pending flags
+    (void)SPI2->DR; // Dummy read to clear RXNE if set
+    (void)SPI2->SR; // Dummy read of status register
+
+    while (!(SPI2->SR & SPI_SR_TXE))
+        ; // Wait for TX empty
+    SPI2->DR = data;
+    while (!(SPI2->SR & SPI_SR_RXNE))
+        ;           // Wait for RX not empty (even though we don't use the data)
+    (void)SPI2->DR; // Read to clear RXNE flag
+}
+void SPI2_Transmit16(uint16_t data) {
     // Clear any pending flags
     (void)SPI2->DR; // Dummy read to clear RXNE if set
     (void)SPI2->SR; // Dummy read of status register
