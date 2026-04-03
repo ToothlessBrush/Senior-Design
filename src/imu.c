@@ -15,6 +15,35 @@ int BerryIMUversion = 3;
 #define LSM6DSL_ACC_SCALE_8G (0.244e-3f) // g per LSB
 #define LSM6DSL_PULSE_CFG_G 0x0B
 
+// --- CTRL3_C bits ---
+#define LSM6DSL_SW_RESET (1 << 0)
+#define LSM6DSL_IF_INC (1 << 2)
+#define LSM6DSL_BDU (1 << 6)
+
+// --- CTRL2_G: gyroscope ODR and full-scale selection ---
+#define LSM6DSL_ODR_G_6660HZ (0x0A << 4)
+#define LSM6DSL_FS_G_500DPS (0x01 << 2)
+
+// --- CTRL1_XL: accelerometer ODR, full-scale, and LPF1 bandwidth ---
+#define LSM6DSL_ODR_XL_6660HZ (0x0A << 4)
+#define LSM6DSL_FS_XL_8G (0x03 << 2)
+#define LSM6DSL_LPF1_BW_SEL (0x03) // LPF1 bandwidth bits [1:0]
+
+// --- CTRL6_C: gyro LPF1 bandwidth ---
+#define LSM6DSL_FTYPE_1 (0x01) // FTYPE[2:0] = 001
+
+// --- CTRL7_G bits ---
+#define LSM6DSL_G_HM_MODE (1 << 7) // 0 = high-performance, 1 = normal
+#define LSM6DSL_HP_G_EN (1 << 6)
+
+// --- CTRL8_XL: accel LPF2 / composite filter ---
+#define LSM6DSL_LPF2_XL_EN (1 << 7)
+#define LSM6DSL_HPCF_XL1 (1 << 6)
+#define LSM6DSL_HP_SLOPE_XL_EN (1 << 3)
+
+// --- INT1_CTRL bits ---
+#define LSM6DSL_INT1_DRDY_G (1 << 1)
+
 void initGyroInterrupt(void) {
     // Enable GPIOA and SYSCFG clocks
     RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN;
@@ -116,43 +145,32 @@ bool imu_init(IMU *imu) {
         return false;
     }
 
-    // TODO: replace magic numbers with better header file:
-    // https://github.com/STMicroelectronics/stm32-lsm6dsl/blob/main/lsm6dsl.h
-
     // Software reset
-    SPI_WriteByte(LSM6DSL_CTRL3_C, 0x01);
-    delay_ms(50); // Wait for reset to complete
+    SPI_WriteByte(LSM6DSL_CTRL3_C, LSM6DSL_SW_RESET);
+    delay_ms(50);
 
-    // Configure gyroscope: ODR 6.66kHz, 500 dps
-    SPI_WriteByte(LSM6DSL_CTRL2_G, 0b10100100);
+    // Gyroscope: 6.66 kHz ODR, ±500 dps
+    SPI_WriteByte(LSM6DSL_CTRL2_G, LSM6DSL_ODR_G_6660HZ | LSM6DSL_FS_G_500DPS);
 
-    // Configure accelerometer: ODR 6.66kHz, ±8g
-    SPI_WriteByte(LSM6DSL_CTRL1_XL, 0b10101111);
+    // Accelerometer: 6.66 kHz ODR, ±8g, LPF1 BW select
+    SPI_WriteByte(LSM6DSL_CTRL1_XL, LSM6DSL_ODR_XL_6660HZ | LSM6DSL_FS_XL_8G |
+                                        LSM6DSL_LPF1_BW_SEL);
 
-    // Block Data Update (BDU) enabled, IF_INC enabled
-    SPI_WriteByte(LSM6DSL_CTRL3_C, 0b01000100);
+    // Block Data Update + auto-increment
+    SPI_WriteByte(LSM6DSL_CTRL3_C, LSM6DSL_BDU | LSM6DSL_IF_INC);
 
-    // Configure gyro low-pass filter bandwidth
-    // Bit 0: LPF1_SEL_G = 1 (enable LPF1)
-    // This enables the gyro low-pass filter for noise reduction
-    SPI_WriteByte(LSM6DSL_CTRL6_C, 0b00000001);
+    // Gyro LPF1 bandwidth selection
+    SPI_WriteByte(LSM6DSL_CTRL6_C, LSM6DSL_FTYPE_1);
 
-    // Configure gyro for high-performance mode with LPF1 enabled
-    // Bit 7: G_HM_MODE = 0 (high-performance mode)
-    // Bit 6: HP_G_EN = 0 (high-pass filter disabled, we want low-pass)
-    // Bits 5-0: Other settings = 0
-    SPI_WriteByte(LSM6DSL_CTRL7_G, 0b00000000);
+    // Gyro high-performance mode (all bits zero = HP mode, no high-pass)
+    SPI_WriteByte(LSM6DSL_CTRL7_G, 0x00);
 
-    // Low-pass filter for accelerometer (composite filter)
-    // Bit 7: LPF2_XL_EN = 1 (enable LPF2)
-    // Bit 6: HPCF_XL[1] = 1
-    // Bit 3: HP_SLOPE_XL_EN = 1 (enable slope filter)
-    // Bits 2-0: Input composite = 000
-    // This creates a stronger low-pass filter to reduce motor vibrations
-    SPI_WriteByte(LSM6DSL_CTRL8_XL, 0b11001000);
+    // Accel composite low-pass filter for vibration rejection
+    SPI_WriteByte(LSM6DSL_CTRL8_XL, LSM6DSL_LPF2_XL_EN | LSM6DSL_HPCF_XL1 |
+                                        LSM6DSL_HP_SLOPE_XL_EN);
 
     // Gyro data ready interrupt on INT1
-    SPI_WriteByte(LSM6DSL_INT1_CTRL, 0b00000010);
+    SPI_WriteByte(LSM6DSL_INT1_CTRL, LSM6DSL_INT1_DRDY_G);
 
     // Pulse mode interrupt (auto-clear)
     // SPI_WriteByte(LSM6DSL_PULSE_CFG_G, 0x80);
