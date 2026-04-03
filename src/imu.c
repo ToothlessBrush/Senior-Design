@@ -11,7 +11,8 @@
 int BerryIMUversion = 3;
 
 #define GYRO_SENSITIVITY_500DPS 17.50f
-
+#define LSM6DSL_GYRO_SCALE_500DPS_RAD (17.50e-3f * 3.14159265359f / 180.0f)
+#define LSM6DSL_ACC_SCALE_8G (0.244e-3f) // g per LSB
 #define LSM6DSL_PULSE_CFG_G 0x0B
 
 void initGyroInterrupt(void) {
@@ -60,19 +61,13 @@ void readGyroRaw(IVec3 *g) {
 
 void gyroToRadPS(const IVec3 *gyro_raw, Vec3 *gyro_rad_s) {
     for (int i = 0; i < 3; i++) {
-        // ±500°/s range over 16-bit signed (-32768 to +32767)
-        // Total range: 1000°/s, Total values: 65536
-        // Scale: 1000°/s / 65536 counts = degrees per second
-        // Convert to radians: * π/180
-        gyro_rad_s->v[i] =
-            gyro_raw->v[i] * (1000.0f / 65536.0f) * (3.14159265359f / 180.0f);
+        gyro_rad_s->v[i] = gyro_raw->v[i] * LSM6DSL_GYRO_SCALE_500DPS_RAD;
     }
 }
 
 void accToG(const IVec3 *acc_raw, Vec3 *acc_g) {
     for (int i = 0; i < 3; i++) {
-        // g range is 16g and raw range is 65536
-        acc_g->v[i] = (acc_raw->v[i] * 16.0f) / 65536.0f;
+        acc_g->v[i] = acc_raw->v[i] * LSM6DSL_ACC_SCALE_8G;
     }
 }
 
@@ -91,8 +86,9 @@ bool verifyIMU(void) {
 void updateOrientation(Attitude *orient, const Vec3 *acc_g,
                        const Vec3 *gyro_rad_s, float dt) {
     // Sensor mounting: sensor_X = drone_X (right), sensor_Y = drone_Y (front).
-    // Roll  = rotation about drone_Y (front): rate on gyro_y, gravity tilt on acc_x.
-    // Pitch = rotation about drone_X (right): rate on gyro_x, gravity tilt on acc_y.
+    // Roll  = rotation about drone_Y (front): rate on gyro_y, gravity tilt on
+    // acc_x. Pitch = rotation about drone_X (right): rate on gyro_x, gravity
+    // tilt on acc_y.
     float roll_from_acc = atan2f(acc_g->x, acc_g->z);
     float pitch_from_acc =
         atan2f(acc_g->y, sqrtf(acc_g->x * acc_g->x + acc_g->z * acc_g->z));
@@ -127,7 +123,7 @@ bool imu_init(IMU *imu) {
     SPI_WriteByte(LSM6DSL_CTRL3_C, 0x01);
     delay_ms(50); // Wait for reset to complete
 
-    // Configure gyroscope: ODR 6.66kHz, 2000 dps
+    // Configure gyroscope: ODR 6.66kHz, 500 dps
     SPI_WriteByte(LSM6DSL_CTRL2_G, 0b10100100);
 
     // Configure accelerometer: ODR 6.66kHz, ±8g
