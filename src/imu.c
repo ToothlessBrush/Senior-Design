@@ -90,20 +90,20 @@ bool verifyIMU(void) {
 
 void updateOrientation(Attitude *orient, const Vec3 *acc_g,
                        const Vec3 *gyro_rad_s, float dt) {
-    // Roll: rotation around X axis (uses Y and Z accelerations)
-    float roll_from_acc = atan2f(acc_g->y, acc_g->z);
-
-    // Pitch: rotation around Y axis (uses X and Z accelerations)
+    // Sensor mounting: sensor_X = drone_X (right), sensor_Y = drone_Y (front).
+    // Roll  = rotation about drone_Y (front): rate on gyro_y, gravity tilt on acc_x.
+    // Pitch = rotation about drone_X (right): rate on gyro_x, gravity tilt on acc_y.
+    float roll_from_acc = atan2f(acc_g->x, acc_g->z);
     float pitch_from_acc =
-        atan2f(-acc_g->x, sqrtf(acc_g->y * acc_g->y + acc_g->z * acc_g->z));
+        atan2f(acc_g->y, sqrtf(acc_g->x * acc_g->x + acc_g->z * acc_g->z));
 
-    float alpha = 0.95f;
+    float alpha = 0.998f;
 
     // Gyro integration with complementary filter
-    orient->roll = alpha * (orient->roll + gyro_rad_s->x * dt) +
+    orient->roll = alpha * (orient->roll + gyro_rad_s->y * dt) +
                    (1.0f - alpha) * roll_from_acc;
 
-    orient->pitch = alpha * (orient->pitch + gyro_rad_s->y * dt) +
+    orient->pitch = alpha * (orient->pitch + gyro_rad_s->x * dt) +
                     (1.0f - alpha) * pitch_from_acc;
 
     orient->yaw += gyro_rad_s->z * dt;
@@ -210,12 +210,12 @@ void IMU_update(IMU *imu, float dt) {
     // currently wont work without flow or gps velocity sensor
     // Velocity estimation with decay to prevent unbounded drift
     float sin_pitch = sinf(imu->attitude.pitch);
-    float cos_pitch = cosf(imu->attitude.pitch);
     float sin_roll = sinf(imu->attitude.roll);
+    float cos_roll = cosf(imu->attitude.roll);
 
-    // Gravity compensation (project gravity vector into body frame)
-    float grav_x = sin_pitch;
-    float grav_y = sin_roll * cos_pitch;
+    // Gravity compensation in sensor frame (sensor_X=drone_Y, sensor_Y=drone_X)
+    float grav_x = sin_roll;
+    float grav_y = -sin_pitch * cos_roll;
 
     // Linear acceleration (gravity removed, already lowpass filtered)
     float lin_ax = imu->acc.x - grav_x;

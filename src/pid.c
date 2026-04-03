@@ -141,26 +141,30 @@ void pid_velocity_correction(PID *pid, const IMU *imu, float dt) {
         return;
     }
 
-    float pitch_correction =
+    // velocity.x is along sensor_X = drone_Y (forward): correct with roll (tilts nose).
+    // velocity.y is along sensor_Y = drone_X (right):   correct with pitch (tilts laterally).
+    float roll_correction =
         get_pid_output(&pid->velocity_x_pid, 0.0f, imu->velocity.x,
                        imu->accel_hp.x * 9.81f, dt);
 
-    float roll_correction =
+    float pitch_correction =
         get_pid_output(&pid->velocity_y_pid, 0.0f, imu->velocity.y,
                        imu->accel_hp.y * 9.81f, dt);
 
+    pid->setpoints.roll  = pid->base_setpoints.roll  - roll_correction;
     pid->setpoints.pitch = pid->base_setpoints.pitch - pitch_correction;
-    pid->setpoints.roll = pid->base_setpoints.roll - roll_correction;
 }
 
 // update all 3 pid axis
 void pid_update(PID *pid, const IMU *imu, float dt) {
     pid->measurement = imu->attitude;
 
+    // Sensor mounting: sensor_X = drone_Y (front), sensor_Y = drone_X (right).
+    // gyro.x = rate about drone_Y = pitch rate; gyro.y = rate about drone_X = roll rate.
     pid->output.pitch = get_pid_output(&pid->pitch_pid, pid->setpoints.pitch,
-                                       pid->measurement.pitch, imu->gyro.y, dt);
+                                       pid->measurement.pitch, imu->gyro.x, dt);
     pid->output.roll = get_pid_output(&pid->roll_pid, pid->setpoints.roll,
-                                      pid->measurement.roll, imu->gyro.x, dt);
+                                      pid->measurement.roll, imu->gyro.y, dt);
     pid->output.yaw = get_pid_output(&pid->yaw_pid, pid->setpoints.yaw,
                                      pid->measurement.yaw, imu->gyro.z, dt);
 }

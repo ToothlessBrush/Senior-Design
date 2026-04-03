@@ -19,7 +19,7 @@
 
 #define MIN_THROTTLE 0.05f
 #define MAX_THROTTLE 1.0f
-#define MAX_BASE_THROTTLE 0.4f // full stick = 40% throttle
+#define MAX_BASE_THROTTLE 1.0f // full stick = 40% throttle
 
 // CRSF channel indices — AETR order
 #define CRSF_CH_ROLL 0     // A - Aileron
@@ -44,7 +44,7 @@
 #define MAX_YAW_ANGLE 0.5f   // ~28 deg
 
 // persistant data
-#define FLASH_CONFIG_MAGIC 0xDEADBEF0  // bumped: CommandConfig grew 76→116 bytes
+#define FLASH_CONFIG_MAGIC 0xDEADBEF0 // bumped: CommandConfig grew 76→116 bytes
 
 typedef struct __attribute__((packed)) {
     uint32_t magic;
@@ -59,21 +59,34 @@ static PID pid = {0};
 static float base_throttle = 0.0f;
 
 typedef struct {
-    float motor1; /**< Motor 1 bias (rear left, CW) */
-    float motor2; /**< Motor 2 bias (front right, CCW) */
-    float motor3; /**< Motor 3 bias (rear right, CCW) */
-    float motor4; /**< Motor 4 bias (front left, CW) */
+    float motor1; /**< Motor 1 bias (front-right, +x+y, CW) */
+    float motor2; /**< Motor 2 bias (front-left,  -x+y, CCW) */
+    float motor3; /**< Motor 3 bias (rear-right,  +x-y, CW) */
+    float motor4; /**< Motor 4 bias (rear-left,   -x-y, CCW) */
 } MotorBias;
 
 static MotorBias bias = {0};
 
 static uint8_t led_config_blink_ticks = 0;
 
+// Frame: Y+ = front, X+ = right, Z+ = up (right-hand).
+// Roll  = rotation about Y (front): right motors (+x) get +roll, left motors
+// (-x) get -roll. Pitch = rotation about X (right): front motors (+y) get
+// +pitch, rear motors (-y) get -pitch. Yaw   = rotation about Z: CW motors
+// (M1,M3) react +yaw, CCW motors (M2,M4) react -yaw.
 static void drive_motors(float throttle, PID *p, MotorBias *b) {
-    float m4 = throttle + b->motor4 + p->output.pitch + p->output.yaw;
-    float m3 = throttle + b->motor3 - p->output.roll - p->output.yaw;
-    float m2 = throttle + b->motor2 + p->output.roll - p->output.yaw;
-    float m1 = throttle + b->motor1 - p->output.pitch + p->output.yaw;
+    // +x +y (front-right, CW)
+    float m1 =
+        throttle + b->motor1 + p->output.roll + p->output.pitch + p->output.yaw;
+    // -x +y (front-left, CCW)
+    float m2 =
+        throttle + b->motor2 - p->output.roll + p->output.pitch - p->output.yaw;
+    // +x -y (rear-right, CW)
+    float m3 =
+        throttle + b->motor3 + p->output.roll - p->output.pitch + p->output.yaw;
+    // -x -y (rear-left, CCW)
+    float m4 =
+        throttle + b->motor4 - p->output.roll - p->output.pitch - p->output.yaw;
 
     m1 = fmaxf(MIN_THROTTLE, fminf(MAX_THROTTLE, m1));
     m2 = fmaxf(MIN_THROTTLE, fminf(MAX_THROTTLE, m2));
@@ -194,10 +207,11 @@ void task_imu_pid(void) {
     last_us = now;
 #endif
 
+    pid_update(&pid, &imu, FIXED_DT);
+
     if (!IS_ARMED(fc_state))
         return;
 
-    pid_update(&pid, &imu, FIXED_DT);
     drive_motors(base_throttle, &pid, &bias);
 }
 
@@ -276,56 +290,6 @@ void task_config_service(void) {
         axis_pid->Kd = cmd.payload.pid.D;
         axis_pid->integral_limit = cmd.payload.pid.I_limit;
         axis_pid->output_limit = cmd.payload.pid.pid_limit;
-
-        FlashConfig to_save;
-        flash_read(CONFIG_SECTOR_ADDR, &to_save, sizeof(FlashConfig));
-        to_save.magic = FLASH_CONFIG_MAGIC; // ensure valid if first write
-
-        float P = cmd.payload.pid.P;
-        float I = cmd.payload.pid.I;
-        float D = cmd.payload.pid.D;
-        float I_limit = cmd.payload.pid.I_limit;
-        float limit = cmd.payload.pid.pid_limit;
-
-        // I dont like that its 2 switch statements but I cant be asked to clean
-        // this
-        switch (cmd.payload.pid.axis) {
-        case 0:
-            to_save.config.pitch_Kp = P;
-            to_save.config.pitch_Ki = I;
-            to_save.config.pitch_Kd = D;
-            to_save.config.pitch_i_limit = I_limit;
-            to_save.config.pitch_pid_limit = limit;
-            break;
-        case 1:
-            to_save.config.roll_Kp = P;
-            to_save.config.roll_Ki = I;
-            to_save.config.roll_Kd = D;
-            to_save.config.roll_i_limit = I_limit;
-            to_save.config.roll_pid_limit = limit;
-            break;
-        case 2:
-            to_save.config.yaw_Kp = P;
-            to_save.config.yaw_Ki = I;
-            to_save.config.yaw_Kd = D;
-            to_save.config.yaw_i_limit = I_limit;
-            to_save.config.yaw_pid_limit = limit;
-            break;
-        case 3:
-            to_save.config.velocity_x_Kp = P;
-            to_save.config.velocity_x_Ki = I;
-            to_save.config.velocity_x_Kd = D;
-            to_save.config.velocity_x_i_limit = I_limit;
-            to_save.config.velocity_x_pid_limit = limit;
-            break;
-        case 4:
-            to_save.config.velocity_y_Kp = P;
-            to_save.config.velocity_y_Ki = I;
-            to_save.config.velocity_y_Kd = D;
-            to_save.config.velocity_y_i_limit = I_limit;
-            to_save.config.velocity_y_pid_limit = limit;
-            break;
-        }
 
         led_config_blink_ticks = 4;
         comm_send_string_nb("LOG:SET_PID");
@@ -418,10 +382,10 @@ void task_config_service(void) {
             .config = cfg,
             .cal = imu.cal,
         };
-        flash_save(CONFIG_SECTOR, CONFIG_SECTOR_ADDR, &to_save,
-                   sizeof(FlashConfig));
+        bool save_ok = flash_save(CONFIG_SECTOR, CONFIG_SECTOR_ADDR, &to_save,
+                                  sizeof(FlashConfig));
         led_config_blink_ticks = 4;
-        comm_send_string_nb("LOG:SAVE");
+        comm_send_string_nb(save_ok ? "LOG:SAVE_OK" : "LOG:SAVE_FAILED");
         break;
     }
 
@@ -435,14 +399,15 @@ void task_config_service(void) {
             flash_read(CONFIG_SECTOR_ADDR, &to_save, sizeof(FlashConfig));
             to_save.magic = FLASH_CONFIG_MAGIC;
             to_save.cal = imu.cal; // overwrite with fresh cal
-            flash_save(CONFIG_SECTOR, CONFIG_SECTOR_ADDR, &to_save,
-                       sizeof(FlashConfig));
-
-            comm_send_string_nb("LOG:CALIBRATE");
+            bool cal_ok = flash_save(CONFIG_SECTOR, CONFIG_SECTOR_ADDR,
+                                     &to_save, sizeof(FlashConfig));
+            comm_send_string_nb(cal_ok ? "LOG:CALIBRATE_SAVED"
+                                       : "LOG:CALIBRATE_SAVE_FAILED");
         }
         break;
 
     default:
+        comm_send_string_nb("LOG:PARSE_ERR");
         break;
     }
 }
@@ -489,7 +454,9 @@ void task_crsf_service(void) {
             return;
         }
 
-        // Map sticks to setpoints and throttle while armed
+        // Map sticks to setpoints and throttle while armed.
+        // Roll  = rotation about Y (front): aileron stick banks left/right.
+        // Pitch = rotation about X (right): elevator stick tilts nose up/down.
         float roll_ch = crsf_get_channel(CRSF_CH_ROLL);
         float pitch_ch = crsf_get_channel(CRSF_CH_PITCH);
         float yaw_ch = crsf_get_channel(CRSF_CH_YAW);
