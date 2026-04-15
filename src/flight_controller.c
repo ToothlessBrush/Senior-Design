@@ -43,6 +43,8 @@
 #define MAX_PITCH_ANGLE 0.5f // ~28 deg
 #define MAX_YAW_ANGLE 0.5f   // ~28 deg
 
+#define MAX_ANGLE_FAILSAFE 1.05f // ~60 deg — zero throttle if exceeded
+
 // persistant data
 #define FLASH_CONFIG_MAGIC 0xDEADBEF0 // bumped: CommandConfig grew 76→116 bytes
 
@@ -83,10 +85,10 @@ static void drive_motors(float throttle, PID *p, MotorBias *b) {
         throttle + b->motor2 - p->output.roll + p->output.pitch - p->output.yaw;
     // +x -y (rear-right, CW)
     float m3 =
-        throttle + b->motor3 + p->output.roll - p->output.pitch + p->output.yaw;
+        throttle + b->motor3 + p->output.roll - p->output.pitch - p->output.yaw;
     // -x -y (rear-left, CCW)
     float m4 =
-        throttle + b->motor4 - p->output.roll - p->output.pitch - p->output.yaw;
+        throttle + b->motor4 - p->output.roll - p->output.pitch + p->output.yaw;
 
     m1 = fmaxf(MIN_THROTTLE, fminf(MAX_THROTTLE, m1));
     m2 = fmaxf(MIN_THROTTLE, fminf(MAX_THROTTLE, m2));
@@ -190,6 +192,10 @@ void task_imu_pid(void) {
     static uint32_t last_drdy_us = 0;
     uint32_t now = micros();
 
+    if IS_FAILSAFE (fc_state) {
+        return;
+    }
+
     if (imu_data_ready()) {
         last_drdy_us = now;
         fc_state |= FC_IMU_OK;
@@ -212,6 +218,13 @@ void task_imu_pid(void) {
     if (!IS_ARMED(fc_state))
         return;
 
+    if (fabsf(imu.attitude.roll) > MAX_ANGLE_FAILSAFE ||
+        fabsf(imu.attitude.pitch) > MAX_ANGLE_FAILSAFE) {
+        fc_state |= FC_FAILSAFE;
+        drive_motors(0.0f, &pid, &bias);
+        return;
+    }
+
     drive_motors(base_throttle, &pid, &bias);
 }
 
@@ -219,9 +232,16 @@ void task_led(void) {
     static uint8_t tick = 0;
     tick++;
 
-    if (IS_ARMED(fc_state)) {
-        // Fast blink: 5Hz (on/off every tick)
+    if (IS_FAILSAFE(fc_state)) {
+        // Failsafe active: rapid blink
         (tick % 2) ? led_on() : led_off();
+        return;
+    }
+
+    if (IS_ARMED(fc_state)) {
+        // Armed: heartbeat (double-pulse then pause)
+        uint8_t t = tick % 10;
+        (t == 0 || t == 2) ? led_on() : led_off();
         return;
     }
 
@@ -462,9 +482,9 @@ void task_crsf_service(void) {
         float yaw_ch = crsf_get_channel(CRSF_CH_YAW);
 
         pid.setpoints.roll =
-            ((roll_ch - CRSF_MID) / CRSF_RANGE) * MAX_ROLL_ANGLE;
+            -((roll_ch - CRSF_MID) / CRSF_RANGE) * MAX_ROLL_ANGLE;
         pid.setpoints.pitch =
-            ((pitch_ch - CRSF_MID) / CRSF_RANGE) * MAX_PITCH_ANGLE;
+            -((pitch_ch - CRSF_MID) / CRSF_RANGE) * MAX_PITCH_ANGLE;
         pid.setpoints.yaw = ((yaw_ch - CRSF_MID) / CRSF_RANGE) * MAX_YAW_ANGLE;
 
         base_throttle =

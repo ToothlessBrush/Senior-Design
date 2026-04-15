@@ -229,7 +229,7 @@ void IMU_update(IMU *imu, float dt) {
 
     // Gravity compensation in sensor frame (sensor_X=drone_Y, sensor_Y=drone_X)
     float grav_x = sin_roll;
-    float grav_y = -sin_pitch * cos_roll;
+    float grav_y = sin_pitch * cos_roll;
 
     // Linear acceleration (gravity removed, already lowpass filtered)
     float lin_ax = imu->acc.x - grav_x;
