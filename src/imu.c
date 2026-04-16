@@ -118,7 +118,9 @@ void updateOrientation(Attitude *orient, const Vec3 *acc_g,
     // Roll  = rotation about drone_Y (front): rate on gyro_y, gravity tilt on
     // acc_x. Pitch = rotation about drone_X (right): rate on gyro_x, gravity
     // tilt on acc_y.
-    float roll_from_acc = atan2f(acc_g->x, acc_g->z);
+    //
+    // needed to flip roll
+    float roll_from_acc = -atan2f(acc_g->x, acc_g->z);
     float pitch_from_acc =
         atan2f(acc_g->y, sqrtf(acc_g->x * acc_g->x + acc_g->z * acc_g->z));
 

@@ -83,10 +83,10 @@ static void drive_motors(float throttle, PID *p, MotorBias *b) {
     // -x +y (front-left, CCW)
     float m2 =
         throttle + b->motor2 - p->output.roll + p->output.pitch - p->output.yaw;
-    // +x -y (rear-right, CW)
+    // +x -y (rear-right, CCW)
     float m3 =
         throttle + b->motor3 + p->output.roll - p->output.pitch - p->output.yaw;
-    // -x -y (rear-left, CCW)
+    // -x -y (rear-left, CW)
     float m4 =
         throttle + b->motor4 - p->output.roll - p->output.pitch + p->output.yaw;
 
@@ -482,7 +482,7 @@ void task_crsf_service(void) {
         float yaw_ch = crsf_get_channel(CRSF_CH_YAW);
 
         pid.setpoints.roll =
-            -((roll_ch - CRSF_MID) / CRSF_RANGE) * MAX_ROLL_ANGLE;
+            ((roll_ch - CRSF_MID) / CRSF_RANGE) * MAX_ROLL_ANGLE;
         pid.setpoints.pitch =
             -((pitch_ch - CRSF_MID) / CRSF_RANGE) * MAX_PITCH_ANGLE;
         pid.setpoints.yaw = ((yaw_ch - CRSF_MID) / CRSF_RANGE) * MAX_YAW_ANGLE;
