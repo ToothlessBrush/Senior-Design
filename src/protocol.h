@@ -98,7 +98,7 @@ typedef struct __attribute__((packed)) {
     float D;         /**< Derivative gain */
     float I_limit;   /**< Integral windup limit */
     float pid_limit; /**< Output limit */
-    uint8_t axis;    /**< Axis: 0=pitch, 1=roll, 2=yaw, 3=vel_x, 4=vel_y */
+    uint8_t axis;    /**< Axis: 0=pitch, 1=roll, 2=yaw, 3=vel_x, 4=vel_y, 5=vel_z */
 } CommandSetPid;
 
 /**
@@ -164,6 +164,14 @@ typedef struct __attribute__((packed)) {
     float velocity_y_i_limit;   /**< Velocity Y integral limit */
     float velocity_y_pid_limit; /**< Velocity Y output limit (max roll
                                    correction) */
+
+    // PID parameters for velocity Z (vertical velocity damping)
+    float velocity_z_Kp;        /**< Velocity Z proportional gain */
+    float velocity_z_Ki;        /**< Velocity Z integral gain */
+    float velocity_z_Kd;        /**< Velocity Z derivative gain */
+    float velocity_z_i_limit;   /**< Velocity Z integral limit */
+    float velocity_z_pid_limit; /**< Velocity Z output limit (max throttle
+                                   correction) */
 } CommandConfig;
 
 /**
@@ -200,9 +208,10 @@ typedef struct __attribute__((packed)) {
     float gyro_y; /**< Gyro rate Y (rad/s) */
     float gyro_z; /**< Gyro rate Z (rad/s) */
 
-    // Optical flow velocity estimate (m/s, NED frame)
+    // Velocity estimate (m/s)
     float vel_x; /**< Forward velocity (m/s, +forward) */
     float vel_y; /**< Lateral velocity (m/s, +right) */
+    float vel_z; /**< Vertical velocity (m/s, +up) */
 
     // Height from optical flow distance sensor (m)
     float height; /**< Height above ground (m, from ToF sensor) */

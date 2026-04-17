@@ -50,12 +50,10 @@ typedef struct {
 /**
  * @brief Multi-axis PID context for cascaded attitude and velocity control
  *
- * Contains five PID controllers:
+ * Contains six PID controllers:
  * - Three for attitude control (pitch, roll, yaw) - inner loop
  * - Two for velocity correction (X, Y axes) - outer loop
- *
- * The velocity correction PIDs adjust the attitude setpoints to counteract
- * horizontal drift, implementing a simple position hold feature.
+ * - One for vertical velocity damping (Z axis) - throttle correction
  */
 typedef struct {
     Attitude setpoints;   /**< Active attitude setpoints (after velocity correction) */
@@ -68,6 +66,9 @@ typedef struct {
 
     PIDController velocity_x_pid; /**< Forward/backward velocity correction (adjusts pitch) */
     PIDController velocity_y_pid; /**< Left/right velocity correction (adjusts roll) */
+    PIDController velocity_z_pid; /**< Vertical velocity damping (adjusts throttle) */
+
+    float throttle_correction; /**< Velocity Z PID output (added to base throttle) */
 
     Attitude base_setpoints;          /**< Base setpoints from command (before velocity correction) */
     bool velocity_correction_enabled; /**< Enable/disable velocity correction outer loop */
@@ -114,6 +115,13 @@ typedef struct {
     float velocity_y_Kd;       /**< Velocity Y derivative gain */
     float velocity_y_Ki_limit; /**< Velocity Y integral windup limit */
     float velocity_y_limit;    /**< Velocity Y output limit (max roll setpoint adjustment) */
+
+    // Velocity Z (vertical velocity damping)
+    float velocity_z_Kp;       /**< Velocity Z proportional gain */
+    float velocity_z_Ki;       /**< Velocity Z integral gain */
+    float velocity_z_Kd;       /**< Velocity Z derivative gain */
+    float velocity_z_Ki_limit; /**< Velocity Z integral windup limit */
+    float velocity_z_limit;    /**< Velocity Z output limit (max throttle correction) */
 } PIDCreateInfo;
 
 /**
@@ -166,6 +174,19 @@ void pid_update(PID *pid, const IMU *imu, float dt);
 void pid_velocity_correction(PID *pid, const IMU *imu, float dt);
 
 /**
+ * @brief Update vertical velocity damping PID
+ *
+ * Computes throttle correction to oppose vertical velocity, dampening
+ * height oscillations. Setpoint is zero vertical velocity. Output stored
+ * in pid->throttle_correction for the caller to add to base throttle.
+ *
+ * @param pid Pointer to PID context
+ * @param imu Pointer to IMU context with velocity_z and accel_z
+ * @param dt Time delta since last update (seconds)
+ */
+void pid_velocity_z_update(PID *pid, const IMU *imu, float dt);
+
+/**
  * @brief Reset all PID controller states
  *
  * Zeros integral accumulators and previous errors for all five PID controllers.
@@ -193,7 +214,6 @@ void pid_reset(PID *pid);
  * @param dt Time delta since last update (seconds)
  * @return Clamped PID output (throttle correction)
  */
-float get_pid_output(PIDController *pid, float setpoint, float measurement,
-                     float angular_velocity, float dt);
+float get_pid_output(PIDController *pid, float error, float rate, float dt);
 
 #endif // PID_H

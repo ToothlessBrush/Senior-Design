@@ -94,14 +94,14 @@ void optical_flow_update(void);
 const optical_flow_data_t *optical_flow_get_data(void);
 
 /**
- * @brief Calculate actual velocity from flow velocity and distance
+ * @brief Get velocity from flow sensor output
  *
- * Converts flow velocity (cm/s @ 1m) to actual velocity (cm/s) using
- * the formula: speed(cm/s) = flow_vel * distance(m)
+ * MTF-01 outputs actual velocity in cm/s (internally compensated via
+ * built-in ToF). Distance parameter kept for API compatibility.
  *
- * @param flow_vel Flow velocity from sensor (cm/s @ 1m)
- * @param distance Distance from sensor (mm)
- * @return Actual velocity in cm/s (returns 0 if distance invalid)
+ * @param flow_vel Flow velocity from sensor (cm/s)
+ * @param distance Distance from sensor (mm), unused
+ * @return Velocity in cm/s
  */
 float optical_flow_calc_velocity(int16_t flow_vel, uint32_t distance);
 

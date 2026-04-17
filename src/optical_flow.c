@@ -228,15 +228,10 @@ void optical_flow_update(void) {
 const optical_flow_data_t *optical_flow_get_data(void) { return &sensor_data; }
 
 float optical_flow_calc_velocity(int16_t flow_vel, uint32_t distance) {
-    // Check if distance is valid
-    if (distance == 0) {
-        return 0.0f;
-    }
-
-    // Convert distance from mm to m, then calculate velocity
-    // speed(cm/s) = flow_vel * distance(m)
-    float distance_m = (float)distance / 1000.0f;
-    return (float)flow_vel * distance_m;
+    (void)distance;
+    // MTF-01 outputs actual velocity in cm/s (internally compensated via
+    // built-in ToF), so no height scaling needed.
+    return (float)flow_vel;
 }
 
 void optical_flow_get_debug_stats(uint32_t *bytes, uint32_t *frames,

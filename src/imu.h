@@ -148,6 +148,10 @@ typedef struct {
     Vec2 velocity;   /**< Estimated horizontal velocity (m/s, X=forward, Y=right) */
     Vec2 accel_hp;   /**< High-pass filtered linear acceleration (g, gravity removed) */
     Vec2 accel_prev; /**< Previous linear acceleration for high-pass filter */
+
+    // Vertical velocity estimation (complementary filter: Z-accel + ToF)
+    float velocity_z; /**< Estimated vertical velocity (m/s, + = up) */
+    float accel_z;    /**< Linear Z acceleration (g, gravity removed) */
 } IMU;
 
 /**

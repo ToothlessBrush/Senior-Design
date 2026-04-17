@@ -223,32 +223,36 @@ void IMU_update(IMU *imu, float dt) {
 
     updateOrientation(&imu->attitude, &imu->acc, &imu->gyro, dt);
 
-    // currently wont work without flow or gps velocity sensor
     // Velocity estimation with decay to prevent unbounded drift
     float sin_pitch = sinf(imu->attitude.pitch);
+    float cos_pitch = cosf(imu->attitude.pitch);
     float sin_roll = sinf(imu->attitude.roll);
     float cos_roll = cosf(imu->attitude.roll);
 
     // Gravity compensation in sensor frame (sensor_X=drone_Y, sensor_Y=drone_X)
     float grav_x = sin_roll;
     float grav_y = sin_pitch * cos_roll;
+    float grav_z = cos_pitch * cos_roll;
 
     // Linear acceleration (gravity removed, already lowpass filtered)
     float lin_ax = imu->acc.x - grav_x;
     float lin_ay = imu->acc.y - grav_y;
+    float lin_az = imu->acc.z - grav_z;
 
     // Store linear acceleration for telemetry/debugging
     imu->accel_hp.x = lin_ax;
     imu->accel_hp.y = lin_ay;
+    imu->accel_z = lin_az;
 
-    // Integrate acceleration to velocity with decay factor to prevent unbounded
-    // drift decay < 1.0 causes velocity to naturally decay toward zero,
-    // preventing integration drift Adjust decay value: closer to 1.0 = less
-    // drift correction, closer to 0.0 = more aggressive decay
-    float decay =
-        0.98f; // velocity decays to ~37% in about 5 seconds at 6660 Hz
+    // Integrate acceleration to velocity with exponential decay to prevent
+    // unbounded drift.  decay = 1 - dt/tau  (first-order approximation of
+    // exp(-dt/tau)).  tau = 0.5 s  →  velocity decays to ~37 % in 0.5 s
+    // when no optical-flow corrections arrive.
+    // At 6660 Hz: decay ≈ 1 - 1/(6660*0.5) ≈ 0.9997
+    float decay = 1.0f - dt / 0.5f;
     imu->velocity.x = imu->velocity.x * decay + lin_ax * 9.81f * dt;
     imu->velocity.y = imu->velocity.y * decay + lin_ay * 9.81f * dt;
+    imu->velocity_z = imu->velocity_z * decay + lin_az * 9.81f * dt;
 }
 
 bool imu_data_ready() {
@@ -343,6 +347,8 @@ float biquad_apply(Biquad_t *filter, float input) {
 void IMU_reset_velocity(IMU *imu) {
     imu->velocity.x = 0.0f;
     imu->velocity.y = 0.0f;
+    imu->velocity_z = 0.0f;
     imu->accel_hp.x = 0.0f;
     imu->accel_hp.y = 0.0f;
+    imu->accel_z = 0.0f;
 }

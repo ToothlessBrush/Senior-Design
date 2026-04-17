@@ -468,17 +468,19 @@ static void test_sequence_tracking(void) {
 /* optical_flow_calc_velocity: speed = flow_vel * (distance_mm / 1000) */
 static void test_calc_velocity(void) {
     printf("test_calc_velocity\n");
+    // MTF-01 outputs actual cm/s (internally compensated), distance unused
     CHECK_NEAR("100 @ 1m", optical_flow_calc_velocity(100, 1000), 100.0f,
                0.01f);
-    CHECK_NEAR("100 @ 0.5m", optical_flow_calc_velocity(100, 500), 50.0f,
+    CHECK_NEAR("100 @ 0.5m", optical_flow_calc_velocity(100, 500), 100.0f,
                0.01f);
-    CHECK_NEAR("100 @ 2m", optical_flow_calc_velocity(100, 2000), 200.0f,
+    CHECK_NEAR("100 @ 2m", optical_flow_calc_velocity(100, 2000), 100.0f,
                0.01f);
     CHECK_NEAR("-50 @ 1m", optical_flow_calc_velocity(-50, 1000), -50.0f,
                0.01f);
     CHECK_NEAR("0 flow @ 1m", optical_flow_calc_velocity(0, 1000), 0.0f,
                0.001f);
-    CHECK_NEAR("100 @ 0mm", optical_flow_calc_velocity(100, 0), 0.0f, 0.001f);
+    CHECK_NEAR("100 @ 0mm", optical_flow_calc_velocity(100, 0), 100.0f,
+               0.01f);
     printf("\n");
 }
 

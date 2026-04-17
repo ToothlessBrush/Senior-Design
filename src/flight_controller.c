@@ -50,7 +50,7 @@
 #define MAX_ANGLE_FAILSAFE 1.05f // ~60 deg — zero throttle if exceeded
 
 // persistant data
-#define FLASH_CONFIG_MAGIC 0xDEADBEF0 // bumped: CommandConfig grew 76→116 bytes
+#define FLASH_CONFIG_MAGIC 0xDEADBEF1 // bumped: CommandConfig grew — added velocity_z PID
 
 typedef struct __attribute__((packed)) {
     uint32_t magic;
@@ -73,6 +73,8 @@ typedef struct {
 
 static MotorBias bias = {0};
 static uint32_t yaw_last_us = 0;
+static float prev_height_m = 0.0f;
+static uint32_t prev_height_us = 0;
 
 static uint8_t led_config_blink_ticks = 0;
 
@@ -156,6 +158,11 @@ void fc_init(void) {
             .velocity_y_Kd = saved.config.velocity_y_Kd,
             .velocity_y_Ki_limit = saved.config.velocity_y_i_limit,
             .velocity_y_limit = saved.config.velocity_y_pid_limit,
+            .velocity_z_Kp = saved.config.velocity_z_Kp,
+            .velocity_z_Ki = saved.config.velocity_z_Ki,
+            .velocity_z_Kd = saved.config.velocity_z_Kd,
+            .velocity_z_Ki_limit = saved.config.velocity_z_i_limit,
+            .velocity_z_limit = saved.config.velocity_z_pid_limit,
         };
 
         pid_init(&pid, &pid_info);
@@ -174,6 +181,8 @@ void arm(void) {
     imu.attitude.yaw = 0.0f;
     yaw_last_us = micros();
     IMU_reset_velocity(&imu);
+    prev_height_m = 0.0f;
+    prev_height_us = 0;
 
     // start motors — wait for controller to signal ready via PC15
     motor_enable();
@@ -220,6 +229,7 @@ void task_imu_pid(void) {
 #endif
 
     pid_update(&pid, &imu, FIXED_DT);
+    pid_velocity_z_update(&pid, &imu, FIXED_DT);
 
     if (!IS_ARMED(fc_state))
         return;
@@ -231,7 +241,9 @@ void task_imu_pid(void) {
         return;
     }
 
-    drive_motors(base_throttle, &pid, &bias);
+    float throttle = base_throttle + pid.throttle_correction;
+    throttle = fmaxf(MIN_THROTTLE, fminf(MAX_THROTTLE, throttle));
+    drive_motors(throttle, &pid, &bias);
 }
 
 void task_led(void) {
@@ -307,6 +319,9 @@ void task_config_service(void) {
         case 4:
             axis_pid = &pid.velocity_y_pid;
             break;
+        case 5:
+            axis_pid = &pid.velocity_z_pid;
+            break;
         default:
             comm_send_string_nb("LOG:BAD_AXIS");
             return;
@@ -367,6 +382,12 @@ void task_config_service(void) {
         pid.velocity_y_pid.integral_limit = cmd.payload.sync.velocity_y_i_limit;
         pid.velocity_y_pid.output_limit = cmd.payload.sync.velocity_y_pid_limit;
 
+        pid.velocity_z_pid.Kp = cmd.payload.sync.velocity_z_Kp;
+        pid.velocity_z_pid.Ki = cmd.payload.sync.velocity_z_Ki;
+        pid.velocity_z_pid.Kd = cmd.payload.sync.velocity_z_Kd;
+        pid.velocity_z_pid.integral_limit = cmd.payload.sync.velocity_z_i_limit;
+        pid.velocity_z_pid.output_limit = cmd.payload.sync.velocity_z_pid_limit;
+
         led_config_blink_ticks = 4;
         comm_send_string_nb("LOG:SET_CONFIG");
         break;
@@ -402,6 +423,11 @@ void task_config_service(void) {
             .velocity_y_Kd = pid.velocity_y_pid.Kd,
             .velocity_y_i_limit = pid.velocity_y_pid.integral_limit,
             .velocity_y_pid_limit = pid.velocity_y_pid.output_limit,
+            .velocity_z_Kp = pid.velocity_z_pid.Kp,
+            .velocity_z_Ki = pid.velocity_z_pid.Ki,
+            .velocity_z_Kd = pid.velocity_z_pid.Kd,
+            .velocity_z_i_limit = pid.velocity_z_pid.integral_limit,
+            .velocity_z_pid_limit = pid.velocity_z_pid.output_limit,
         };
         FlashConfig to_save = {
             .magic = FLASH_CONFIG_MAGIC,
@@ -445,10 +471,23 @@ void task_optical_flow(void) {
         return;
 
     const optical_flow_data_t *of = optical_flow_get_data();
+
+    // Vertical velocity from ToF height derivative (regardless of flow validity)
+    if (optical_flow_is_distance_valid(of)) {
+        float height_m = (float)of->distance / 1000.0f;
+        uint32_t now_us = micros();
+        float dt_of = (float)(now_us - prev_height_us) * 1e-6f;
+        if (dt_of > 0.001f && dt_of < 0.1f && prev_height_us > 0) {
+            imu.velocity_z = (height_m - prev_height_m) / dt_of;
+        }
+        prev_height_m = height_m;
+        prev_height_us = now_us;
+    }
+
     if (!optical_flow_is_flow_valid(of))
         return;
 
-    // flow_vel_x/y are cm/s @ 1m — scale by actual distance to get true cm/s
+    // MTF-01 outputs actual cm/s (internally compensated via built-in ToF)
     float vx_cm = optical_flow_calc_velocity(of->flow_vel_x, of->distance);
     float vy_cm = optical_flow_calc_velocity(of->flow_vel_y, of->distance);
     imu.velocity.x = vx_cm / 100.0f;
@@ -502,6 +541,7 @@ void task_crsf_service(void) {
             ((roll_ch - CRSF_MID) / CRSF_RANGE) * MAX_ROLL_ANGLE;
         pid.setpoints.pitch =
             -((pitch_ch - CRSF_MID) / CRSF_RANGE) * MAX_PITCH_ANGLE;
+
         float yaw_rate = ((yaw_ch - CRSF_MID) / CRSF_RANGE) * MAX_YAW_RATE;
         uint32_t now_us = micros();
         float dt = (now_us - yaw_last_us) * 1e-6f;
@@ -534,6 +574,7 @@ void task_telementry(void) {
     packet.gyro_z = imu.gyro.z;
     packet.vel_x = imu.velocity.x;
     packet.vel_y = imu.velocity.y;
+    packet.vel_z = imu.velocity_z;
     const optical_flow_data_t *of = optical_flow_get_data();
     packet.height = (float)of->distance / 1000.0f;
 

@@ -53,12 +53,23 @@ void pid_init(PID *pid, const PIDCreateInfo *create_info) {
         .integral_limit = create_info->velocity_y_Ki_limit,
     };
 
+    PIDController velocity_z_controller = (PIDController){
+        .Kp = create_info->velocity_z_Kp,
+        .Ki = create_info->velocity_z_Ki,
+        .Kd = create_info->velocity_z_Kd,
+        .integral = 0,
+        .previous_error = 0,
+        .output_limit = create_info->velocity_z_limit,
+        .integral_limit = create_info->velocity_z_Ki_limit,
+    };
+
     *pid = (PID){
         .pitch_pid = pitch_controller,
         .roll_pid = roll_controller,
         .yaw_pid = yaw_controller,
         .velocity_x_pid = velocity_x_controller,
         .velocity_y_pid = velocity_y_controller,
+        .velocity_z_pid = velocity_z_controller,
         .velocity_correction_enabled =
             true, // disabled during non-zero setpoint
     };
@@ -93,20 +104,21 @@ void pid_reset(PID *pid) {
     yaw->integral = 0.0;
     yaw->previous_error = 0.0;
 
-    // Reset acceleration correction PIDs
+    // Reset velocity correction PIDs
     PIDController *accel_x = &pid->velocity_x_pid;
     accel_x->integral = 0.0;
     accel_x->previous_error = 0.0;
     PIDController *accel_y = &pid->velocity_y_pid;
     accel_y->integral = 0.0;
     accel_y->previous_error = 0.0;
+    PIDController *vel_z = &pid->velocity_z_pid;
+    vel_z->integral = 0.0;
+    vel_z->previous_error = 0.0;
+    pid->throttle_correction = 0.0f;
 }
 
 // get output from error
-float get_pid_output(PIDController *pid, float setpoint, float measurement,
-                     float angular_velocity, float dt) {
-    float error = normalize_angle(setpoint - measurement);
-
+float get_pid_output(PIDController *pid, float error, float rate, float dt) {
     // P term
     float P = pid->Kp * error;
 
@@ -117,7 +129,7 @@ float get_pid_output(PIDController *pid, float setpoint, float measurement,
     float I = pid->Ki * pid->integral;
 
     // D term (brake force)
-    float D = -pid->Kd * angular_velocity;
+    float D = -pid->Kd * rate;
 
     // Store individual terms for telemetry
     pid->p_term = P;
@@ -144,11 +156,11 @@ void pid_velocity_correction(PID *pid, const IMU *imu, float dt) {
     // velocity.x is along sensor_X = drone_Y (forward): correct with roll (tilts nose).
     // velocity.y is along sensor_Y = drone_X (right):   correct with pitch (tilts laterally).
     float roll_correction =
-        get_pid_output(&pid->velocity_x_pid, 0.0f, imu->velocity.x,
+        get_pid_output(&pid->velocity_x_pid, 0.0f - imu->velocity.x,
                        imu->accel_hp.x * 9.81f, dt);
 
     float pitch_correction =
-        get_pid_output(&pid->velocity_y_pid, 0.0f, imu->velocity.y,
+        get_pid_output(&pid->velocity_y_pid, 0.0f - imu->velocity.y,
                        imu->accel_hp.y * 9.81f, dt);
 
     pid->setpoints.roll  = pid->base_setpoints.roll  - roll_correction;
@@ -161,10 +173,23 @@ void pid_update(PID *pid, const IMU *imu, float dt) {
 
     // Sensor mounting: sensor_X = drone_Y (front), sensor_Y = drone_X (right).
     // gyro.x = rate about drone_Y = pitch rate; gyro.y = rate about drone_X = roll rate.
-    pid->output.pitch = get_pid_output(&pid->pitch_pid, pid->setpoints.pitch,
-                                       pid->measurement.pitch, imu->gyro.x, dt);
-    pid->output.roll = get_pid_output(&pid->roll_pid, pid->setpoints.roll,
-                                      pid->measurement.roll, imu->gyro.y, dt);
-    pid->output.yaw = get_pid_output(&pid->yaw_pid, pid->setpoints.yaw,
-                                     pid->measurement.yaw, imu->gyro.z, dt);
+    pid->output.pitch = get_pid_output(&pid->pitch_pid,
+                                       normalize_angle(pid->setpoints.pitch - pid->measurement.pitch),
+                                       imu->gyro.x, dt);
+    pid->output.roll = get_pid_output(&pid->roll_pid,
+                                      normalize_angle(pid->setpoints.roll - pid->measurement.roll),
+                                      imu->gyro.y, dt);
+    pid->output.yaw = get_pid_output(&pid->yaw_pid,
+                                     normalize_angle(pid->setpoints.yaw - pid->measurement.yaw),
+                                     imu->gyro.z, dt);
+}
+
+void pid_velocity_z_update(PID *pid, const IMU *imu, float dt) {
+    // Setpoint = 0 (we want zero vertical velocity for stable height).
+    // Measurement = velocity_z (+ = moving up).
+    // D feedback = Z linear acceleration (m/s²).
+    // Output > 0 when falling → add throttle; < 0 when rising → cut throttle.
+    pid->throttle_correction =
+        get_pid_output(&pid->velocity_z_pid, 0.0f - imu->velocity_z,
+                       imu->accel_z * 9.81f, dt);
 }
