@@ -38,6 +38,10 @@
 #define CRSF_THROTTLE_LOW 1100.0f
 #define CRSF_SIGNAL_TIMEOUT_MS 1000
 
+#define T_HOVER 0.45f
+#define EXPO_ALPHA 0.6f
+#define THR_HALF_SPAN 512.0f
+
 // Maximum stick-commanded angles (radians)
 #define MAX_ROLL_ANGLE 0.5f  // ~28 deg
 #define MAX_PITCH_ANGLE 0.5f // ~28 deg
@@ -447,6 +451,15 @@ void task_optical_flow(void) {
     imu.velocity.y = of->flow_vel_y / 100.0f;
 }
 
+static float apply_throttle_curve(float norm) {
+    float x_exp = EXPO_ALPHA * norm * norm * norm + (1.0f - EXPO_ALPHA) * norm;
+    float thr = (x_exp >= 0.0f)
+                    ? T_HOVER + x_exp * (MAX_BASE_THROTTLE - T_HOVER)
+                    : T_HOVER + x_exp * (T_HOVER - MIN_THROTTLE);
+
+    return fmaxf(MIN_THROTTLE, fminf(MAX_BASE_THROTTLE, thr));
+}
+
 void task_crsf_service(void) {
     crsf_process();
 
@@ -487,12 +500,8 @@ void task_crsf_service(void) {
             -((pitch_ch - CRSF_MID) / CRSF_RANGE) * MAX_PITCH_ANGLE;
         pid.setpoints.yaw = ((yaw_ch - CRSF_MID) / CRSF_RANGE) * MAX_YAW_ANGLE;
 
-        base_throttle =
-            ((throttle_ch - CRSF_THR_MIN) / CRSF_THR_SPAN) * MAX_BASE_THROTTLE;
-        if (base_throttle < 0.0f)
-            base_throttle = 0.0f;
-        if (base_throttle > MAX_BASE_THROTTLE)
-            base_throttle = MAX_BASE_THROTTLE;
+        base_throttle = apply_throttle_curve(
+            ((throttle_ch - CRSF_THR_MIN) / CRSF_THR_SPAN) * 2.0f - 1.0f);
     }
 }
 
