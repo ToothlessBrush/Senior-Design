@@ -195,9 +195,17 @@ typedef struct __attribute__((packed)) {
     float yaw_i_term; /**< Yaw integral term */
     float yaw_d_term; /**< Yaw derivative term */
 
+    // Gyroscope angular velocity (rad/s)
+    float gyro_x; /**< Gyro rate X (rad/s) */
+    float gyro_y; /**< Gyro rate Y (rad/s) */
+    float gyro_z; /**< Gyro rate Z (rad/s) */
+
     // Optical flow velocity estimate (m/s, NED frame)
     float vel_x; /**< Forward velocity (m/s, +forward) */
     float vel_y; /**< Lateral velocity (m/s, +right) */
+
+    // Height from optical flow distance sensor (m)
+    float height; /**< Height above ground (m, from ToF sensor) */
 } TelemetryPacket;
 
 /**

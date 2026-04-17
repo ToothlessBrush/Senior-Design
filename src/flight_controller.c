@@ -45,7 +45,7 @@
 // Maximum stick-commanded angles (radians)
 #define MAX_ROLL_ANGLE 0.5f  // ~28 deg
 #define MAX_PITCH_ANGLE 0.5f // ~28 deg
-#define MAX_YAW_ANGLE 0.5f   // ~28 deg
+#define MAX_YAW_RATE 1.571f  // 90 deg/s
 
 #define MAX_ANGLE_FAILSAFE 1.05f // ~60 deg — zero throttle if exceeded
 
@@ -72,6 +72,7 @@ typedef struct {
 } MotorBias;
 
 static MotorBias bias = {0};
+static uint32_t yaw_last_us = 0;
 
 static uint8_t led_config_blink_ticks = 0;
 
@@ -83,16 +84,16 @@ static uint8_t led_config_blink_ticks = 0;
 static void drive_motors(float throttle, PID *p, MotorBias *b) {
     // +x +y (front-right, CW)
     float m1 =
-        throttle + b->motor1 + p->output.roll + p->output.pitch + p->output.yaw;
+        throttle + b->motor1 - p->output.roll + p->output.pitch + p->output.yaw;
     // -x +y (front-left, CCW)
     float m2 =
-        throttle + b->motor2 - p->output.roll + p->output.pitch - p->output.yaw;
+        throttle + b->motor2 + p->output.roll + p->output.pitch - p->output.yaw;
     // +x -y (rear-right, CCW)
     float m3 =
-        throttle + b->motor3 + p->output.roll - p->output.pitch - p->output.yaw;
+        throttle + b->motor3 - p->output.roll - p->output.pitch - p->output.yaw;
     // -x -y (rear-left, CW)
     float m4 =
-        throttle + b->motor4 - p->output.roll - p->output.pitch + p->output.yaw;
+        throttle + b->motor4 + p->output.roll - p->output.pitch + p->output.yaw;
 
     m1 = fmaxf(MIN_THROTTLE, fminf(MAX_THROTTLE, m1));
     m2 = fmaxf(MIN_THROTTLE, fminf(MAX_THROTTLE, m2));
@@ -170,7 +171,8 @@ void arm(void) {
     // reset stuff
     base_throttle = 0.0f;
     pid_reset(&pid);
-    imu.attitude.yaw = 0.0;
+    imu.attitude.yaw = 0.0f;
+    yaw_last_us = micros();
     IMU_reset_velocity(&imu);
 
     // start motors — wait for controller to signal ready via PC15
@@ -446,9 +448,11 @@ void task_optical_flow(void) {
     if (!optical_flow_is_flow_valid(of))
         return;
 
-    // flow_vel_x/y are actual velocity in cm/s (MTF-02P compensates internally)
-    imu.velocity.x = of->flow_vel_x / 100.0f;
-    imu.velocity.y = of->flow_vel_y / 100.0f;
+    // flow_vel_x/y are cm/s @ 1m — scale by actual distance to get true cm/s
+    float vx_cm = optical_flow_calc_velocity(of->flow_vel_x, of->distance);
+    float vy_cm = optical_flow_calc_velocity(of->flow_vel_y, of->distance);
+    imu.velocity.x = vx_cm / 100.0f;
+    imu.velocity.y = vy_cm / 100.0f;
 }
 
 static float apply_throttle_curve(float norm) {
@@ -498,7 +502,12 @@ void task_crsf_service(void) {
             ((roll_ch - CRSF_MID) / CRSF_RANGE) * MAX_ROLL_ANGLE;
         pid.setpoints.pitch =
             -((pitch_ch - CRSF_MID) / CRSF_RANGE) * MAX_PITCH_ANGLE;
-        pid.setpoints.yaw = ((yaw_ch - CRSF_MID) / CRSF_RANGE) * MAX_YAW_ANGLE;
+        float yaw_rate = ((yaw_ch - CRSF_MID) / CRSF_RANGE) * MAX_YAW_RATE;
+        uint32_t now_us = micros();
+        float dt = (now_us - yaw_last_us) * 1e-6f;
+        yaw_last_us = now_us;
+        if (dt > 0.0f && dt < 0.1f)
+            pid.setpoints.yaw += yaw_rate * dt;
 
         base_throttle = apply_throttle_curve(
             ((throttle_ch - CRSF_THR_MIN) / CRSF_THR_SPAN) * 2.0f - 1.0f);
@@ -520,8 +529,13 @@ void task_telementry(void) {
     packet.yaw_p_term = pid.yaw_pid.p_term;
     packet.yaw_i_term = pid.yaw_pid.i_term;
     packet.yaw_d_term = pid.yaw_pid.d_term;
+    packet.gyro_x = imu.gyro.x;
+    packet.gyro_y = imu.gyro.y;
+    packet.gyro_z = imu.gyro.z;
     packet.vel_x = imu.velocity.x;
     packet.vel_y = imu.velocity.y;
+    const optical_flow_data_t *of = optical_flow_get_data();
+    packet.height = (float)of->distance / 1000.0f;
 
     comm_send_frame(BT_TELEM, (const uint8_t *)&packet,
                     sizeof(TelemetryPacket));
