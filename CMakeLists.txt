@@ -4,6 +4,12 @@ cmake_minimum_required(VERSION 3.16)
 set(CMAKE_TOOLCHAIN_FILE ${CMAKE_CURRENT_SOURCE_DIR}/cmake/stm32f411.cmake)
 project(FlightController C ASM)
 
+# Default to Release so sqrtf inlines to vsqrt.f32; at -O0 the linker pulls
+# libm's wf_sqrt.o wrapper which references __errno and fails to link.
+if(NOT CMAKE_BUILD_TYPE)
+    set(CMAKE_BUILD_TYPE Release)
+endif()
+
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)

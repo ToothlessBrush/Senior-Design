@@ -38,23 +38,27 @@
 #define CRSF_THROTTLE_LOW 1100.0f
 #define CRSF_SIGNAL_TIMEOUT_MS 1000
 
-#define T_HOVER 0.45f
-#define EXPO_ALPHA 0.6f
 #define THR_HALF_SPAN 512.0f
-
-// Maximum stick-commanded angles (radians)
-#define MAX_ROLL_ANGLE 0.5f  // ~28 deg
-#define MAX_PITCH_ANGLE 0.5f // ~28 deg
-#define MAX_YAW_RATE 1.571f  // 90 deg/s
 
 #define MAX_ANGLE_FAILSAFE 1.05f // ~60 deg — zero throttle if exceeded
 
 // persistant data
-#define FLASH_CONFIG_MAGIC 0xDEADBEF1 // bumped: CommandConfig grew — added velocity_z PID
+#define FLASH_CONFIG_MAGIC                                                     \
+    0xDEADBEF4 // bumped: removed motor bias
 
 typedef struct __attribute__((packed)) {
     uint32_t magic;
-    CommandConfig config;
+    // PID gains for all 6 axes (5 params each = 30 floats)
+    float roll_Kp, roll_Ki, roll_Kd, roll_i_limit, roll_pid_limit;
+    float pitch_Kp, pitch_Ki, pitch_Kd, pitch_i_limit, pitch_pid_limit;
+    float yaw_Kp, yaw_Ki, yaw_Kd, yaw_i_limit, yaw_pid_limit;
+    float velocity_x_Kp, velocity_x_Ki, velocity_x_Kd, velocity_x_i_limit,
+        velocity_x_pid_limit;
+    float velocity_y_Kp, velocity_y_Ki, velocity_y_Kd, velocity_y_i_limit,
+        velocity_y_pid_limit;
+    float velocity_z_Kp, velocity_z_Ki, velocity_z_Kd, velocity_z_i_limit,
+        velocity_z_pid_limit;
+    CommandConfig flight_config;
     IMU_Calibration cal;
 } FlashConfig;
 
@@ -64,43 +68,44 @@ static IMU imu = {0};
 static PID pid = {0};
 static float base_throttle = 0.0f;
 
-typedef struct {
-    float motor1; /**< Motor 1 bias (front-right, +x+y, CW) */
-    float motor2; /**< Motor 2 bias (front-left,  -x+y, CCW) */
-    float motor3; /**< Motor 3 bias (rear-right,  +x-y, CW) */
-    float motor4; /**< Motor 4 bias (rear-left,   -x-y, CCW) */
-} MotorBias;
-
-static MotorBias bias = {0};
+static CommandConfig flight_config = {
+    .throttle_hover = 0.45f,
+    .throttle_expo = 0.6f,
+    .max_roll_angle = 0.5f,
+    .max_pitch_angle = 0.5f,
+    .max_yaw_rate = 1.571f,
+};
 static uint32_t yaw_last_us = 0;
 static float prev_height_m = 0.0f;
 static uint32_t prev_height_us = 0;
 
 static uint8_t led_config_blink_ticks = 0;
+static float motor_out[4] = {0};
 
 // Frame: Y+ = front, X+ = right, Z+ = up (right-hand).
 // Roll  = rotation about Y (front): right motors (+x) get +roll, left motors
 // (-x) get -roll. Pitch = rotation about X (right): front motors (+y) get
 // +pitch, rear motors (-y) get -pitch. Yaw   = rotation about Z: CW motors
 // (M1,M3) react +yaw, CCW motors (M2,M4) react -yaw.
-static void drive_motors(float throttle, PID *p, MotorBias *b) {
-    // +x +y (front-right, CW)
-    float m1 =
-        throttle + b->motor1 - p->output.roll + p->output.pitch + p->output.yaw;
-    // -x +y (front-left, CCW)
-    float m2 =
-        throttle + b->motor2 + p->output.roll + p->output.pitch - p->output.yaw;
-    // +x -y (rear-right, CCW)
-    float m3 =
-        throttle + b->motor3 - p->output.roll - p->output.pitch - p->output.yaw;
-    // -x -y (rear-left, CW)
-    float m4 =
-        throttle + b->motor4 + p->output.roll - p->output.pitch + p->output.yaw;
+static void drive_motors(float throttle, PID *p) {
+    // +x +y (front-right, CCW)
+    float m1 = throttle - p->output.roll + p->output.pitch - p->output.yaw;
+    // -x +y (front-left, CW)
+    float m2 = throttle + p->output.roll + p->output.pitch + p->output.yaw;
+    // +x -y (rear-right, CW)
+    float m3 = throttle - p->output.roll - p->output.pitch + p->output.yaw;
+    // -x -y (rear-left, CCW)
+    float m4 = throttle + p->output.roll - p->output.pitch - p->output.yaw;
 
     m1 = fmaxf(MIN_THROTTLE, fminf(MAX_THROTTLE, m1));
     m2 = fmaxf(MIN_THROTTLE, fminf(MAX_THROTTLE, m2));
     m3 = fmaxf(MIN_THROTTLE, fminf(MAX_THROTTLE, m3));
     m4 = fmaxf(MIN_THROTTLE, fminf(MAX_THROTTLE, m4));
+
+    motor_out[0] = m1;
+    motor_out[1] = m2;
+    motor_out[2] = m3;
+    motor_out[3] = m4;
 
     SetMotorThrottleSPI(Motor1, (uint16_t)(m1 * 2000.0f + 1.0f));
     SetMotorThrottleSPI(Motor2, (uint16_t)(m2 * 2000.0f + 1.0f));
@@ -127,42 +132,39 @@ void fc_init(void) {
     if (saved.magic == FLASH_CONFIG_MAGIC) {
         imu.cal = saved.cal;
 
-        bias.motor1 = saved.config.motor1;
-        bias.motor2 = saved.config.motor2;
-        bias.motor3 = saved.config.motor3;
-        bias.motor4 = saved.config.motor4;
+        flight_config = saved.flight_config;
 
         PIDCreateInfo pid_info = {
-            .roll_Kp = saved.config.roll_Kp,
-            .roll_Ki = saved.config.roll_Ki,
-            .roll_Kd = saved.config.roll_Kd,
-            .roll_Ki_limit = saved.config.roll_i_limit,
-            .roll_limit = saved.config.roll_pid_limit,
-            .pitch_Kp = saved.config.pitch_Kp,
-            .pitch_Ki = saved.config.pitch_Ki,
-            .pitch_Kd = saved.config.pitch_Kd,
-            .pitch_Ki_limit = saved.config.pitch_i_limit,
-            .pitch_limit = saved.config.pitch_pid_limit,
-            .yaw_Kp = saved.config.yaw_Kp,
-            .yaw_Ki = saved.config.yaw_Ki,
-            .yaw_Kd = saved.config.yaw_Kd,
-            .yaw_Ki_limit = saved.config.yaw_i_limit,
-            .yaw_limit = saved.config.yaw_pid_limit,
-            .velocity_x_Kp = saved.config.velocity_x_Kp,
-            .velocity_x_Ki = saved.config.velocity_x_Ki,
-            .velocity_x_Kd = saved.config.velocity_x_Kd,
-            .velocity_x_Ki_limit = saved.config.velocity_x_i_limit,
-            .velocity_x_limit = saved.config.velocity_x_pid_limit,
-            .velocity_y_Kp = saved.config.velocity_y_Kp,
-            .velocity_y_Ki = saved.config.velocity_y_Ki,
-            .velocity_y_Kd = saved.config.velocity_y_Kd,
-            .velocity_y_Ki_limit = saved.config.velocity_y_i_limit,
-            .velocity_y_limit = saved.config.velocity_y_pid_limit,
-            .velocity_z_Kp = saved.config.velocity_z_Kp,
-            .velocity_z_Ki = saved.config.velocity_z_Ki,
-            .velocity_z_Kd = saved.config.velocity_z_Kd,
-            .velocity_z_Ki_limit = saved.config.velocity_z_i_limit,
-            .velocity_z_limit = saved.config.velocity_z_pid_limit,
+            .roll_Kp = saved.roll_Kp,
+            .roll_Ki = saved.roll_Ki,
+            .roll_Kd = saved.roll_Kd,
+            .roll_Ki_limit = saved.roll_i_limit,
+            .roll_limit = saved.roll_pid_limit,
+            .pitch_Kp = saved.pitch_Kp,
+            .pitch_Ki = saved.pitch_Ki,
+            .pitch_Kd = saved.pitch_Kd,
+            .pitch_Ki_limit = saved.pitch_i_limit,
+            .pitch_limit = saved.pitch_pid_limit,
+            .yaw_Kp = saved.yaw_Kp,
+            .yaw_Ki = saved.yaw_Ki,
+            .yaw_Kd = saved.yaw_Kd,
+            .yaw_Ki_limit = saved.yaw_i_limit,
+            .yaw_limit = saved.yaw_pid_limit,
+            .velocity_x_Kp = saved.velocity_x_Kp,
+            .velocity_x_Ki = saved.velocity_x_Ki,
+            .velocity_x_Kd = saved.velocity_x_Kd,
+            .velocity_x_Ki_limit = saved.velocity_x_i_limit,
+            .velocity_x_limit = saved.velocity_x_pid_limit,
+            .velocity_y_Kp = saved.velocity_y_Kp,
+            .velocity_y_Ki = saved.velocity_y_Ki,
+            .velocity_y_Kd = saved.velocity_y_Kd,
+            .velocity_y_Ki_limit = saved.velocity_y_i_limit,
+            .velocity_y_limit = saved.velocity_y_pid_limit,
+            .velocity_z_Kp = saved.velocity_z_Kp,
+            .velocity_z_Ki = saved.velocity_z_Ki,
+            .velocity_z_Kd = saved.velocity_z_Kd,
+            .velocity_z_Ki_limit = saved.velocity_z_i_limit,
+            .velocity_z_limit = saved.velocity_z_pid_limit,
         };
 
         pid_init(&pid, &pid_info);
@@ -229,7 +231,9 @@ void task_imu_pid(void) {
 #endif
 
     pid_update(&pid, &imu, FIXED_DT);
-    pid_velocity_z_update(&pid, &imu, FIXED_DT);
+    // pid_velocity_z_update(&pid, &imu, FIXED_DT);  // disabled — suspect
+    // breakage
+    pid.throttle_correction = 0.0f;
 
     if (!IS_ARMED(fc_state))
         return;
@@ -237,13 +241,13 @@ void task_imu_pid(void) {
     if (fabsf(imu.attitude.roll) > MAX_ANGLE_FAILSAFE ||
         fabsf(imu.attitude.pitch) > MAX_ANGLE_FAILSAFE) {
         fc_state |= FC_FAILSAFE;
-        drive_motors(0.0f, &pid, &bias);
+        drive_motors(0.0f, &pid);
         return;
     }
 
     float throttle = base_throttle + pid.throttle_correction;
     throttle = fmaxf(MIN_THROTTLE, fminf(MAX_THROTTLE, throttle));
-    drive_motors(throttle, &pid, &bias);
+    drive_motors(throttle, &pid);
 }
 
 void task_led(void) {
@@ -337,67 +341,15 @@ void task_config_service(void) {
         break;
     }
 
-    case CMD_SET_MOTOR_BIAS:
-        bias.motor1 = cmd.payload.bias.motor1;
-        bias.motor2 = cmd.payload.bias.motor2;
-        bias.motor3 = cmd.payload.bias.motor3;
-        bias.motor4 = cmd.payload.bias.motor4;
-        led_config_blink_ticks = 4;
-        comm_send_string_nb("LOG:SET_BIAS");
-        break;
-
     case CMD_CONFIG:
-        bias.motor1 = cmd.payload.sync.motor1;
-        bias.motor2 = cmd.payload.sync.motor2;
-        bias.motor3 = cmd.payload.sync.motor3;
-        bias.motor4 = cmd.payload.sync.motor4;
-
-        pid.pitch_pid.Kp = cmd.payload.sync.pitch_Kp;
-        pid.pitch_pid.Ki = cmd.payload.sync.pitch_Ki;
-        pid.pitch_pid.Kd = cmd.payload.sync.pitch_Kd;
-        pid.pitch_pid.integral_limit = cmd.payload.sync.pitch_i_limit;
-        pid.pitch_pid.output_limit = cmd.payload.sync.pitch_pid_limit;
-
-        pid.roll_pid.Kp = cmd.payload.sync.roll_Kp;
-        pid.roll_pid.Ki = cmd.payload.sync.roll_Ki;
-        pid.roll_pid.Kd = cmd.payload.sync.roll_Kd;
-        pid.roll_pid.integral_limit = cmd.payload.sync.roll_i_limit;
-        pid.roll_pid.output_limit = cmd.payload.sync.roll_pid_limit;
-
-        pid.yaw_pid.Kp = cmd.payload.sync.yaw_Kp;
-        pid.yaw_pid.Ki = cmd.payload.sync.yaw_Ki;
-        pid.yaw_pid.Kd = cmd.payload.sync.yaw_Kd;
-        pid.yaw_pid.integral_limit = cmd.payload.sync.yaw_i_limit;
-        pid.yaw_pid.output_limit = cmd.payload.sync.yaw_pid_limit;
-
-        pid.velocity_x_pid.Kp = cmd.payload.sync.velocity_x_Kp;
-        pid.velocity_x_pid.Ki = cmd.payload.sync.velocity_x_Ki;
-        pid.velocity_x_pid.Kd = cmd.payload.sync.velocity_x_Kd;
-        pid.velocity_x_pid.integral_limit = cmd.payload.sync.velocity_x_i_limit;
-        pid.velocity_x_pid.output_limit = cmd.payload.sync.velocity_x_pid_limit;
-
-        pid.velocity_y_pid.Kp = cmd.payload.sync.velocity_y_Kp;
-        pid.velocity_y_pid.Ki = cmd.payload.sync.velocity_y_Ki;
-        pid.velocity_y_pid.Kd = cmd.payload.sync.velocity_y_Kd;
-        pid.velocity_y_pid.integral_limit = cmd.payload.sync.velocity_y_i_limit;
-        pid.velocity_y_pid.output_limit = cmd.payload.sync.velocity_y_pid_limit;
-
-        pid.velocity_z_pid.Kp = cmd.payload.sync.velocity_z_Kp;
-        pid.velocity_z_pid.Ki = cmd.payload.sync.velocity_z_Ki;
-        pid.velocity_z_pid.Kd = cmd.payload.sync.velocity_z_Kd;
-        pid.velocity_z_pid.integral_limit = cmd.payload.sync.velocity_z_i_limit;
-        pid.velocity_z_pid.output_limit = cmd.payload.sync.velocity_z_pid_limit;
-
+        flight_config = cmd.payload.config;
         led_config_blink_ticks = 4;
         comm_send_string_nb("LOG:SET_CONFIG");
         break;
 
     case CMD_SAVE: {
-        CommandConfig cfg = {
-            .motor1 = bias.motor1,
-            .motor2 = bias.motor2,
-            .motor3 = bias.motor3,
-            .motor4 = bias.motor4,
+        FlashConfig to_save = {
+            .magic = FLASH_CONFIG_MAGIC,
             .roll_Kp = pid.roll_pid.Kp,
             .roll_Ki = pid.roll_pid.Ki,
             .roll_Kd = pid.roll_pid.Kd,
@@ -428,10 +380,7 @@ void task_config_service(void) {
             .velocity_z_Kd = pid.velocity_z_pid.Kd,
             .velocity_z_i_limit = pid.velocity_z_pid.integral_limit,
             .velocity_z_pid_limit = pid.velocity_z_pid.output_limit,
-        };
-        FlashConfig to_save = {
-            .magic = FLASH_CONFIG_MAGIC,
-            .config = cfg,
+            .flight_config = flight_config,
             .cal = imu.cal,
         };
         bool save_ok = flash_save(CONFIG_SECTOR, CONFIG_SECTOR_ADDR, &to_save,
@@ -472,7 +421,8 @@ void task_optical_flow(void) {
 
     const optical_flow_data_t *of = optical_flow_get_data();
 
-    // Vertical velocity from ToF height derivative (regardless of flow validity)
+    // Vertical velocity from ToF height derivative (regardless of flow
+    // validity)
     if (optical_flow_is_distance_valid(of)) {
         float height_m = (float)of->distance / 1000.0f;
         uint32_t now_us = micros();
@@ -495,10 +445,11 @@ void task_optical_flow(void) {
 }
 
 static float apply_throttle_curve(float norm) {
-    float x_exp = EXPO_ALPHA * norm * norm * norm + (1.0f - EXPO_ALPHA) * norm;
-    float thr = (x_exp >= 0.0f)
-                    ? T_HOVER + x_exp * (MAX_BASE_THROTTLE - T_HOVER)
-                    : T_HOVER + x_exp * (T_HOVER - MIN_THROTTLE);
+    float expo = flight_config.throttle_expo;
+    float hover = flight_config.throttle_hover;
+    float x_exp = expo * norm * norm * norm + (1.0f - expo) * norm;
+    float thr = (x_exp >= 0.0f) ? hover + x_exp * (MAX_BASE_THROTTLE - hover)
+                                : hover + x_exp * (hover - MIN_THROTTLE);
 
     return fmaxf(MIN_THROTTLE, fminf(MAX_BASE_THROTTLE, thr));
 }
@@ -538,11 +489,12 @@ void task_crsf_service(void) {
         float yaw_ch = crsf_get_channel(CRSF_CH_YAW);
 
         pid.setpoints.roll =
-            ((roll_ch - CRSF_MID) / CRSF_RANGE) * MAX_ROLL_ANGLE;
-        pid.setpoints.pitch =
-            -((pitch_ch - CRSF_MID) / CRSF_RANGE) * MAX_PITCH_ANGLE;
+            ((roll_ch - CRSF_MID) / CRSF_RANGE) * flight_config.max_roll_angle;
+        pid.setpoints.pitch = -((pitch_ch - CRSF_MID) / CRSF_RANGE) *
+                              flight_config.max_pitch_angle;
 
-        float yaw_rate = ((yaw_ch - CRSF_MID) / CRSF_RANGE) * MAX_YAW_RATE;
+        float yaw_rate =
+            ((yaw_ch - CRSF_MID) / CRSF_RANGE) * flight_config.max_yaw_rate;
         uint32_t now_us = micros();
         float dt = (now_us - yaw_last_us) * 1e-6f;
         yaw_last_us = now_us;
@@ -550,7 +502,7 @@ void task_crsf_service(void) {
             pid.setpoints.yaw += yaw_rate * dt;
 
         base_throttle = apply_throttle_curve(
-            ((throttle_ch - CRSF_THR_MIN) / CRSF_THR_SPAN) * 2.0f - 1.0f);
+            ((throttle_ch - CRSF_THR_MIN) / CRSF_THR_SPAN) * 2.0 - 1.0);
     }
 }
 
@@ -577,6 +529,16 @@ void task_telementry(void) {
     packet.vel_z = imu.velocity_z;
     const optical_flow_data_t *of = optical_flow_get_data();
     packet.height = (float)of->distance / 1000.0f;
+
+    packet.motor1 = motor_out[0];
+    packet.motor2 = motor_out[1];
+    packet.motor3 = motor_out[2];
+    packet.motor4 = motor_out[3];
+
+    packet.input_throttle = base_throttle;
+    packet.input_roll = pid.setpoints.roll;
+    packet.input_pitch = pid.setpoints.pitch;
+    packet.input_yaw = pid.setpoints.yaw;
 
     comm_send_frame(BT_TELEM, (const uint8_t *)&packet,
                     sizeof(TelemetryPacket));

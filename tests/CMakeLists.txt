@@ -5,7 +5,7 @@
 #
 # Example:
 #   add_fw_test(test_uart1  ${SRC}/uart.c)
-#   add_fw_test(test_optical_flow  ${SRC}/uart.c ${SRC}/lora.c ${SRC}/optical_flow.c)
+#   add_fw_test(test_optical_flow  ${SRC}/uart.c ${SRC}/bluetooth.c ${SRC}/optical_flow.c)
 function(add_fw_test TEST_NAME)
     set(SRC ${CMAKE_SOURCE_DIR}/src)
 
@@ -42,6 +42,6 @@ set(SRC ${CMAKE_SOURCE_DIR}/src)
 
 add_fw_test(test_optical_flow
     ${SRC}/uart.c
-    ${SRC}/lora.c
+    ${SRC}/bluetooth.c
     ${SRC}/optical_flow.c
 )

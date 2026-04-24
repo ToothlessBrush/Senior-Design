@@ -7,7 +7,6 @@ add_library(core STATIC
     systick.c
     system.c
     utils.c
-    protocol.c
     syscalls.c
 )
 target_link_libraries(core PUBLIC stm32f411)
@@ -22,14 +21,11 @@ add_executable(FlightController
     spi.c
     imu.c
     pid.c
-    lora.c
     bluetooth.c
     motor_control.c
     optical_flow.c
     crsf.c
 )
-# To use LoRa instead of Bluetooth, uncomment the line below:
-# target_compile_definitions(FlightController PRIVATE USE_LORA)
 target_link_libraries(FlightController PRIVATE core)
 
 add_custom_command(TARGET FlightController POST_BUILD

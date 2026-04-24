@@ -147,17 +147,10 @@ ParsedCommand bt_parse_command(const uint8_t *data, uint8_t length) {
         }
         break;
 
-    case BT_CMD_SET_MOTOR_BIAS:
-        if (payload_len == sizeof(CommandMotorBias)) {
-            cmd.type = CMD_SET_MOTOR_BIAS;
-            memcpy(&cmd.payload.bias, payload, sizeof(CommandMotorBias));
-        }
-        break;
-
     case BT_CMD_CONFIG:
         if (payload_len == sizeof(CommandConfig)) {
             cmd.type = CMD_CONFIG;
-            memcpy(&cmd.payload.sync, payload, sizeof(CommandConfig));
+            memcpy(&cmd.payload.config, payload, sizeof(CommandConfig));
         }
         break;
 

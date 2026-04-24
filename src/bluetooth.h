@@ -36,8 +36,7 @@
 // CRSF) Uplink (GUI → firmware) command type bytes
 #define BT_CMD_CALIBRATE 0x01      /**< No payload (0 bytes) */
 #define BT_CMD_SET_PID 0x02        /**< CommandSetPid payload (21 bytes) */
-#define BT_CMD_SET_MOTOR_BIAS 0x03 /**< CommandMotorBias payload (16 bytes) */
-#define BT_CMD_CONFIG 0x04         /**< CommandConfig payload (116 bytes) */
+#define BT_CMD_CONFIG 0x04         /**< CommandConfig payload (20 bytes) */
 #define BT_CMD_SAVE                                                            \
     0x05 /**< No payload (0 bytes) — save current runtime config to flash */
 
