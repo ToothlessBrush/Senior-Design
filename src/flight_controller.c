@@ -43,8 +43,7 @@
 #define MAX_ANGLE_FAILSAFE 1.05f // ~60 deg — zero throttle if exceeded
 
 // persistant data
-#define FLASH_CONFIG_MAGIC                                                     \
-    0xDEADBEF4 // bumped: removed motor bias
+#define FLASH_CONFIG_MAGIC 0xDEADBEF6 // bumped: added crc trailer
 
 typedef struct __attribute__((packed)) {
     uint32_t magic;
@@ -60,7 +59,10 @@ typedef struct __attribute__((packed)) {
         velocity_z_pid_limit;
     CommandConfig flight_config;
     IMU_Calibration cal;
+    uint32_t crc; // CRC-32/MPEG-2 over all preceding bytes
 } FlashConfig;
+
+#define FLASH_CONFIG_CRC_BYTES (sizeof(FlashConfig) - sizeof(uint32_t))
 
 uint8_t fc_state = 0;
 
@@ -129,9 +131,12 @@ void fc_init(void) {
     FlashConfig saved;
     flash_read(CONFIG_SECTOR_ADDR, &saved, sizeof(FlashConfig));
 
-    if (saved.magic == FLASH_CONFIG_MAGIC) {
-        imu.cal = saved.cal;
+    bool magic_ok = (saved.magic == FLASH_CONFIG_MAGIC);
+    uint32_t computed_crc = crc32_compute(&saved, FLASH_CONFIG_CRC_BYTES);
+    bool crc_ok = magic_ok && (computed_crc == saved.crc);
 
+    if (magic_ok && crc_ok) {
+        imu.cal = saved.cal;
         flight_config = saved.flight_config;
 
         PIDCreateInfo pid_info = {
@@ -166,13 +171,17 @@ void fc_init(void) {
             .velocity_z_Ki_limit = saved.velocity_z_i_limit,
             .velocity_z_limit = saved.velocity_z_pid_limit,
         };
-
         pid_init(&pid, &pid_info);
         comm_send_string("LOG:INIT_CONFIG_OK");
     } else {
         PIDCreateInfo pid_info = {0};
         pid_init(&pid, &pid_info);
-        comm_send_string("LOG:INIT_NO_CONFIG");
+        fc_state |= FC_CONFIG_BAD;
+        if (!magic_ok) {
+            comm_send_string("LOG:INIT_BAD_MAGIC");
+        } else {
+            comm_send_string("LOG:INIT_BAD_CRC");
+        }
     }
 }
 
@@ -231,7 +240,7 @@ void task_imu_pid(void) {
 #endif
 
     pid_update(&pid, &imu, FIXED_DT);
-    // pid_velocity_z_update(&pid, &imu, FIXED_DT);  // disabled — suspect
+    pid_velocity_z_update(&pid, &imu, FIXED_DT);
     // breakage
     pid.throttle_correction = 0.0f;
 
@@ -279,6 +288,14 @@ void task_led(void) {
         // tick % 8 at 2Hz = 4s cycle; pulses at positions 0,1 and 2,3
         uint8_t t = tick % 8;
         (t == 0 || t == 2) ? led_on() : led_off();
+        return;
+    }
+
+    if (IS_CONFIG_BAD(fc_state)) {
+        // Flash config bad (no magic / bad CRC / failed save): triple-pulse
+        // tick % 12 = 3 quick blinks then long pause
+        uint8_t t = tick % 12;
+        (t == 0 || t == 2 || t == 4) ? led_on() : led_off();
         return;
     }
 
@@ -383,10 +400,27 @@ void task_config_service(void) {
             .flight_config = flight_config,
             .cal = imu.cal,
         };
+        to_save.crc = crc32_compute(&to_save, FLASH_CONFIG_CRC_BYTES);
         bool save_ok = flash_save(CONFIG_SECTOR, CONFIG_SECTOR_ADDR, &to_save,
                                   sizeof(FlashConfig));
         led_config_blink_ticks = 4;
         comm_send_string_nb(save_ok ? "LOG:SAVE_OK" : "LOG:SAVE_FAILED");
+
+        // Verification: read flash back and re-validate CRC. If both the
+        // raw bytes and CRC pass, clear FC_CONFIG_BAD; otherwise leave it set
+        // so the LED keeps warning.
+        FlashConfig verify;
+        flash_read(CONFIG_SECTOR_ADDR, &verify, sizeof(FlashConfig));
+        uint32_t verify_crc = crc32_compute(&verify, FLASH_CONFIG_CRC_BYTES);
+        bool verify_ok = save_ok && (verify.magic == FLASH_CONFIG_MAGIC) &&
+                         (verify_crc == verify.crc);
+        if (verify_ok) {
+            fc_state &= ~FC_CONFIG_BAD;
+            comm_send_string_nb("LOG:SAVE_VERIFIED");
+        } else {
+            fc_state |= FC_CONFIG_BAD;
+            comm_send_string_nb("LOG:SAVE_BAD_VERIFY");
+        }
         break;
     }
 
@@ -396,14 +430,14 @@ void task_config_service(void) {
             IMU_calibrate(&imu, 6660);
             toggle_led();
 
-            FlashConfig to_save;
-            flash_read(CONFIG_SECTOR_ADDR, &to_save, sizeof(FlashConfig));
-            to_save.magic = FLASH_CONFIG_MAGIC;
-            to_save.cal = imu.cal; // overwrite with fresh cal
-            bool cal_ok = flash_save(CONFIG_SECTOR, CONFIG_SECTOR_ADDR,
-                                     &to_save, sizeof(FlashConfig));
-            comm_send_string_nb(cal_ok ? "LOG:CALIBRATE_SAVED"
-                                       : "LOG:CALIBRATE_SAVE_FAILED");
+            // Flash-backed config disabled — calibration is session-only.
+            // FlashConfig to_save;
+            // flash_read(CONFIG_SECTOR_ADDR, &to_save, sizeof(FlashConfig));
+            // to_save.magic = FLASH_CONFIG_MAGIC;
+            // to_save.cal = imu.cal; // overwrite with fresh cal
+            // bool cal_ok = flash_save(CONFIG_SECTOR, CONFIG_SECTOR_ADDR,
+            //                          &to_save, sizeof(FlashConfig));
+            comm_send_string_nb("LOG:CALIBRATE_OK");
         }
         break;
 
@@ -494,7 +528,7 @@ void task_crsf_service(void) {
                               flight_config.max_pitch_angle;
 
         float yaw_rate =
-            ((yaw_ch - CRSF_MID) / CRSF_RANGE) * flight_config.max_yaw_rate;
+            -((yaw_ch - CRSF_MID) / CRSF_RANGE) * flight_config.max_yaw_rate;
         uint32_t now_us = micros();
         float dt = (now_us - yaw_last_us) * 1e-6f;
         yaw_last_us = now_us;

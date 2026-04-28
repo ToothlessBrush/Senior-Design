@@ -149,3 +149,17 @@ bool flash_save(uint8_t sector, uint32_t sector_addr, const void *data,
 void flash_read(uint32_t addr, void *out, uint32_t size_bytes) {
     memcpy(out, (const void *)addr, size_bytes);
 }
+
+uint32_t crc32_compute(const void *data, uint32_t size_bytes) {
+    if (!(RCC->AHB1ENR & RCC_AHB1ENR_CRCEN)) {
+        RCC->AHB1ENR |= RCC_AHB1ENR_CRCEN;
+        __DSB();
+    }
+    CRC->CR = CRC_CR_RESET;
+    const uint32_t *words = (const uint32_t *)data;
+    uint32_t n = size_bytes / 4;
+    for (uint32_t i = 0; i < n; i++) {
+        CRC->DR = words[i];
+    }
+    return CRC->DR;
+}

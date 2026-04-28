@@ -78,4 +78,8 @@ bool flash_save(uint8_t sector, uint32_t sector_addr, const void *data,
 
 void flash_read(uint32_t addr, void *out, uint32_t size_bytes);
 
+// Hardware CRC-32/MPEG-2 over a buffer. size_bytes must be a multiple of 4
+// and data must be 4-byte aligned. Self-enables the peripheral on first call.
+uint32_t crc32_compute(const void *data, uint32_t size_bytes);
+
 #endif // SYSTEM_H
